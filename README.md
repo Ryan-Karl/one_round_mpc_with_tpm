@@ -1,6 +1,7 @@
 # one_round_mpc_with_tpm
 
-How to install:
+How to install TPM:
+---------------------------------------------------
 Download from https://sourceforge.net/projects/ibmtpm20tss/ and https://sourceforge.net/projects/ibmswtpm2/
 Use tar xvf to unzip.
 
@@ -16,12 +17,14 @@ sudo chmod 777 /dev/tpm0
 
 
 For TPM:
+------------------------------------------------------
 “cd” into “src” subdirectory of tpm directory and enter “make” (about 1 minute).
 
 Run command “./tpm_server”
 
-In seperate terminal, for TSS:
 
+In seperate terminal, for TSS:
+------------------------------------------------------
 "cd" into "utils" subdirectory of tss directory and enter "make" (about 1 minute).
 
 run commmand "./reg.sh –a" (should recieve success message for 31 tests after 2-3 minutes but on first run may encounter errors)
@@ -41,4 +44,77 @@ Use Firefox to navigate to http://localhost/tpm2/index.php
 May need to run "service httpd start" or "service httpd restart" if there is trouble connecting to the server.
 
 This will give you access to a GUI framework that demonstrates its core functionality (we are interested in generating keys and the nv indexes).
+
+
+
+Notes on Frigate Circuits:
+----------------------------------------------------------------
+
+flags:
+ -i           run interpreter after compilation
+ -i_io        see interpreter input and output (requires -i)
+ -i_output [file]	prints out gates and input output (copies are replaced with XORs with 0 as second operand) file (requires -i)
+
+
+Example uses of Frigate:
+---------------------------------------------------------------
+./frigate ./tests/temp.wir -i
+->>>> this compiles temp.wir, runs it with the interpreter
+
+./frigate ./tests/temp.wir -i_output out -i
+->>>> this compiles temp.wir, runs it with the interpreter and outputs the circuit to file “out”
+
+./frigate ./tests/temp.wir -i -i_io
+->>>> this compiles temp.wir, runs it with the interpreter and prints out the output
+
+flag: -i_output out -i     [-i is required with -i_output]
+
+output: (cat’d from file “out”)
+“
+IN 0 1
+IN 1 1
+IN 2 1
+IN 3 1
+IN 8 2
+IN 9 2
+IN 10 2
+IN 11 2
+15 16 0 0
+0 17 0 0
+6 19 8 0
+8 21 19 0
+6 18 0 21
+6 26 9 1
+6 23 26 18
+6 20 18 1
+8 21 26 20
+6 18 1 21
+6 26 10 2
+6 24 26 18
+6 20 18 2
+8 21 26 20
+6 18 2 21
+6 26 11 3
+6 25 26 18
+copy(6) 4 19 17
+copy(6) 5 23 17
+copy(6) 6 24 17
+copy(6) 7 25 17
+OUT 4 1
+OUT 5 1
+OUT 6 1
+OUT 7 1
+“
+
+IN 3 1 -> input next bit from party 1 to wire 3
+
+Interpret line 8 21 19 0 as, take inputs (from wires) 19 and 0, use truth table 8, and output to wire 21. 
+
+“truth table 8” refers to the truth table output values represented as a integer (8). 8 = output_00 | output_01 < 2 | output_10 < 3 | output_11 << 3. 
+
+In other words 8 is an AND gate, 6 is an XOR gate, 14 is an OR gate, 15 always returns 1 no matter the inputs, and 0 always returns 0 no matter the inputs.
+
+copy(6) 4 19 17 -> copies whats on wire 19 to wire 4.
+
+OUT 4 1 -> output whats on wire 4 to party 1
 
