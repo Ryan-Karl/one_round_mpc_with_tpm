@@ -46,6 +46,20 @@ May need to run "service httpd start" or "service httpd restart" if there is tro
 This will give you access to a GUI framework that demonstrates its core functionality (we are interested in generating keys and the nv indexes).
 
 
+Example TPM Program
+---------------------------------------------------------
+The signapp.c source shows how several commands can be chained together to form an
+application. It does the following:
+> Start an authorization HMAC session
+> Create a primary storage key, using the session
+> Create a signing key under the storage key
+> Load the signing key, using the session
+> Sign a digest, using the session
+> Verify the signature
+> Flush the primary key
+> Flush the signing key
+> Flush the session
+
 
 Notes on Frigate Circuits:
 ----------------------------------------------------------------
