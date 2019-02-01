@@ -17,16 +17,21 @@ sudo chmod 777 /dev/tpm0
 
 For TPM:
 “cd” into “src” subdirectory of tpm directory and enter “make” (about 1 minute).
+
 Run command “./tpm_server”
 
 In seperate terminal, for TSS:
+
 "cd" into "utils" subdirectory of tss directory and enter "make" (about 1 minute).
+
 run commmand "./reg.sh –a" (should recieve success message for 31 tests after 2-3 minutes but on first run may encounter errors)
+
 "cd" into "demo" subdirectory of tss directory and enter "make".
 
 In “utils” subdirectory of tss directory run “./powerup” and “./startup”. 
 
 sudo systemctl restart apache2
+
 sudo ufw allow 80
 
 In “utils” subdirectory of tss directory run “./powerup” and “./startup”. 
