@@ -50,14 +50,23 @@ Example TPM Program
 ---------------------------------------------------------
 The signapp.c source shows how several commands can be chained together to form an
 application. It does the following:
+
 > Start an authorization HMAC session
+
 > Create a primary storage key, using the session
+
 > Create a signing key under the storage key
+
 > Load the signing key, using the session
+
 > Sign a digest, using the session
+
 > Verify the signature
+
 > Flush the primary key
+
 > Flush the signing key
+
 > Flush the session
 
 
