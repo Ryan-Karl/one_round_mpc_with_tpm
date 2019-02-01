@@ -1,15 +1,19 @@
 # one_round_mpc_with_tpm
 
 How to install:
-
 Download from https://sourceforge.net/projects/ibmtpm20tss/ and https://sourceforge.net/projects/ibmswtpm2/
 Use tar xvf to unzip.
 
 sudo apt-get install openssl libssl-dev apache2 apache2-dev php php-dev libapache2-mod-php
+
 sudo mkdir /var/www/html/tpm2
+
 sudo chmod 777 /var/www/html/tpm2
+
 sudo mkdir /dev/tpm0
+
 sudo chmod 777 /dev/tpm0
+
 
 For TPM:
 “cd” into “src” subdirectory of tpm directory and enter “make” (about 1 minute).
