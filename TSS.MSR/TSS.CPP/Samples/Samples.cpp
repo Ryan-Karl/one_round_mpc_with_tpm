@@ -171,6 +171,53 @@ void Samples::MPC_TPM()
 {
 	Announce("MPC_TPM");
 
+	// Initialize the counter NV-slot.
+	int nvIndex = 1000;
+
+	// Initialize test data to write.
+	ByteVec mySecret{ 1, 2, 3, 4, 5, 4, 3, 2, 1 };
+
+	// Create handle for accessing primary storage key
+	TPM_HANDLE prim = MakeStoragePrimary();
+
+	//5 is the number of times we may increment before losing access to the key.
+	ByteVec nvAuth{ 1, 5, 1, 1 };
+	TPM_HANDLE nvHandle = TPM_HANDLE::NVHandle(nvIndex);
+
+
+	// Try to delete the slot if it exists
+	//tpm._AllowErrors().NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+
+
+	// Create Counter NV-slot
+	TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
+		TPM_ALG_ID::ECDH,  // Name-alg //changed SHA256 to ECDH
+		TPMA_NV::AUTHREAD | // Attributes
+		TPMA_NV::AUTHWRITE |
+		TPMA_NV::COUNTER,
+		NullVec,             // Policy
+		8);                  // Size in bytes
+
+
+	tpm.NV_DefineSpace(tpm._AdminOwner, nvAuth, nvTemplate2);
+
+
+	// We have set the authVal to be nvAuth, so set it in the handle too.
+	nvHandle.SetAuth(nvAuth);
+
+
+	// Should not be able to write (increment only)
+	tpm._ExpectError(TPM_RC::ATTRIBUTES).NV_Write(nvHandle, nvHandle, mySecret, 0);
+
+
+	// Should not be able to read before the first increment
+	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
+
+
+	// First increment
+	tpm.NV_Increment(nvHandle, nvHandle);
+
+
 	// To create a primary key the TPM must be provided with a template.
 	// This is for an RSA1024 encryption key.
 	// We will make a key in the "null hierarchy".
@@ -184,6 +231,13 @@ void Samples::MPC_TPM()
 			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
+	//Need this to support elliptic curves
+	//TPMS_ECC_PARMS(
+	//  TPMT_SYM_DEF_OBJECT::NullObject(),
+	//	TPMU_ASYM_SCHEME::???,
+	//	TPM_ECC_CURVE::NIST_P224,
+	//	TPMU_KDF_SCHEME::???,
+
 
 	// Create the key
 	// Changed CreatePrimaryResponse storagePrimary = tpm.CreatePrimary( newPrimary to CreatePrimaryResponse newPrimary = tpm.CreatePrimary(
@@ -193,8 +247,31 @@ void Samples::MPC_TPM()
 		storagePrimaryTemplate,
 		NullVec,
 		vector<TPMS_PCR_SELECTION>());
-	
-	
+
+	//Changed objectHandle to handle
+	TPM_HANDLE& keyHandle = storagePrimary.handle;
+
+
+	//Create data to test encryption 
+	ByteVec dataToEncrypt = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "secret").digest;
+	cout << "Data to encrypt: " << dataToEncrypt << endl;
+
+	//Test encryption/decryption operations
+	auto enc = tpm.RSA_Encrypt(keyHandle, dataToEncrypt, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << "RSA-encrypted data: " << enc << endl;
+
+	auto dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << "decrypted data: " << dec << endl;
+
+
+	if (dec == dataToEncrypt) {
+		cout << "Decryption worked" << endl;
+	}
+
+
+	_ASSERT(dataToEncrypt == dec);
+
+
 	// Make an AES key
 	TPMT_PUBLIC inPublic(TPM_ALG_ID::SHA256,
 		TPMA_OBJECT::decrypt |
@@ -214,62 +291,12 @@ void Samples::MPC_TPM()
 
 
 	TPM_HANDLE aesHandle = tpm.Load(prim, aesKey.outPrivate, aesKey.outPublic);
-	
-	
-	// Create Counter NV-slot
-	TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
-		TPM_ALG_ID::SHA256,  // Name-alg
-		TPMA_NV::AUTHREAD | // Attributes
-		TPMA_NV::AUTHWRITE |
-		TPMA_NV::COUNTER,
-		NullVec,             // Policy
-		8);                  // Size in bytes
 
-	tpm.NV_DefineSpace(tpm._AdminOwner, nvAuth, nvTemplate2);
 
-	
-	// Initialize the counter NV-slot.
-	int nvIndex = 1000;
+	//Create data to test AES encryption
+	ByteVec toEncrypt{ 1, 2, 3, 4, 5, 4, 3, 2, 12, 3, 4, 5 };
+	ByteVec iv(16);
 
-	// Initialize data to test encryption.
-	ByteVec mySecret{ 1, 2, 3, 4, 5, 4, 3, 2, 1 }; //RSA
-	ByteVec dataToEncrypt = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "secret").digest; //RSA
-	ByteVec toEncrypt{ 1, 2, 3, 4, 5, 4, 3, 2, 12, 3, 4, 5 }; //AES
-	ByteVec iv(16); //AES
-
-	// Create handle for accessing primary storage key
-	TPM_HANDLE prim = MakeStoragePrimary();
-
-	//5 is the number of times we may increment before losing access to the key.
-	ByteVec nvAuth{ 1, 5, 1, 1 };
-	TPM_HANDLE nvHandle = TPM_HANDLE::NVHandle(nvIndex);
-
-	// We have set the authVal to be nvAuth, so set it in the handle too.
-	nvHandle.SetAuth(nvAuth);
-
-	// Should not be able to write (increment only)
-	tpm._ExpectError(TPM_RC::ATTRIBUTES).NV_Write(nvHandle, nvHandle, mySecret, 0);
-
-	// Should not be able to read before the first increment
-	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
-
-	// First increment
-	tpm.NV_Increment(nvHandle, nvHandle);
-
-	//Test encryption/decryption operations
-	cout << "Data to encrypt: " << dataToEncrypt << endl;
-	auto enc = tpm.RSA_Encrypt(keyHandle, dataToEncrypt, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	cout << "RSA-encrypted data: " << enc << endl;
-
-	auto dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	cout << "decrypted data: " << dec << endl;
-
-	
-	_ASSERT(dataToEncrypt == dec);
-
-	if (dec == dataToEncrypt) {
-		cout << "RSA decryption worked" << endl;
-	}
 
 	auto encrypted = tpm.EncryptDecrypt(aesHandle, (BYTE)0, TPM_ALG_ID::CFB, iv, toEncrypt);
 	auto decrypted = tpm.EncryptDecrypt(aesHandle, (BYTE)1, TPM_ALG_ID::CFB, iv, encrypted.outData);
@@ -284,6 +311,10 @@ void Samples::MPC_TPM()
 	//**********************************************************************
 	//This assertion currently fails.
 	_ASSERT(decrypted.outData == toEncrypt);
+
+
+	//tpm.FlushContext(prim);
+	//tpm.FlushContext(aesHandle);
 
 
 	// We can put the primary key into NV with EvictControl
@@ -307,6 +338,10 @@ void Samples::MPC_TPM()
 	cout << "Public part of persistent primary" << endl << persistentPub.ToString(false);
 
 
+	// And delete it
+	//tpm.EvictControl(tpm._AdminOwner, persistentHandle, persistentHandle);
+
+
 	// Now encrypt something with the rsa key using padding
 	ByteVec pad{ 1, 2, 3, 4, 5, 6, 0 };
 	enc = storagePrimary.outPublic.Encrypt(mySecret, pad);
@@ -316,6 +351,9 @@ void Samples::MPC_TPM()
 
 
 	_ASSERT(mySecret == dec);
+
+
+
 
 
 	// Should now be able to read key from NV-index
@@ -341,6 +379,7 @@ void Samples::MPC_TPM()
 	return;
 }
 //****************************************************************************
+
 
 
 
