@@ -1,5 +1,24 @@
 # one_round_mpc_with_tpm
 
+Microsoft Insctructions
+================================================
+
+Download Visual Studio from https://visualstudio.microsoft.com/downloads/
+
+Double click simulator app downloaded from https://www.microsoft.com/en-us/download/details.aspx?id=52507&from=http%3A%2F%2Fresearch.microsoft.com%2Fen-us%2Fdownloads%2F35116857-e544-4003-8e7b-584182dc6833%2Fdefault.aspx.
+
+Double click on ...\GitHub\TSS.MSR\TSS.CPP\Src\TSS>CPP.sln
+
+Click okay to various prompts in Visual Studio and eventually click Build->Build Solution in upper dropdown menu.
+
+May need to download .NET 4.6 framework.
+
+May need to right click Samples.cpp and set as StartUp Project.
+
+
+Below Instructions for IBM Version (We switched to Microsoft)
+===================================================
+
 How to install TPM:
 ---------------------------------------------------
 Download from https://sourceforge.net/projects/ibmtpm20tss/ and https://sourceforge.net/projects/ibmswtpm2/
