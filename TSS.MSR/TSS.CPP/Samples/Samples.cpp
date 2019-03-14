@@ -171,7 +171,6 @@ void Samples::MPC_TPM()
 {
 	Announce("MPC_TPM");
 
-
 	// Initialize the counter NV-slot.
 	int nvIndex = 1000;
 
@@ -187,7 +186,7 @@ void Samples::MPC_TPM()
 
 
 	// Try to delete the slot if it exists
-	tpm._AllowErrors().NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+	//tpm._AllowErrors().NV_UndefineSpace(tpm._AdminOwner, nvHandle);
 
 
 	// Create Counter NV-slot
