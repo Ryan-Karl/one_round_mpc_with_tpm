@@ -210,201 +210,177 @@ void Samples::SetCol(UINT16 col)
 void Samples::MPC_TPM()
 {
 	Announce("MPC_TPM");
+
+	// To create a primary key the TPM must be provided with a template.
+	// This is for an RSA1024 encryption key.
+	// We will make a key in the "null hierarchy".
+	TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
+		TPMA_OBJECT::decrypt |
+		TPMA_OBJECT::sensitiveDataOrigin |
+		TPMA_OBJECT::userWithAuth,
+		NullVec,  // No policy
+		TPMS_RSA_PARMS(
+			TPMT_SYM_DEF_OBJECT::NullObject(),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+		TPM2B_PUBLIC_KEY_RSA(NullVec));
+
+
+	// Create the key
+	// Changed CreatePrimaryResponse storagePrimary = tpm.CreatePrimary( newPrimary to CreatePrimaryResponse newPrimary = tpm.CreatePrimary(
+	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
+		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
+		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
+		storagePrimaryTemplate,
+		NullVec,
+		vector<TPMS_PCR_SELECTION>());
 	
+	
+	// Make an AES key
+	TPMT_PUBLIC inPublic(TPM_ALG_ID::SHA256,
+		TPMA_OBJECT::decrypt |
+		TPMA_OBJECT::sensitiveDataOrigin |
+		TPMA_OBJECT::userWithAuth,
+		NullVec,
+		TPMS_SYMCIPHER_PARMS(
+			TPMT_SYM_DEF_OBJECT(TPM_ALG_ID::AES, 128, TPM_ALG_ID::CFB)),
+		TPM2B_DIGEST_Symcipher());
+
+
+	auto aesKey = tpm.Create(prim,
+		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
+		inPublic,
+		NullVec,
+		vector<TPMS_PCR_SELECTION>());
+
+
+	TPM_HANDLE aesHandle = tpm.Load(prim, aesKey.outPrivate, aesKey.outPublic);
+	
+	
+	// Create Counter NV-slot
+	TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
+		TPM_ALG_ID::SHA256,  // Name-alg
+		TPMA_NV::AUTHREAD | // Attributes
+		TPMA_NV::AUTHWRITE |
+		TPMA_NV::COUNTER,
+		NullVec,             // Policy
+		8);                  // Size in bytes
+
+	tpm.NV_DefineSpace(tpm._AdminOwner, nvAuth, nvTemplate2);
+
 	
 	// Initialize the counter NV-slot.
-    int nvIndex = 1000;
-	
+	int nvIndex = 1000;
+
+	// Initialize data to test encryption.
+	ByteVec mySecret{ 1, 2, 3, 4, 5, 4, 3, 2, 1 }; //RSA
+	ByteVec dataToEncrypt = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "secret").digest; //RSA
+	ByteVec toEncrypt{ 1, 2, 3, 4, 5, 4, 3, 2, 12, 3, 4, 5 }; //AES
+	ByteVec iv(16); //AES
+
+	// Create handle for accessing primary storage key
+	TPM_HANDLE prim = MakeStoragePrimary();
+
 	//5 is the number of times we may increment before losing access to the key.
-    ByteVec nvAuth { 1, 5, 1, 1 };
-    TPM_HANDLE nvHandle = TPM_HANDLE::NVHandle(nvIndex);
+	ByteVec nvAuth{ 1, 5, 1, 1 };
+	TPM_HANDLE nvHandle = TPM_HANDLE::NVHandle(nvIndex);
 
+	// We have set the authVal to be nvAuth, so set it in the handle too.
+	nvHandle.SetAuth(nvAuth);
 
-    // Try to delete the slot if it exists
-    tpm._AllowErrors().NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+	// Should not be able to write (increment only)
+	tpm._ExpectError(TPM_RC::ATTRIBUTES).NV_Write(nvHandle, nvHandle, mySecret, 0);
 
+	// Should not be able to read before the first increment
+	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
 
-    // Create Counter NV-slot
-    TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
-                               TPM_ALG_ID::SHA256,  // Name-alg
-                               TPMA_NV::AUTHREAD  | // Attributes
-                               TPMA_NV::AUTHWRITE |
-                               TPMA_NV::COUNTER,
-                               NullVec,             // Policy
-                               8);                  // Size in bytes
-
-
-    tpm.NV_DefineSpace(tpm._AdminOwner, nvAuth, nvTemplate2);
-
-
-    // We have set the authVal to be nvAuth, so set it in the handle too.
-    nvHandle.SetAuth(nvAuth);
-
-
-    // Should not be able to write (increment only)
-    tpm._ExpectError(TPM_RC::ATTRIBUTES).NV_Write(nvHandle, nvHandle, toWrite, 0);
-
-
-    // Should not be able to read before the first increment
-    tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
-
-
-    // First increment
-    tpm.NV_Increment(nvHandle, nvHandle);
-	
-
-    // To create a primary key the TPM must be provided with a template.
-    // This is for an RSA1024 encryption key.
-    // We will make a key in the "null hierarchy".
-    TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
-                                       TPMA_OBJECT::decrypt |
-                                       TPMA_OBJECT::sensitiveDataOrigin | 
-                                       TPMA_OBJECT::userWithAuth,
-                                       NullVec,  // No policy
-                                       TPMS_RSA_PARMS(
-                                           TPMT_SYM_DEF_OBJECT::NullObject(),
-                                           TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
-                                       TPM2B_PUBLIC_KEY_RSA(NullVec));
-
-
-    // Create the key
-    CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
-                                               TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
-                                               TPMS_SENSITIVE_CREATE(NullVec, NullVec),
-                                               storagePrimaryTemplate,
-                                               NullVec,
-                                               vector<TPMS_PCR_SELECTION>());
-
-
-    TPM_HANDLE& keyHandle = storagePrimary.objectHandle;
-
-
-	//Create data to test encryption 
-    ByteVec dataToEncrypt = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "secret").digest;
-    cout << "Data to encrypt: " << dataToEncrypt << endl;
+	// First increment
+	tpm.NV_Increment(nvHandle, nvHandle);
 
 	//Test encryption/decryption operations
-    auto enc = tpm.RSA_Encrypt(keyHandle, dataToEncrypt, TPMS_NULL_ASYM_SCHEME(), NullVec);
-    cout << "RSA-encrypted data: " << enc << endl;
-    
+	cout << "Data to encrypt: " << dataToEncrypt << endl;
+	auto enc = tpm.RSA_Encrypt(keyHandle, dataToEncrypt, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << "RSA-encrypted data: " << enc << endl;
+
 	auto dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), NullVec);
-    cout << "decrypted data: " << dec << endl;
-
-
-    if (dec == dataToEncrypt) {
-        cout << "Decryption worked" << endl;
-    }
-
-
-    _ASSERT(dataToEncrypt == dec);
-
-
-    // Make an AES key
-    TPMT_PUBLIC inPublic(TPM_ALG_ID::SHA256,
-						 TPMA_OBJECT::decrypt | 
-                         TPMA_OBJECT::sensitiveDataOrigin | 
-                         TPMA_OBJECT::userWithAuth,
-                         NullVec,
-                         TPMS_SYMCIPHER_PARMS(
-                             TPMT_SYM_DEF_OBJECT(TPM_ALG_ID::AES, 128, TPM_ALG_ID::CFB)),
-                         TPM2B_DIGEST_Symcipher());
-
-
-    auto aesKey = tpm.Create(prim, 
-                             TPMS_SENSITIVE_CREATE(NullVec, NullVec),
-                             inPublic, 
-                             NullVec,
-                             vector<TPMS_PCR_SELECTION>());
-
-
-    TPM_HANDLE aesHandle = tpm.Load(prim, aesKey.outPrivate, aesKey.outPublic);
-
-
-	//Create data to test AES encryption
-    ByteVec toEncrypt { 1, 2, 3, 4, 5, 4, 3, 2, 12, 3, 4, 5 };
-    ByteVec iv(16);
-
-
-    auto encrypted = tpm.EncryptDecrypt(aesHandle, (BYTE)0, TPM_ALG_ID::CFB, iv, toEncrypt);
-    auto decrypted = tpm.EncryptDecrypt(aesHandle, (BYTE)1, TPM_ALG_ID::CFB, iv, encrypted.outData);
-
-
-    cout << "AES encryption" << endl <<
-            "in:  " << toEncrypt << endl <<
-            "enc: " << encrypted.outData << endl <<
-            "dec: " << decrypted.outData << endl;
-
-
-    _ASSERT(decrypted.outData == toEncrypt);
-
-
-    //tpm.FlushContext(prim);
-    //tpm.FlushContext(aesHandle);
-
-
-    // We can put the primary key into NV with EvictControl
-    TPM_HANDLE persistentHandle = TPM_HANDLE::PersistentHandle(1000);
-
-
-    // First delete anything that might already be there
-    tpm._AllowErrors().EvictControl(tpm._AdminOwner, persistentHandle, persistentHandle);
-
-
-    // Make our primary persistent
-    tpm.EvictControl(tpm._AdminOwner, newPrimary.objectHandle, persistentHandle);
-
-
-    // Flush the old one
-    tpm.FlushContext(newPrimary.objectHandle);
-
-
-    // ReadPublic of the new persistent one
-    auto persistentPub = tpm.ReadPublic(persistentHandle);
-    cout << "Public part of persistent primary" << endl << persistentPub.ToString(false);
+	cout << "decrypted data: " << dec << endl;
 
 	
-    // And delete it
-    //tpm.EvictControl(tpm._AdminOwner, persistentHandle, persistentHandle);
+	_ASSERT(dataToEncrypt == dec);
 
-	
+	if (dec == dataToEncrypt) {
+		cout << "RSA decryption worked" << endl;
+	}
+
+	auto encrypted = tpm.EncryptDecrypt(aesHandle, (BYTE)0, TPM_ALG_ID::CFB, iv, toEncrypt);
+	auto decrypted = tpm.EncryptDecrypt(aesHandle, (BYTE)1, TPM_ALG_ID::CFB, iv, encrypted.outData);
+
+
+	cout << "AES encryption" << endl <<
+		"in:  " << toEncrypt << endl <<
+		"enc: " << encrypted.outData << endl <<
+		"dec: " << decrypted.outData << endl;
+
+	//**********************************************************************
+	//**********************************************************************
+	//This assertion currently fails.
+	_ASSERT(decrypted.outData == toEncrypt);
+
+
+	// We can put the primary key into NV with EvictControl
+	TPM_HANDLE persistentHandle = TPM_HANDLE::PersistentHandle(1000);
+
+
+	// First delete anything that might already be there
+	tpm._AllowErrors().EvictControl(tpm._AdminOwner, persistentHandle, persistentHandle);
+
+
+	// Make our primary persistent (changed objectHandle to handle)
+	tpm.EvictControl(tpm._AdminOwner, storagePrimary.handle, persistentHandle);
+
+
+	// Flush the old one (changed objectHandle to handle)
+	tpm.FlushContext(storagePrimary.handle);
+
+
+	// ReadPublic of the new persistent one
+	auto persistentPub = tpm.ReadPublic(persistentHandle);
+	cout << "Public part of persistent primary" << endl << persistentPub.ToString(false);
+
+
 	// Now encrypt something with the rsa key using padding
-    ByteVec pad { 1, 2, 3, 4, 5, 6, 0 };
-    enc = storagePrimary.outPublic.Encrypt(mySecret, pad);
-    dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), pad);
-    cout << "My           secret: " << mySecret << endl;
-    cout << "My decrypted secret: " << dec << endl;
+	ByteVec pad{ 1, 2, 3, 4, 5, 6, 0 };
+	enc = storagePrimary.outPublic.Encrypt(mySecret, pad);
+	dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), pad);
+	cout << "My           secret: " << mySecret << endl;
+	cout << "My decrypted secret: " << dec << endl;
 
 
-    _ASSERT(mySecret == dec);
-	
-	
+	_ASSERT(mySecret == dec);
 
 
-
-    // Should now be able to read key from NV-index
-    ByteVec beforeIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
-    cout << "Initial counter data:     " << beforeIncrement << endl;
-
-
-    // Should be able to increment
-    for (int j = 0; j < 5; j++) {
-        tpm.NV_Increment(nvHandle, nvHandle);
-    }
+	// Should now be able to read key from NV-index
+	ByteVec beforeIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
+	cout << "Initial counter data:     " << beforeIncrement << endl;
 
 
-    // And make sure that it's good
-    ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
-    cout << "After 5 increments:       " << afterIncrement << endl;
+	// Should be able to increment
+	for (int j = 0; j < 5; j++) {
+		tpm.NV_Increment(nvHandle, nvHandle);
+	}
 
 
-    // And then delete it
-    //tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
-	
-	
+	// And make sure that it's good
+	ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
+	cout << "After 5 increments:       " << afterIncrement << endl;
+
+
+	// And then delete it
+	//tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+
+
 	return;
 }
 //****************************************************************************
-
 
 
 
