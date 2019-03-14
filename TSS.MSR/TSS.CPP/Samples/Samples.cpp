@@ -69,7 +69,7 @@ void Samples::RunAllSamples()
 	_check
 	MPC_TPM();
     _check;
-    DictionaryAttack();  // Run early in the test set to avoid lockout
+    /*DictionaryAttack();  // Run early in the test set to avoid lockout
     _check;
     Hash();
     _check;
@@ -147,7 +147,7 @@ void Samples::RunAllSamples()
     _check;
     ReWrapSample();
     _check;
-    BoundSession();
+    BoundSession();*/
 
     Callback2();
 }
@@ -242,8 +242,8 @@ void Samples::MPC_TPM()
 		NullVec,
 		vector<TPMS_PCR_SELECTION>());
 
-
-	TPM_HANDLE& keyHandle = storagePrimary.objectHandle;
+	//Changed objectHandle to handle
+	TPM_HANDLE& keyHandle = storagePrimary.handle;
 
 
 	//Create data to test encryption 
@@ -301,7 +301,9 @@ void Samples::MPC_TPM()
 		"enc: " << encrypted.outData << endl <<
 		"dec: " << decrypted.outData << endl;
 
-
+	//**********************************************************************
+	//**********************************************************************
+	//This assertion currently fails.
 	_ASSERT(decrypted.outData == toEncrypt);
 
 
@@ -317,12 +319,12 @@ void Samples::MPC_TPM()
 	tpm._AllowErrors().EvictControl(tpm._AdminOwner, persistentHandle, persistentHandle);
 
 
-	// Make our primary persistent
-	tpm.EvictControl(tpm._AdminOwner, storagePrimary.objectHandle, persistentHandle);
+	// Make our primary persistent (changed objectHandle to handle)
+	tpm.EvictControl(tpm._AdminOwner, storagePrimary.handle, persistentHandle);
 
 
-	// Flush the old one
-	tpm.FlushContext(storagePrimary.objectHandle);
+	// Flush the old one (changed objectHandle to handle)
+	tpm.FlushContext(storagePrimary.handle);
 
 
 	// ReadPublic of the new persistent one
