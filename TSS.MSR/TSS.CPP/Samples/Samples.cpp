@@ -65,11 +65,11 @@ Samples::~Samples()
 void Samples::RunAllSamples()
 {
     _check
-    Rand();
+//    Rand();
 	_check
 	MPC_TPM();
     _check;
-    DictionaryAttack();  // Run early in the test set to avoid lockout
+	/*   DictionaryAttack();  // Run early in the test set to avoid lockout
     _check;
     Hash();
     _check;
@@ -147,7 +147,7 @@ void Samples::RunAllSamples()
     _check;
     ReWrapSample();
     _check;
-    BoundSession();
+    BoundSession();*/
 
     Callback2();
 }
@@ -168,6 +168,8 @@ void Samples::MPC_TPM()
 {
 	Announce("MPC_TPM");
 
+
+	//start_rsa***************
 	// We will make a key in the "null hierarchy".
 	TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
 		TPMA_OBJECT::decrypt |
@@ -224,25 +226,24 @@ void Samples::MPC_TPM()
 
 	tpm.FlushContext(keyHandle);
 
-	//end**************
-	/*
+	//end_rsa**************
+	
 	int nvIndex = 1000;
 	ByteVec nvAuth{ 1, 5, 1, 1 };
 	TPM_HANDLE nvHandle = TPM_HANDLE::NVHandle(nvIndex);
-
+	
 	// Try to delete the slot if it exists
 	tpm._AllowErrors().NV_UndefineSpace(tpm._AdminOwner, nvHandle);
 
 	
 	// Write some data
-	ByteVec toWrite{ 1, 2, 3, 4, 5, 4, 3, 2, 1 };
-	tpm.NV_Write(nvHandle, nvHandle, toWrite, 0);
+	
 
-	tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
-
+	//tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+	
 	// CASE 2 - Counter NV-slot
 	TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
-		TPM_ALG_ID::SHA256,  // Name-alg
+		TPM_ALG_ID::RSA,  // Name-alg
 		TPMA_NV::AUTHREAD | // Attributes
 		TPMA_NV::AUTHWRITE |
 		TPMA_NV::COUNTER,
@@ -250,15 +251,20 @@ void Samples::MPC_TPM()
 		8);                  // Size in bytes
 
 	tpm.NV_DefineSpace(tpm._AdminOwner, nvAuth, nvTemplate2);
-
+	
 	// We have set the authVal to be nvAuth, so set it in the handle too.
 	nvHandle.SetAuth(nvAuth);
+
+	ByteVec toWrite{ 1, 2, 3, 4, 5, 4, 3, 2, 1 };
 
 	// Should not be able to write (increment only)
 	tpm._ExpectError(TPM_RC::ATTRIBUTES).NV_Write(nvHandle, nvHandle, toWrite, 0);
 
 	// Should not be able to read before the first increment
 	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
+
+	
+	//tpm.NV_Write(nvHandle, nvHandle, toWrite, 0);
 
 	// First increment
 	tpm.NV_Increment(nvHandle, nvHandle);
@@ -279,7 +285,7 @@ void Samples::MPC_TPM()
 	// And then delete it
 	tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
 
-	*/
+	
 	return;
 }
 
