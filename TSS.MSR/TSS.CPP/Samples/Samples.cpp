@@ -69,7 +69,7 @@ void Samples::RunAllSamples()
 	_check
 	MPC_TPM();
     _check;
-    /*DictionaryAttack();  // Run early in the test set to avoid lockout
+    DictionaryAttack();  // Run early in the test set to avoid lockout
     _check;
     Hash();
     _check;
@@ -147,7 +147,7 @@ void Samples::RunAllSamples()
     _check;
     ReWrapSample();
     _check;
-    BoundSession();*/
+    BoundSession();
 
     Callback2();
 }
@@ -164,9 +164,126 @@ void Samples::Announce(const char *testName)
 }
 
 
+void Samples::MPC_TPM()
+{
+	Announce("MPC_TPM");
 
+	// We will make a key in the "null hierarchy".
+	TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
+		TPMA_OBJECT::decrypt |
+		TPMA_OBJECT::sensitiveDataOrigin |
+		TPMA_OBJECT::userWithAuth,
+		NullVec,  // No policy
+		TPMS_RSA_PARMS(
+			TPMT_SYM_DEF_OBJECT::NullObject(),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
-//****************************************************************************
+	// Create the key
+	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
+		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
+		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
+		storagePrimaryTemplate,
+		NullVec,
+		vector<TPMS_PCR_SELECTION>());
+
+	TPM_HANDLE& keyHandle = storagePrimary.handle;
+
+	ByteVec dataToEncrypt = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "secret").digest;
+	cout << "Data to encrypt: " << dataToEncrypt << endl;
+
+	auto enc = tpm.RSA_Encrypt(keyHandle, dataToEncrypt, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << "RSA-encrypted data: " << enc << endl;
+
+	auto dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << "decrypted data: " << dec << endl;
+
+	if (dec == dataToEncrypt) {
+		cout << "Decryption worked" << endl;
+	}
+
+	_ASSERT(dataToEncrypt == dec);
+
+	// Now encrypt using TSS.C++ library functions
+	ByteVec mySecret = tpm._GetRandLocal(20);
+	enc = storagePrimary.outPublic.Encrypt(mySecret, NullVec);
+	dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << "My           secret: " << mySecret << endl;
+	cout << "My decrypted secret: " << dec << endl;
+
+	_ASSERT(mySecret == dec);
+
+	// Now with padding
+	ByteVec pad{ 1, 2, 3, 4, 5, 6, 0 };
+	enc = storagePrimary.outPublic.Encrypt(mySecret, pad);
+	dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), pad);
+	cout << "My           secret: " << mySecret << endl;
+	cout << "My decrypted secret: " << dec << endl;
+
+	_ASSERT(mySecret == dec);
+
+	tpm.FlushContext(keyHandle);
+
+	//end**************
+	/*
+	int nvIndex = 1000;
+	ByteVec nvAuth{ 1, 5, 1, 1 };
+	TPM_HANDLE nvHandle = TPM_HANDLE::NVHandle(nvIndex);
+
+	// Try to delete the slot if it exists
+	tpm._AllowErrors().NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+
+	
+	// Write some data
+	ByteVec toWrite{ 1, 2, 3, 4, 5, 4, 3, 2, 1 };
+	tpm.NV_Write(nvHandle, nvHandle, toWrite, 0);
+
+	tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+
+	// CASE 2 - Counter NV-slot
+	TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
+		TPM_ALG_ID::SHA256,  // Name-alg
+		TPMA_NV::AUTHREAD | // Attributes
+		TPMA_NV::AUTHWRITE |
+		TPMA_NV::COUNTER,
+		NullVec,             // Policy
+		8);                  // Size in bytes
+
+	tpm.NV_DefineSpace(tpm._AdminOwner, nvAuth, nvTemplate2);
+
+	// We have set the authVal to be nvAuth, so set it in the handle too.
+	nvHandle.SetAuth(nvAuth);
+
+	// Should not be able to write (increment only)
+	tpm._ExpectError(TPM_RC::ATTRIBUTES).NV_Write(nvHandle, nvHandle, toWrite, 0);
+
+	// Should not be able to read before the first increment
+	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
+
+	// First increment
+	tpm.NV_Increment(nvHandle, nvHandle);
+
+	// Should now be able to read
+	ByteVec beforeIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
+	cout << "Initial counter data:     " << beforeIncrement << endl;
+
+	// Should be able to increment
+	for (int j = 0; j < 5; j++) {
+		tpm.NV_Increment(nvHandle, nvHandle);
+	}
+
+	// And make sure that it's good
+	ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
+	cout << "After 5 increments:       " << afterIncrement << endl;
+
+	// And then delete it
+	tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+
+	*/
+	return;
+}
+
+/****************************************************************************
 void Samples::MPC_TPM()
 {
 	Announce("MPC_TPM");
@@ -191,7 +308,7 @@ void Samples::MPC_TPM()
 
 	// Create Counter NV-slot
 	TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
-		TPM_ALG_ID::ECDH,  // Name-alg //changed SHA256 to ECDH
+		TPM_ALG_ID::SHA256,  // Name-alg
 		TPMA_NV::AUTHREAD | // Attributes
 		TPMA_NV::AUTHWRITE |
 		TPMA_NV::COUNTER,
@@ -230,13 +347,6 @@ void Samples::MPC_TPM()
 			TPMT_SYM_DEF_OBJECT::NullObject(),
 			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
-
-	//Need this to support elliptic curves
-	//TPMS_ECC_PARMS(
-	//  TPMT_SYM_DEF_OBJECT::NullObject(),
-	//	TPMU_ASYM_SCHEME::???,
-	//	TPM_ECC_CURVE::NIST_P224,
-	//	TPMU_KDF_SCHEME::???,
 
 
 	// Create the key
@@ -312,142 +422,6 @@ void Samples::MPC_TPM()
 	//This assertion currently fails.
 	_ASSERT(decrypted.outData == toEncrypt);
 
-	
-	
-	
-	///////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////
-	//https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
-
-	/*
-	#include <openssl/conf.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-
-int main (void)
-{
-  // Set up the key and iv. Do not hard code these in a real application. 
-   
-
-  // A 256 bit key
-	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-
-	// A 128 bit IV 
-	unsigned char *iv = (unsigned char *)"0123456789012345";
-
-	// Message to be encrypted 
-	unsigned char *plaintext =
-		(unsigned char *)"The quick brown fox jumps over the lazy dog";
-
-	// Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be longer than the plaintext, dependant on the algorithm and mode
-	 
-	unsigned char ciphertext[128];
-
-	// Buffer for the decrypted text 
-	unsigned char decryptedtext[128];
-
-	int decryptedtext_len, ciphertext_len;
-
-		// Encrypt the plaintext 
-		ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), key, iv,
-			ciphertext);
-
-	// Do something useful with the ciphertext here 
-	printf("Ciphertext is:\n");
-	BIO_dump_fp(stdout, (const char *)ciphertext, ciphertext_len);
-
-	// Decrypt the ciphertext 
-	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
-		decryptedtext);
-
-	// Add a NULL terminator. We are expecting printable text 
-	decryptedtext[decryptedtext_len] = '\0';
-
-	// Show the decrypted text
-	printf("Decrypted text is:\n");
-	printf("%s\n", decryptedtext);
-
-
-	return 0;
-}
-
-
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
-  unsigned char *iv, unsigned char *ciphertext)
-{
-  EVP_CIPHER_CTX *ctx;
-
-  int len;
-
-  int ciphertext_len;
-
-  // Create and initialise the context 
-	if (!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
-
-	// Initialise the encryption operation. IMPORTANT - ensure you use a key and IV size appropriate for your cipher. In this example we are using 256 bit AES (i.e. a 256 bit key). The IV size for *most* modes is the same as the block size. For AES this is 128 bits
-	if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
-		handleErrors();
-
-	// Provide the message to be encrypted, and obtain the encrypted output. EVP_EncryptUpdate can be called multiple times if necessary
-
-	if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-		handleErrors();
-	ciphertext_len = len;
-
-	// Finalise the encryption. Further ciphertext bytes may be written at this stage.
-
-	if (1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) handleErrors();
-	ciphertext_len += len;
-
-	// Clean up 
-	
-	EVP_CIPHER_CTX_free(ctx);
-
-	return ciphertext_len;
-}
-
-
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
-  unsigned char *iv, unsigned char *plaintext)
-{
-  EVP_CIPHER_CTX *ctx;
-
-  int len;
-
-  int plaintext_len;
-
-  // Create and initialise the context 
-	if (!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
-
-	// Initialise the decryption operation. IMPORTANT - ensure you use a key  and IV size appropriate for your cipher.
-	
-	if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
-		handleErrors();
-
-	// Provide the message to be decrypted, and obtain the plaintext output.
-
-	if (1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
-		handleErrors();
-	plaintext_len = len;
-
-	// Finalise the decryption. Further plaintext bytes may be written at this stage.
-
-	if (1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)) handleErrors();
-	plaintext_len += len;
-
-	// Clean up 
-	EVP_CIPHER_CTX_free(ctx);
-
-	return plaintext_len;
-}
-
-
-*/
-	///////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////
-
-	
-	
 
 	//tpm.FlushContext(prim);
 	//tpm.FlushContext(aesHandle);
@@ -515,7 +489,7 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 	return;
 }
 //****************************************************************************
-
+//****************************************************************************/
 
 
 
