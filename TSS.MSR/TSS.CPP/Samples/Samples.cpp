@@ -291,7 +291,7 @@ void Samples::MPC_TPM()
 
 	// And then delete it
 	tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
-
+//tpm.FlushContext(keyHandle);
 	
 	return;
 }
