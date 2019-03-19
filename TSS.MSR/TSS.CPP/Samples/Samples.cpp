@@ -236,10 +236,17 @@ void Samples::MPC_TPM()
 	tpm._AllowErrors().NV_UndefineSpace(tpm._AdminOwner, nvHandle);
 
 	
-	// Write some data
+	 /*TPM2_NV_DefineSpace: counter index, password of key holder, password to write,
+	and a policy to read.*/
 	
+	/*The policy is TPM2_PolicyCommandCode with the command
+	TPM2_PolicyNV.This policy allows anyone to use the index in a policy essentially
+	without authorization.*/
 
-	//tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+	/*TPM2_Create : Create a key with userWithAuth clear, requiring a policy to
+	authorize the key.The policy is TPM2_PolicyNV with the NV value equal to all zero.*/
+
+	/*TPM2_NV_Increment : Revokes authorization to use the key.*/
 	
 	// CASE 2 - Counter NV-slot
 	TPMS_NV_PUBLIC nvTemplate2(nvHandle,            // Index handle
