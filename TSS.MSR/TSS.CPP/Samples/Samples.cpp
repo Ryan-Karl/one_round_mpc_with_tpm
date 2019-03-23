@@ -222,30 +222,17 @@ void Samples::MPC_TPM()
 	//auto dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), NullVec);
 
 	// Now encrypt using TSS.C++ library functions with padding
-	ByteVec mySecret = tpm._GetRandLocal(20);
-	/*ByteVec mySecret2 = tpm._GetRandLocal(20);
-	ByteVec mySecret3 = tpm._GetRandLocal(20);
-	ByteVec mySecret4 = tpm._GetRandLocal(20);
-	ByteVec mySecret5 = tpm._GetRandLocal(20);
-	*/
+	
+	ByteVec secret_Array[5];
+	ByteVec enc_Array[5];
+	ByteVec dec_Array[5];
 	ByteVec pad{ 1, 2, 3, 4, 5, 6, 0 };
 
-	auto enc = storagePrimary.outPublic.Encrypt(mySecret, pad);
-	/*enc1 = storagePrimary.outPublic.Encrypt(mySecret, pad);
-	enc2 = storagePrimary.outPublic.Encrypt(mySecret, pad);
-	enc3 = storagePrimary.outPublic.Encrypt(mySecret, pad);
-	enc4 = storagePrimary.outPublic.Encrypt(mySecret, pad);
-	*/
+	for (int j = 0; j < 5; j++) {
 
-
-	//enc = storagePrimary.outPublic.Encrypt(mySecret, pad);
-	auto dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), pad);
-	cout << "My           secret: " << mySecret << endl;
-	cout << "My decrypted secret: " << dec << endl;
-
-	_ASSERT(mySecret == dec);
-
-	
+		secret_Array[j] = tpm._GetRandLocal(20);
+		enc_Array[j] = storagePrimary.outPublic.Encrypt(secret_Array[j], pad);
+	}
 
 	// First increment
 	tpm.NV_Increment(nvHandle, nvHandle);
@@ -258,21 +245,24 @@ void Samples::MPC_TPM()
 	for (int j = 0; j < 5; j++) {
 		tpm.NV_Increment(nvHandle, nvHandle);
 
-		if (j == 4)
+		dec_Array[j] = tpm.RSA_Decrypt(keyHandle, enc_Array[j], TPMS_NULL_ASYM_SCHEME(), pad);
+		cout << "My           secret: " << secret_Array[j] << endl;
+		cout << "My decrypted secret: " << dec_Array[j] << endl << endl;
+
+		// And make sure that it's good
+		ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
+		cout << "Value after increment:       " << afterIncrement << endl << endl;
+
+		if (j >= 4)
 		{ 
 			tpm.FlushContext(keyHandle); 
-			cout << "Flushed Key After Monotonic Counter Incremented 5 Times" << endl;
+			cout << endl << "Flushed Key After Monotonic Counter Incremented 5 Times" << endl << endl;
+
+			// And then delete it
+			tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+
 		}
 	}
-
-	// And make sure that it's good
-	ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
-	cout << "After 5 increments:       " << afterIncrement << endl;
-
-	// And then delete it
-	tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
-
-	//tpm.FlushContext(keyHandle);
 	
 	return;
 }
