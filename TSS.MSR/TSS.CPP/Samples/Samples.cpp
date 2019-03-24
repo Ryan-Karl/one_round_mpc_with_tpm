@@ -6,6 +6,9 @@ Microsoft Confidential
 */
 #include "stdafx.h"
 #include "Samples.h"
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
 
 // The following macro checks that the sample did not leave any keys in the TPM.
 #define _check AssertNoLoadedKeys();
