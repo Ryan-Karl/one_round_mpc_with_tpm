@@ -1,3 +1,4 @@
+
 /*++
 
 Copyright (c) 2013, 2014  Microsoft Corporation
@@ -9,8 +10,46 @@ Microsoft Confidential
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-//https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
 
+#define kBUFFERSIZE 4096	// How many bytes to read at a time
+
+#pragma push_macro("new")
+#undef new
+/* #includes for Crypto++ go here */
+
+#include <cstdio>
+#include <iostream>
+#include <osrng.h>
+using CryptoPP::AutoSeededRandomPool;
+
+#include <cryptlib.h>
+using CryptoPP::Exception;
+
+#include <hex.h>
+using CryptoPP::HexEncoder;
+using CryptoPP::HexDecoder;
+
+#include <filters.h>
+using CryptoPP::StringSink;
+using CryptoPP::StringSource;
+using CryptoPP::StreamTransformationFilter;
+
+#include <secblock.h>
+using CryptoPP::SecByteBlock;
+
+#include <modes.h>
+#include <aes.h>
+#include <filters.h>
+#include <ida.h>
+
+#pragma pop_macro("new")
+
+//https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
+//https://stackoverflow.com/questions/15203562/crypto-giving-a-compiler-error-in-algparam-h
 
 // The following macro checks that the sample did not leave any keys in the TPM.
 #define _check AssertNoLoadedKeys();
@@ -22,6 +61,8 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *plaintext);
 void handleErrors(void);
+
+
 
 void RunSamples();
 
@@ -179,6 +220,22 @@ void Samples::Announce(const char *testName)
 
 void Samples::MPC_TPM()
 {
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	Announce("MPC_TPM");
 
 	// We will make a key in the "null hierarchy".
@@ -230,9 +287,6 @@ void Samples::MPC_TPM()
 	// Should not be able to read before the first increment
 	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
 
-	//ByteVec dataToEncrypt = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "secret").digest;
-	//auto enc = tpm.RSA_Encrypt(keyHandle, dataToEncrypt, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	//auto dec = tpm.RSA_Decrypt(keyHandle, enc, TPMS_NULL_ASYM_SCHEME(), NullVec);
 
 	// Now encrypt using TSS.C++ library functions with padding
 	
@@ -276,12 +330,12 @@ void Samples::MPC_TPM()
 
 		}
 	}
-	cout << endl << "test1" << endl << endl;
+	//cout << endl << "test1" << endl << endl;
 
 
 	//AES
 	// Set up the key and iv. Do not hard code these in a real application.
-
+	
 	// A 256 bit key
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
 	// A 128 bit IV
@@ -290,6 +344,7 @@ void Samples::MPC_TPM()
 	unsigned char *plaintext =
 		(unsigned char *)"The quick brown fox jumps over the lazy dog";
 	// Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be longer than the plaintext, dependant on the algorithm and mode
+	cout << "The message is " << plaintext << endl << endl;
 
 	unsigned char ciphertext[128];
 	// Buffer for the decrypted text
@@ -299,7 +354,7 @@ void Samples::MPC_TPM()
 	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), key, iv,
 		ciphertext);
 
-	cout << endl << "test2" << endl << endl;
+	//cout << endl << "test2" << endl << endl;
 
 	// Do something useful with the ciphertext here
 	printf("Ciphertext is:\n");
@@ -313,7 +368,7 @@ void Samples::MPC_TPM()
 	printf("Decrypted text is:\n");
 	printf("%s\n", decryptedtext);
 
-	cout << endl << "test3" << endl << endl;
+	//cout << endl << "test3" << endl << endl;
 
 	
 	return;
