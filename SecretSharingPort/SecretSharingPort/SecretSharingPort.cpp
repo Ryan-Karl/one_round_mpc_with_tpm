@@ -11,13 +11,22 @@
 #include <array>
 #include <set>
 
+
+#ifdef linux
+#include <gmp.h>
+#endif
+#ifdef _WIN32
+#include <mpir.h>
+#endif
+
+
 using std::pair;
 using std::vector;
 using std::cout;
 using std::endl;
 
 
-//#include <mpir.h>
+
 
 int eval_at(const std::vector<int> & poly, int x);
 pair<int, vector<pair<int,int>>> make_random_shares(int minimum, int shares_length);
@@ -29,7 +38,9 @@ int PI(const std::vector<int> & vals);
 
 typedef std::chrono::high_resolution_clock myclock;
 myclock::time_point beginning = myclock::now();
-static int prime = 13;
+
+//static int prime = 13;
+static mpz_t prime;
 
 
 void test_GCD(int argc, char ** argv){
@@ -46,6 +57,9 @@ void test_GCD(int argc, char ** argv){
 
 int main(int argc, char ** argv)
 {
+  //Initialize the prime
+  mpz_init(prime);
+  mpz_set_ui(prime, 13);
 
 	//test_GCD(argc, argv);
 
@@ -77,6 +91,8 @@ int main(int argc, char ** argv)
 
 	std::cout << "secret recovered from a minimum subset of shares: " << recover_secret(firstThree) << std::endl;
 	std::cout << "secret recovered from another minimum subset of shares: " << recover_secret(secondThree) << std::endl;
+
+  return 0;
 
 }
 
@@ -132,7 +148,7 @@ pair<int, vector<pair<int,int>>> make_random_shares(int minimum, int shares_leng
 	return std::pair<int, vector<pair<int,int>>>(poly[0], points);
 }
 
-int recover_secret(const std::vector<pair<int,int>> & shares) {
+mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares) {
 	//Recover the secret from share points (x, y points on the polynomial)
 
 	if (shares.size() < 2)
@@ -141,7 +157,7 @@ int recover_secret(const std::vector<pair<int,int>> & shares) {
 		exit(1);
 	}
 
-	std::vector<int> x_s, y_s;
+	std::vector<mpz_t> x_s, y_s;
 
 	/*for (unsigned int i = 0; i < shares.size(); i++)
 	{
@@ -184,52 +200,34 @@ void print_gcd(int a, int b, int x, int last_x, int y, int last_y, int quot){
 	cout << endl;
 }
 
-std::pair<int, int> extended_gcd(int a, int b) {
-	//division in integers modulus p means finding the inverse of the
-	//denominator modulo p and then multiplying the numerator by this
-	//inverse(Note: inverse of A is B such that A*B % p == 1) this can
-	//be computed via extended Euclidean algorithm
-	//http ://en.wikipedia.org/wiki/Modular_multiplicative_inverse#Computation
-	int x = 0; 
-	int last_x = 1;
-	int y = 1; 
-	int last_y = 0;
 
-	while (b != 0) {
-		//Should this be floored or not?
-		int quot = floor((float)a / (float)b);
-
-		int temp_a = a;
-		a = b;
-		//b = temp_a % b;
-		b = ((temp_a%b) + b) % b;
-
-		int next_x = last_x - (quot*x);
-		last_x = x;
-		x = next_x;
-
-		int next_y = last_y - (quot*y);
-		last_y = y;
-		y = next_y;		
-	}
-	return std::pair<int, int>(last_x, last_y);
-}
-
-int divmod(int num, int den, int p) {
+mpz_t divmod(mpz_t num, mpz_t den, mpz_t p) {
 	//compute num / den modulo prime p
 	//To explain what this means, the return value will be such that
 	//the following is true : den * _divmod(num, den, p) % p == num
 
-	std::pair<int, int> gcd_result = extended_gcd(den, p);
+	//std::pair<int, int> gcd_result = extended_gcd(den, p);
 
-	return (gcd_result.first * num);
+
+  mpz_t g, s, t;
+  mpz_init(g);
+  mpz_init(s);
+  mpz_init(t);
+
+  //Try using mpz_invert instead of the whole extended algorithm
+  mpz_gcdext(g, s, t, den, p);
+
+
+  mpz_mul(s, s, num);
+
+	return s;
 }
 
-int lagrange_interpolate(int x, const std::vector<int> & x_s, const std::vector<int> & y_s) {
+mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::vector<mpz_t> & y_s) {
 	//Find the y - value for the given x, given n(x, y) points;
 	//k points will define a polynomial of up to kth order
 
-	unsigned int k = x_s.size();
+	size_t k = x_s.size();
 	std::set<int> set(begin(x_s), end(x_s));
 	if (k != (set.size()))
 	{
@@ -238,32 +236,39 @@ int lagrange_interpolate(int x, const std::vector<int> & x_s, const std::vector<
 	}
 	assert(x_s.size() == y_s.size() && "Vectors have nonequal size!");
 
-	std::vector<int> nums;  // avoid inexact division
-	std::vector<int> dens;
+	std::vector<mpz_t> nums;  // avoid inexact division
+	std::vector<mpz_t> dens;
 	nums.reserve(k);
 	dens.reserve(k);
 	//std::vector<int> others = x_s;
-	int cur;
+	mpz_t cur;
+  mpz_init(cur);
 
-	for (unsigned int i = 0; i < k; i++)
+	for (size_t i = 0; i < k; i++)
 	{
-		cur = x_s[i];
+		mpz_set(cur, x_s[i]);
 		//nums.pop_back();
 
-		int xo = 1;
-		int curo = 1;
+		mpz_t xo, curo;
+    mpz_init_si(xo, 1);
+    mpz_init_si(curo, 1);
 
-		for (unsigned int j = 0; j < k; j++)
+		for (size_t j = 0; j < k; j++)
 		{
 			if (j == i) {
 				continue;
 			}
 
-			xo *= x - x_s[j];
+      mpz_t xo_tmp;
+      mpz_init(xo_tmp);      
+      mpz_sub(xo_tmp, x, x_s[j]);
+      mpz_mul(xo, xo, xo_tmp);
 
-			//std::vector<int> 
 
-			curo *= cur - x_s[j];
+      mpz_t curo_tmp;
+      mpz_init(curo_tmp);      
+      mpz_sub(curo_tmp, cur, x_s[j]);
+      mpz_mul(curo, curo, curo);
 
 		}
 
@@ -272,24 +277,38 @@ int lagrange_interpolate(int x, const std::vector<int> & x_s, const std::vector<
 
 	}
 
-	int	den = PI(dens);
+	mpz_t	den = PI(dens);
 
-	int num = 0;
-	for (unsigned int idx = 0; idx < k; idx++) {
-		num += divmod((nums[idx] * den * y_s[idx]) % prime, dens[idx], prime);
+	mpz_t num;
+  mpz_init(num);
+
+	for (size_t idx = 0; idx < k; idx++) {
+
+    mpz_t result;
+    mpz_init(result);
+    mpz_mul(result, nums[idx], den);
+    mpz_mul(result, result, y_s[idx]);
+    mpz_fdiv_r(result, result, prime);
+    mpz_t divmod_result = divmod(result, dens[idx], prime);
+    mpz_add(num, num, divmod_result);
 	}
 
-	return (divmod(num, den, prime) + prime) % prime;
+  mpz_t tmp = divmod(num, den, prime);
+  mpz_add(tmp, tmp, prime);
+  mpz_fdiv_r(tmp, tmp, prime);
+	return tmp;
 
 }
 
-int PI(const std::vector<int> & vals) {
+mpz_t PI(const std::vector<mpz_t> & vals) {
 	// upper - case PI -- product of inputs
-	int accum = 1;
+	mpz_t accum;
+  mpz_init(accum);
+  mpz_set_si(accum, 1)
 
-	for (unsigned int i = 0; i < vals.size(); i++)
+	for (const auto & x: vals)
 	{
-		accum *= vals[i];
+		mpz_mul(accum, accum, x);
 	}
 
 	return accum;
