@@ -3,19 +3,25 @@
 
 #include "pch.h"
 #include <iostream>
+#include <cassert>
 #include <vector>
 #include <chrono>
 #include <random>
 #include <utility>
 #include <array>
 #include <set>
-#include <mpir.h>
+
+using std::pair;
+using std::vector;
+using std::cout;
+using std::endl;
+
 
 //#include <mpir.h>
 
 int eval_at(const std::vector<int> & poly, int x);
-std::pair<int, std::vector<int> > make_random_shares(int minimum, int shares_length);
-int recover_secret(const std::vector<int> & shares, const std::vector<int> & x_coordinates);
+pair<int, vector<pair<int,int>>> make_random_shares(int minimum, int shares_length);
+int recover_secret(const std::vector<pair<int,int>> & shares);
 std::pair<int, int> extended_gcd(int a, int b);
 int divmod(int num, int den, int p);
 int lagrange_interpolate(int x, const std::vector<int> & x_coordinates, const std::vector<int> & shares);
@@ -26,8 +32,24 @@ myclock::time_point beginning = myclock::now();
 static int prime = 13;
 
 
-int main()
+void test_GCD(int argc, char ** argv){
+	if(argc != 3){
+		cout << "ERROR: Need exactly 2 args!" << endl;
+		return;
+	}
+	auto ret = extended_gcd(atoi(argv[1]), atoi(argv[2]));
+	cout << "Inverse of " << atoi(argv[1]) << " modulo " <<
+	 atoi(argv[2]) << " is " << ret.first << endl;
+	return;
+}
+
+
+int main(int argc, char ** argv)
 {
+
+	//test_GCD(argc, argv);
+
+
 	//char secret[11] = "secret_key";
 	int secret = 1993;
 	//std::array<int, 6 > shares;
@@ -35,36 +57,27 @@ int main()
 	int minimum = 3;
 	//int x_s, y_s;
 
+	
 	auto shares_result = make_random_shares(minimum, shares_length);
 
 	std::cout << "secret: " << shares_result.first << std::endl;
-	std::cout << "shares:";
+	std::cout << "shares:" << endl;
 	if (shares_length)
 	{
 		for (unsigned int i = 0; i < shares_result.second.size(); i++)
 		{
-			std::cout << ' ' << shares_result.second[i];
+			std::cout << shares_result.second[i].first << ' ' << shares_result.second[i].second << endl;
 		}
 	}
 
 	std::cout << std::endl;
 
-	std::vector<int> recovered_shares;
-	std::vector<int> run1 = { 1, 2, 3};
-	std::vector<int> run2 = { 4, 5, 6};
+	vector<pair<int,int>> firstThree(shares_result.second.begin(), shares_result.second.begin() + 3);
+	vector<pair<int,int>> secondThree(shares_result.second.begin()+3, shares_result.second.end());
 
+	std::cout << "secret recovered from a minimum subset of shares: " << recover_secret(firstThree) << std::endl;
+	std::cout << "secret recovered from another minimum subset of shares: " << recover_secret(secondThree) << std::endl;
 
-	recovered_shares.push_back(shares_result.second[0]);
-	recovered_shares.push_back(shares_result.second[1]);
-	recovered_shares.push_back(shares_result.second[2]);
-
-	std::cout << "secret recovered from minimum subset of shares:             " << recover_secret(run1, recovered_shares) << std::endl; 
-
-	recovered_shares[0] = (shares_result.second[3]);
-	recovered_shares[1] = (shares_result.second[4]);
-	recovered_shares[2] = (shares_result.second[5]);
-
-	std::cout << "secret recovered from a different minimum subset of shares: " << recover_secret(run2, recovered_shares) << std::endl;
 }
 
 
@@ -83,11 +96,12 @@ int eval_at(const std::vector<int> & poly, int x) {
 	return accum;
 }
 
-std::pair<int, std::vector<int>> make_random_shares(int minimum, int shares_length) {
+pair<int, vector<pair<int,int>>> make_random_shares(int minimum, int shares_length) {
 	//First returned is secret, second is points.
+	//Each point is a pair. First is the argument, second is the value.
 	//Generates a random shamir pool, returns the secret and the share points.
 	std::vector<int> poly;
-	std::vector<int> points;
+	std::vector<pair<int,int>> points;
 
 	if (minimum > shares_length)
 	{
@@ -109,13 +123,16 @@ std::pair<int, std::vector<int>> make_random_shares(int minimum, int shares_leng
 
 	for (unsigned int i = 1; i < (shares_length + 1); i++)
 	{
-		points.push_back(eval_at(poly, i));
+		pair<int,int> point;
+		point.second = eval_at(poly, i);
+		point.first = i;
+		points.push_back(point);
 	}
 
-	return std::pair<int, std::vector<int>>(poly[0], points);
+	return std::pair<int, vector<pair<int,int>>>(poly[0], points);
 }
 
-int recover_secret(const std::vector<int> & shares, const std::vector<int> & x_coordinates) {
+int recover_secret(const std::vector<pair<int,int>> & shares) {
 	//Recover the secret from share points (x, y points on the polynomial)
 
 	if (shares.size() < 2)
@@ -135,8 +152,36 @@ int recover_secret(const std::vector<int> & shares, const std::vector<int> & x_c
 
 	}*/
 
-	return lagrange_interpolate(0, x_coordinates, shares);
+	x_s.reserve(shares.size());
+	y_s.reserve(shares.size());
+	for(auto & val : shares){
+		x_s.push_back(val.first);
+		y_s.push_back(val.second);
+	}
+
+
+	return lagrange_interpolate(0, x_s, y_s); //Prime is currently global
 	//return lagrange_interpolate(0, x_s, y_s, prime);
+}
+
+/*
+std::pair<int, int> extended_gcd_jon(int a, int b){
+	if(!a){
+		return pair<int,int>(0,1);
+	}
+}
+*/
+
+//Used for testing GCD
+void print_gcd(int a, int b, int x, int last_x, int y, int last_y, int quot){
+	cout << "a: " << a << endl;
+	cout << "b: " << b << endl;
+	cout << "x: " << x << endl;
+	cout << "last_x: " << last_x << endl;
+	cout << "y: " << y << endl;
+	cout << "last_y: " << last_y << endl;
+	cout << "quot: " << quot << endl;
+	cout << endl;
 }
 
 std::pair<int, int> extended_gcd(int a, int b) {
@@ -145,24 +190,28 @@ std::pair<int, int> extended_gcd(int a, int b) {
 	//inverse(Note: inverse of A is B such that A*B % p == 1) this can
 	//be computed via extended Euclidean algorithm
 	//http ://en.wikipedia.org/wiki/Modular_multiplicative_inverse#Computation
-	int x = 0, last_x = 1, y = 1, last_y = 0;
+	int x = 0; 
+	int last_x = 1;
+	int y = 1; 
+	int last_y = 0;
 
 	while (b != 0) {
-		int quot = floor(a / b);
+		//Should this be floored or not?
+		int quot = floor((float)a / (float)b);
 
 		int temp_a = a;
 		a = b;
-		b = temp_a % b;
+		//b = temp_a % b;
+		b = ((temp_a%b) + b) % b;
 
-		int temp_x = x;
-		x = (last_x - quot * x);
+		int next_x = last_x - (quot*x);
 		last_x = x;
+		x = next_x;
 
-		int temp_y = y;
-		y = (last_y - quot * y);
+		int next_y = last_y - (quot*y);
 		last_y = y;
+		y = next_y;		
 	}
-
 	return std::pair<int, int>(last_x, last_y);
 }
 
@@ -187,6 +236,7 @@ int lagrange_interpolate(int x, const std::vector<int> & x_s, const std::vector<
 		std::cout << "points must be distinct";
 		exit(1);
 	}
+	assert(x_s.size() == y_s.size() && "Vectors have nonequal size!");
 
 	std::vector<int> nums;  // avoid inexact division
 	std::vector<int> dens;
@@ -244,7 +294,3 @@ int PI(const std::vector<int> & vals) {
 
 	return accum;
 }
-
-/*'''
-
-*/
