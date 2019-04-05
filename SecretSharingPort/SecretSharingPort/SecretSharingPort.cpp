@@ -56,6 +56,42 @@ void test_GCD(int argc, char ** argv){
 }
 */
 
+bool test_by_input(int argc, char ** argv, unsigned int shares_length){
+  if(argc != (int) (2*shares_length) + 1){
+    assert(0 && "Incorrect number of args");  
+  }
+
+  vector<pair<mpz_class, mpz_class> > shares;
+  shares.reserve(shares_length);
+  for(unsigned int i = 1; i <= 2*shares_length; i++){
+    pair<mpz_class, mpz_class> point;
+    cout << i << ' ';
+    point.first = atoi(argv[i++]);
+    cout << i << ' ';
+    point.second = atoi(argv[i]);
+    shares.push_back(point);
+  }
+
+  cout << shares.size() << " shares given" << endl;
+
+  vector<pair<mpz_class, mpz_class> > firstThree(shares.begin(), shares.begin() + 3);
+	vector<pair<mpz_class, mpz_class> > secondThree(shares.begin()+3, shares.end());
+  mpz_class result = recover_secret(firstThree);
+  cout << "First secret: " << result << endl;
+  result = recover_secret(secondThree);
+  cout << "Second secret: " << result << endl;
+  return true;
+}
+
+template <typename T>
+void print_vector(const vector<T> & v){
+  cout << "Contents of vector: ";
+  for(const auto & x : v){
+    cout << x << ' ';  
+  }
+  cout << endl;
+}
+
 
 int main(int argc, char ** argv)
 {
@@ -64,7 +100,6 @@ int main(int argc, char ** argv)
 
 	//test_GCD(argc, argv);
 
-
 	//char secret[11] = "secret_key";
 	//int secret = 1993;
 	//std::array<int, 6 > shares;
@@ -72,6 +107,10 @@ int main(int argc, char ** argv)
 	unsigned int minimum = 3;
 	//int x_s, y_s;
 
+
+  if(false && test_by_input(argc, argv, shares_length)){
+    return 0;  
+  }
   
   mpz_class point;
 	auto shares_result = make_random_shares(point, minimum, shares_length);
@@ -139,14 +178,14 @@ vector<pair<mpz_class, mpz_class> > make_random_shares(mpz_class & ret, unsigned
     mpz_class generated;
 		mpz_urandomb(generated.get_mpz_t(), state, sizeof(unsigned int));
 		mpz_fdiv_r(generated.get_mpz_t(), generated.get_mpz_t(), prime.get_mpz_t());
-		poly.emplace_back(generated);
+		poly.push_back(generated);
 	}
 
 	for(unsigned int i = 1; i < (shares_length+1); i++){
     mpz_class point_first = i;
     mpz_class point_second = eval_at(poly, point_first);
 		pair<mpz_class, mpz_class> point(point_first, point_second);
-		points.emplace_back(point);
+		points.push_back(point);
 	}
 
   ret = poly[0];
@@ -158,7 +197,7 @@ mpz_class recover_secret(const std::vector<pair<mpz_class, mpz_class> > & shares
 
 	if (shares.size() < 2)
 	{
-		std::cout << "need at least two shares";
+		std::cout << "need at least two shares, got " << shares.size() << endl;
 		exit(1);
 	}
 
@@ -167,8 +206,8 @@ mpz_class recover_secret(const std::vector<pair<mpz_class, mpz_class> > & shares
 	x_s.reserve(shares.size());
 	y_s.reserve(shares.size());
 	for(auto & val : shares){
-		x_s.emplace_back(val.first);
-		y_s.emplace_back(val.second);
+		x_s.push_back(val.first);
+		y_s.push_back(val.second);
 	}
 
 	mpz_class zero = 0;
@@ -219,7 +258,6 @@ mpz_class lagrange_interpolate(const mpz_class & x, const std::vector<mpz_class>
 	std::vector<mpz_class> dens;
 	nums.reserve(k);
 	dens.reserve(k);
-	//std::vector<int> others = x_s;
 	mpz_class cur;
 
 	for (size_t i = 0; i < k; i++)
@@ -240,16 +278,25 @@ mpz_class lagrange_interpolate(const mpz_class & x, const std::vector<mpz_class>
       mpz_class curo_tmp = cur - x_s[j];
       curo *= curo_tmp;
 		}
-		nums.emplace_back(xo);
-		dens.emplace_back(curo);
+		nums.push_back(xo);
+		dens.push_back(curo);
 	}
+
+  //DEBUGGING CODE
+  /*
+  print_vector(nums);
+  print_vector(dens);
+  */
 
 	mpz_class	den = PI(dens);
 	mpz_class num = 0;
 
+  cout << "Intermediates: " << endl;
 	for (size_t idx = 0; idx < k; idx++) {
     mpz_class intermediate = nums[idx] * den * y_s[idx];
     mpz_fdiv_r(intermediate.get_mpz_t(), intermediate.get_mpz_t(), prime.get_mpz_t());
+    intermediate = divmod(intermediate, dens[idx], prime);
+    cout << intermediate << " " << endl;
     num += intermediate;
 	}
 
@@ -264,7 +311,7 @@ mpz_class PI(const std::vector<mpz_class> & vals){
 	mpz_class accum = 1;
 	for(const auto & x: vals)
 	{
-		accum += x;
+		accum *= x;
 	}
 	return accum;
 }
