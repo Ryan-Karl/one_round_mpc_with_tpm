@@ -201,7 +201,7 @@ std::pair<int, int> extended_gcd(int a, int b) {
 
 		int temp_a = a;
 		a = b;
-		//b = temp_a % b;
+		//https://stackoverflow.com/questions/1907565/c-and-python-different-behaviour-of-the-modulo-operation
 		b = ((temp_a%b) + b) % b;
 
 		int next_x = last_x - (quot*x);
