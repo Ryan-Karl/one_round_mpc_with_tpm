@@ -155,6 +155,46 @@ mpz_class eval_at(const vector<mpz_class> & poly, const mpz_class & x){
   return accum;
 }
 
+vector<pair<mpz_class, mpz_class> > make_secret_shares(const char * secret, unsigned int minimum, unsigned int shares_length){
+  if (minimum > shares_length)
+	{
+		std::cout << "pool secret would be irrecoverable";
+		exit(1);
+	}
+
+	vector<mpz_class> poly;
+	vector<pair<mpz_class, mpz_class>> points;
+  poly.reserve(shares_length);
+  points.reserve(shares_length);
+
+	gmp_randstate_t state;
+	gmp_randinit_mt(state);
+
+	myclock::duration d = myclock::now() - beginning;
+	unsigned seed = d.count();
+	gmp_randseed_ui(state, seed);
+
+  //Instead of random initialization, set the secret to be given by the user
+	mpz_class poly_secret = secret;
+  poly.push_back(poly_secret);
+  //Randomly initialize the rest of the polynomial
+	for(unsigned int i = 1; i < minimum; i++){
+    mpz_class generated;
+		mpz_urandomb(generated.get_mpz_t(), state, sizeof(unsigned int));
+		mpz_fdiv_r(generated.get_mpz_t(), generated.get_mpz_t(), prime.get_mpz_t());
+		poly.push_back(generated);
+	}
+
+	for(unsigned int i = 1; i < (shares_length+1); i++){
+    mpz_class point_first = i;
+    mpz_class point_second = eval_at(poly, point_first);
+		pair<mpz_class, mpz_class> point(point_first, point_second);
+		points.push_back(point);
+	}
+
+	return points;
+}
+
 vector<pair<mpz_class, mpz_class> > make_random_shares(mpz_class & ret, unsigned int minimum, unsigned int shares_length){
 
 	if (minimum > shares_length)
