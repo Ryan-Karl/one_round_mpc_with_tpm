@@ -12,11 +12,12 @@
 #include <set>
 
 
-#ifdef linux
+#ifdef __linux__
 #include <gmp.h>
-#endif
-#ifdef _WIN32
+#elif defined(WIN32)
 #include <mpir.h>
+#else
+#error No OS defined!
 #endif
 
 
@@ -25,15 +26,12 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-
-
-
-mpz_t eval_at(const vector<mpz_t> & poly, mpz_t x);
-pair<mpz_t, vector<pair<mpz_t, mpz_t>>> make_random_shares(unsigned int minimum, unsigned int num_shares);
-mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares);
-mpz_t divmod(mpz_t num, mpz_t den, mpz_t p);
-mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::vector<mpz_t> & y_s);
-mpz_t PI(const std::vector<mpz_t> & vals);
+void eval_at(mpz_t ret, const vector<mpz_t> & poly, mpz_t x);
+vector<pair<mpz_t, mpz_t> > make_random_shares(mpz_t ret, unsigned int minimum, unsigned int num_shares);
+void recover_secret(mpz_t ret, const std::vector<pair<mpz_t,mpz_t> > & shares);
+void divmod(mpz_t ret, mpz_t num, mpz_t den, mpz_t p);
+void lagrange_interpolate(mpz_t ret, mpz_t x, const std::vector<mpz_t> & x_s, const std::vector<mpz_t> & y_s);
+void PI(mpz_t ret, const std::vector<mpz_t> & vals);
 
 typedef std::chrono::high_resolution_clock myclock;
 myclock::time_point beginning = myclock::now();
@@ -41,7 +39,7 @@ myclock::time_point beginning = myclock::now();
 //static int prime = 13;
 static mpz_t prime;
 
-
+/*
 void test_GCD(int argc, char ** argv){
 	if(argc != 3){
 		cout << "ERROR: Need exactly 2 args!" << endl;
@@ -52,6 +50,7 @@ void test_GCD(int argc, char ** argv){
 	 atoi(argv[2]) << " is " << ret.first << endl;
 	return;
 }
+*/
 
 
 int main(int argc, char ** argv)
@@ -64,38 +63,49 @@ int main(int argc, char ** argv)
 
 
 	//char secret[11] = "secret_key";
-	int secret = 1993;
+	//int secret = 1993;
 	//std::array<int, 6 > shares;
 	int shares_length = 6; //shares.size();
 	int minimum = 3;
 	//int x_s, y_s;
 
-	
-	auto shares_result = make_random_shares(minimum, shares_length);
+  
+  mpz_t point;
+  mpz_init(point);	
+	auto shares_result = make_random_shares(point, minimum, shares_length);
 
-	std::cout << "secret: " << shares_result.first << std::endl;
+	std::cout << "secret: ";
+  gmp_printf("%Z\n");
 	std::cout << "shares:" << endl;
 	if (shares_length)
 	{
-		for (unsigned int i = 0; i < shares_result.second.size(); i++)
+		for (unsigned int i = 0; i < shares_result.size(); i++)
 		{
-			std::cout << shares_result.second[i].first << ' ' << shares_result.second[i].second << endl;
+      gmp_printf("%Z %Z\n", shares_result[i].first, shares_result[i].second);
 		}
 	}
 
 	std::cout << std::endl;
 
-	vector<pair<mpz_t,mpz_t>> firstThree(shares_result.second.begin(), shares_result.second.begin() + 3);
-	vector<pair<mpz_t,mpz_t>> secondThree(shares_result.second.begin()+3, shares_result.second.end());
+	vector<pair<mpz_t,mpz_t> > firstThree(shares_result.begin(), shares_result.begin() + 3);
+	vector<pair<mpz_t,mpz_t> > secondThree(shares_result.begin()+3, shares_result.end());
 
-	std::cout << "secret recovered from a minimum subset of shares: " << recover_secret(firstThree) << std::endl;
-	std::cout << "secret recovered from another minimum subset of shares: " << recover_secret(secondThree) << std::endl;
+  mpz_t result;
+  mpz_init(result);
+
+  recover_secret(result, firstThree);
+	std::cout << "secret recovered from a minimum subset of shares: ";
+  gmp_printf("%Z", result);
+
+  recover_secret(result, secondThree);
+	std::cout << "secret recovered from another minimum subset of shares: ";
+  gmp_printf("%Z", result);
 
   return 0;
 
 }
 
-mpz_t eval_at(const vector<mpz_t> & poly, mpz_t x){
+void eval_at(mpz_t ret, const vector<mpz_t> & poly, mpz_t x){
 	mpz_t accum;
 	mpz_init(accum);
 	for(size_t i = poly.size(); i-- > 0; ){
@@ -103,11 +113,11 @@ mpz_t eval_at(const vector<mpz_t> & poly, mpz_t x){
 		mpz_add(accum, accum, poly[i]);
 		mpz_fdiv_r(accum, accum, prime);
 	}
-	returm accum;
+  mpz_set(ret, accum);
+	return;
 }
 
-pair<mpz_t, vector<pair<mpz_t, mpz_t>>> make_random_shares(unsigned int minimum,
-unsigned int num_shares){
+vector<pair<mpz_t, mpz_t> > make_random_shares(mpz_t ret, unsigned int minimum, unsigned int shares_length){
 
 	if (minimum > shares_length)
 	{
@@ -123,7 +133,7 @@ unsigned int num_shares){
 
 	myclock::duration d = myclock::now() - beginning;
 	unsigned seed = d.count();
-	gmp_randseed(state, seed);
+	gmp_randseed_ui(state, seed);
 
 	mpz_t generated;
 	mpz_init(generated);
@@ -137,21 +147,23 @@ unsigned int num_shares){
 		poly.push_back(tmp);
 	}
 
-	for(unsigned int i = 1; i < (shares.length+1); i++){
+	for(unsigned int i = 1; i < (shares_length+1); i++){
 		pair<mpz_t, mpz_t> point;
+    mpz_init(point.first);
+    mpz_init(point.second);
 		mpz_t mpz_i;
 		mpz_init(mpz_i);
 		mpz_set_ui(mpz_i, i);
-		point.second = eval_at(poly, mpz_i);
-		point.first = mpz_i;
+		eval_at(point.second, poly, mpz_i);
+		mpz_set(point.first, mpz_i);
 		points.push_back(point);
 	}
 
-	return pair<mpz_t, vector<pair<mpz_t, mpz_t>>>(poly[0], points);
-
+  mpz_set(ret, poly[0]);
+	return points;
 }
 
-mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares) {
+void recover_secret(mpz_t ret, const std::vector<pair<mpz_t,mpz_t> > & shares) {
 	//Recover the secret from share points (x, y points on the polynomial)
 
 	if (shares.size() < 2)
@@ -172,7 +184,9 @@ mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares) {
 
 	mpz_t zero;
 	mpz_init(zero);
-	return lagrange_interpolate(zero, x_s, y_s); //Prime is currently global
+  lagrange_interpolate(ret, zero, x_s, y_s);
+  return;
+	//return lagrange_interpolate(zero, x_s, y_s); //Prime is currently global
 }
 
 
@@ -187,13 +201,12 @@ void print_gcd(int a, int b, int x, int last_x, int y, int last_y, int quot){
 	cout << endl;
 }
 
-mpz_t divmod(mpz_t num, mpz_t den, mpz_t p) {
+void divmod(mpz_t ret, mpz_t num, mpz_t den, mpz_t p) {
 	//compute num / den modulo prime p
 	//To explain what this means, the return value will be such that
 	//the following is true : den * _divmod(num, den, p) % p == num
 
 	//std::pair<int, int> gcd_result = extended_gcd(den, p);
-
 
   mpz_t g, s, t;
   mpz_init(g);
@@ -203,13 +216,12 @@ mpz_t divmod(mpz_t num, mpz_t den, mpz_t p) {
   //Try using mpz_invert instead of the whole extended algorithm
   mpz_gcdext(g, s, t, den, p);
 
-
   mpz_mul(s, s, num);
-
-  return s;
+  mpz_set(ret, s);
+  return;
 }
 
-mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::vector<mpz_t> & y_s) {
+void lagrange_interpolate(mpz_t ret, mpz_t x, const std::vector<mpz_t> & x_s, const std::vector<mpz_t> & y_s) {
 	//Find the y - value for the given x, given n(x, y) points;
 	//k points will define a polynomial of up to kth order
 
@@ -236,8 +248,8 @@ mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::v
 		//nums.pop_back();
 
 		mpz_t xo, curo;
-    mpz_init_si(xo, 1);
-    mpz_init_si(curo, 1);
+    mpz_init_set_si(xo, 1);
+    mpz_init_set_si(curo, 1);
 
 		for (size_t j = 0; j < k; j++)
 		{
@@ -263,10 +275,12 @@ mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::v
 
 	}
 
-	mpz_t	den = PI(dens);
+	mpz_t	den;
+  mpz_init(den);
+  PI(den, dens);
 
 	mpz_t num;
-  	mpz_init(num);
+  mpz_init(num);
 
 	for (size_t idx = 0; idx < k; idx++) {
 
@@ -275,27 +289,32 @@ mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::v
     mpz_mul(result, nums[idx], den);
     mpz_mul(result, result, y_s[idx]);
     mpz_fdiv_r(result, result, prime);
-    mpz_t divmod_result = divmod(result, dens[idx], prime);
+    mpz_t divmod_result;
+    mpz_init(divmod_result);
+    divmod(divmod_result, result, dens[idx], prime);
     mpz_add(num, num, divmod_result);
 	}
 
-  mpz_t tmp = divmod(num, den, prime);
+  mpz_t tmp;
+  mpz_init(tmp);
+  divmod(tmp, num, den, prime);
   mpz_add(tmp, tmp, prime);
   mpz_fdiv_r(tmp, tmp, prime);
-	return tmp;
+  mpz_set(ret, tmp);
+	return;
 
 }
 
-mpz_t PI(const std::vector<mpz_t> & vals) {
+void PI(mpz_t ret, const std::vector<mpz_t> & vals){
 	// upper - case PI -- product of inputs
 	mpz_t accum;
   mpz_init(accum);
-  mpz_set_si(accum, 1)
+  mpz_set_si(accum, 1);
 
 	for (const auto & x: vals)
 	{
 		mpz_mul(accum, accum, x);
 	}
-
-	return accum;
+  mpz_set(ret, accum);
+	return;
 }
