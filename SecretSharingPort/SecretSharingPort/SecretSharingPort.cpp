@@ -28,13 +28,12 @@ using std::endl;
 
 
 
-int eval_at(const std::vector<int> & poly, int x);
-pair<int, vector<pair<int,int>>> make_random_shares(int minimum, int shares_length);
-int recover_secret(const std::vector<pair<int,int>> & shares);
-std::pair<int, int> extended_gcd(int a, int b);
-int divmod(int num, int den, int p);
-int lagrange_interpolate(int x, const std::vector<int> & x_coordinates, const std::vector<int> & shares);
-int PI(const std::vector<int> & vals);
+mpz_t eval_at(const vector<mpz_t> & poly, mpz_t x);
+pair<mpz_t, vector<pair<mpz_t, mpz_t>>> make_random_shares(unsigned int minimum, unsigned int num_shares);
+mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares);
+mpz_t divmod(mpz_t num, mpz_t den, mpz_t p);
+mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::vector<mpz_t> & y_s);
+mpz_t PI(const std::vector<mpz_t> & vals);
 
 typedef std::chrono::high_resolution_clock myclock;
 myclock::time_point beginning = myclock::now();
@@ -86,8 +85,8 @@ int main(int argc, char ** argv)
 
 	std::cout << std::endl;
 
-	vector<pair<int,int>> firstThree(shares_result.second.begin(), shares_result.second.begin() + 3);
-	vector<pair<int,int>> secondThree(shares_result.second.begin()+3, shares_result.second.end());
+	vector<pair<mpz_t,mpz_t>> firstThree(shares_result.second.begin(), shares_result.second.begin() + 3);
+	vector<pair<mpz_t,mpz_t>> secondThree(shares_result.second.begin()+3, shares_result.second.end());
 
 	std::cout << "secret recovered from a minimum subset of shares: " << recover_secret(firstThree) << std::endl;
 	std::cout << "secret recovered from another minimum subset of shares: " << recover_secret(secondThree) << std::endl;
@@ -96,28 +95,19 @@ int main(int argc, char ** argv)
 
 }
 
-
-int eval_at(const std::vector<int> & poly, int x) {
-	//evaluates polynomial (coefficient tuple) at x, used to generate a
-	//shamir pool in make_random_shares below.
-
-	int accum = 0;
-	for (unsigned int i = poly.size(); i-- > 0;)//coeff in reversed(poly))
-	{
-		int coeff = poly[i];
-		accum *= x;
-		accum += coeff;
-		accum %= prime;
+mpz_t eval_at(const vector<mpz_t> & poly, mpz_t x){
+	mpz_t accum;
+	mpz_init(accum);
+	for(size_t i = poly.size(); i-- > 0; ){
+		mpz_mul(accum, accum, x);
+		mpz_add(accum, accum, poly[i]);
+		mpz_fdiv_r(accum, accum, prime);
 	}
-	return accum;
+	returm accum;
 }
 
-pair<int, vector<pair<int,int>>> make_random_shares(int minimum, int shares_length) {
-	//First returned is secret, second is points.
-	//Each point is a pair. First is the argument, second is the value.
-	//Generates a random shamir pool, returns the secret and the share points.
-	std::vector<int> poly;
-	std::vector<pair<int,int>> points;
+pair<mpz_t, vector<pair<mpz_t, mpz_t>>> make_random_shares(unsigned int minimum,
+unsigned int num_shares){
 
 	if (minimum > shares_length)
 	{
@@ -125,27 +115,40 @@ pair<int, vector<pair<int,int>>> make_random_shares(int minimum, int shares_leng
 		exit(1);
 	}
 
+	vector<mpz_t> poly;
+	vector<pair<mpz_t, mpz_t>> points;
+
+	gmp_randstate_t state;
+	gmp_randinit_mt(state);
+
 	myclock::duration d = myclock::now() - beginning;
-	unsigned seed1 = d.count();
-	std::mt19937 generator(seed1);
+	unsigned seed = d.count();
+	gmp_randseed(state, seed);
 
+	mpz_t generated;
+	mpz_init(generated);
 
-	for (unsigned int i = 0; i < minimum; i++)
-	{
-
-		poly.push_back(generator() % prime);
+	for(unsigned int i = 0; i < minimum; i++){
+		mpz_urandomb(generated, state, sizeof(unsigned int));
+		mpz_t tmp;
+		mpz_init(tmp);
+		mpz_set(tmp, generated);
+		mpz_fdiv_r(tmp, tmp, prime);
+		poly.push_back(tmp);
 	}
 
-
-	for (unsigned int i = 1; i < (shares_length + 1); i++)
-	{
-		pair<int,int> point;
-		point.second = eval_at(poly, i);
-		point.first = i;
+	for(unsigned int i = 1; i < (shares.length+1); i++){
+		pair<mpz_t, mpz_t> point;
+		mpz_t mpz_i;
+		mpz_init(mpz_i);
+		mpz_set_ui(mpz_i, i);
+		point.second = eval_at(poly, mpz_i);
+		point.first = mpz_i;
 		points.push_back(point);
 	}
 
-	return std::pair<int, vector<pair<int,int>>>(poly[0], points);
+	return pair<mpz_t, vector<pair<mpz_t, mpz_t>>>(poly[0], points);
+
 }
 
 mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares) {
@@ -159,14 +162,6 @@ mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares) {
 
 	std::vector<mpz_t> x_s, y_s;
 
-	/*for (unsigned int i = 0; i < shares.size(); i++)
-	{
-		x_s.push_back(i + 1);
-		y_s.push_back(shares[i]);
-
-		std::cout << "x_s is " << x_s[i] << std::endl << "y_s is " << y_s[i] << std::endl;
-
-	}*/
 
 	x_s.reserve(shares.size());
 	y_s.reserve(shares.size());
@@ -175,20 +170,12 @@ mpz_t recover_secret(const std::vector<pair<mpz_t,mpz_t>> & shares) {
 		y_s.push_back(val.second);
 	}
 
-
-	return lagrange_interpolate(0, x_s, y_s); //Prime is currently global
-	//return lagrange_interpolate(0, x_s, y_s, prime);
+	mpz_t zero;
+	mpz_init(zero);
+	return lagrange_interpolate(zero, x_s, y_s); //Prime is currently global
 }
 
-/*
-std::pair<int, int> extended_gcd_jon(int a, int b){
-	if(!a){
-		return pair<int,int>(0,1);
-	}
-}
-*/
 
-//Used for testing GCD
 void print_gcd(int a, int b, int x, int last_x, int y, int last_y, int quot){
 	cout << "a: " << a << endl;
 	cout << "b: " << b << endl;
@@ -199,39 +186,6 @@ void print_gcd(int a, int b, int x, int last_x, int y, int last_y, int quot){
 	cout << "quot: " << quot << endl;
 	cout << endl;
 }
-
-/*
-std::pair<int, int> extended_gcd(int a, int b) {
-	//division in integers modulus p means finding the inverse of the
-	//denominator modulo p and then multiplying the numerator by this
-	//inverse(Note: inverse of A is B such that A*B % p == 1) this can
-	//be computed via extended Euclidean algorithm
-	//http ://en.wikipedia.org/wiki/Modular_multiplicative_inverse#Computation
-	int x = 0; 
-	int last_x = 1;
-	int y = 1; 
-	int last_y = 0;
-
-	while (b != 0) {
-		//Should this be floored or not?
-		int quot = floor((float)a / (float)b);
-
-		int temp_a = a;
-		a = b;
-		//https://stackoverflow.com/questions/1907565/c-and-python-different-behaviour-of-the-modulo-operation
-		b = ((temp_a%b) + b) % b;
-
-		int next_x = last_x - (quot*x);
-		last_x = x;
-		x = next_x;
-
-		int next_y = last_y - (quot*y);
-		last_y = y;
-		y = next_y;		
-	}
-	return std::pair<int, int>(last_x, last_y);
-}
-*/
 
 mpz_t divmod(mpz_t num, mpz_t den, mpz_t p) {
 	//compute num / den modulo prime p
@@ -252,7 +206,7 @@ mpz_t divmod(mpz_t num, mpz_t den, mpz_t p) {
 
   mpz_mul(s, s, num);
 
-	return s;
+  return s;
 }
 
 mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::vector<mpz_t> & y_s) {
@@ -312,7 +266,7 @@ mpz_t lagrange_interpolate(mpz_t x, const std::vector<mpz_t> & x_s, const std::v
 	mpz_t	den = PI(dens);
 
 	mpz_t num;
-  mpz_init(num);
+  	mpz_init(num);
 
 	for (size_t idx = 0; idx < k; idx++) {
 
