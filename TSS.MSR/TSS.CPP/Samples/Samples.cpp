@@ -14,12 +14,11 @@ Microsoft Confidential
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
 #include <cstdio>
 #include <iostream>
-
 #include <modes.h>
 #include <aes.h>
+#include "ShamirSecret.h"
 
 
 //https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
