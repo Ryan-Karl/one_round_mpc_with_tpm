@@ -21,6 +21,7 @@ Microsoft Confidential
 #include "ShamirSecret.h"
 #include <vector>
 #include <iterator>
+#include <cassert>
 
 
 //https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
@@ -325,13 +326,14 @@ void Samples::MPC_TPM()
 	key = tpm._GetRandLocal(AES_KEY_SIZE);
 	iv = tpm._GetRandLocal(IV_SIZE);
 
-	std::cout << "Debug: KEY and IV:  " << key << std::endl;
+	//std::cout << "Printing KEY:  " << key << std::endl;
 
 
 
 
 	mpz_class prime;
-	mpz_class mpz_key(ByteVecToString(key), 16);
+	mpz_class mpz_key = ByteVecToMPZ(key);
+	//May need to initialize prime differently
 	std::cout << "DEBUG: key in mpz format is " << mpz_key << std::endl;
 	mpz_nextprime(prime.get_mpz_t(), mpz_key.get_mpz_t());
 
@@ -346,7 +348,11 @@ void Samples::MPC_TPM()
 	std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares), std::begin(shares) + minimum);
 
 
-	splitKeys.getSecretString(partialShares);
+	mpz_class recombined_secret = splitKeys.getSecret(partialShares);
+
+	std::cout << "Recombined Key:             " << recombined_secret << std::endl;
+
+	//std::assert(recombined_secret == mpz_key);
 
 	// Message to be encrypted
 	unsigned char *plaintext =
