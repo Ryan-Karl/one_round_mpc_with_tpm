@@ -192,9 +192,9 @@ void Samples::Announce(const char *testName)
 	SetCol(1);
 }
 
-std::string ByteVecToString(const std::vector<BYTE> v){
+std::string ByteVecToString(const std::vector<BYTE> &v) {
 	std::string str = "";
-	for(const auto & c : v){
+	for (const auto & c : v) {
 		str += c;
 	}
 	return str;
@@ -308,17 +308,17 @@ void Samples::MPC_TPM()
 	// A 256 bit key
 
 
-	#define AES_KEY_SIZE 32
-	#define IV_SIZE 16
+#define AES_KEY_SIZE 32
+#define IV_SIZE 16
 	std::vector<BYTE> key, iv;
-	key = tpm.GetRandLocal(AES_KEY_SIZE);
-	iv = tpm.GetRandLocal(IV_SIZE);
+	key = tpm._GetRandLocal(AES_KEY_SIZE);
+	iv = tpm._GetRandLocal(IV_SIZE);
 
 	mpz_class prime;
-	mpz_class mpz_key(ByteVecToString(key);
+	mpz_class mpz_key(ByteVecToString(key));
 	std::cout << "DEBUG: key in mpz format is " << mpz_key << std::endl;
-	mpz_nextprime(prime.get_mpz_t(), mpz_key);
-	
+	mpz_nextprime(prime.get_mpz_t(), mpz_key.get_mpz_t());
+
 
 	//placeholders until we determine # of wires owned
 	unsigned int number_shares = 10;
@@ -326,7 +326,7 @@ void Samples::MPC_TPM()
 
 	ShamirSecret splitKeys(prime, number_shares, minimum);
 
-	std::vector<std::pair<mpz_class, mpz_class> > shares = splitKeys.getShares(key);
+	std::vector<std::pair<mpz_class, mpz_class> > shares = splitKeys.getShares(mpz_key);
 	std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares), std::begin(shares) + minimum);
 
 
@@ -343,7 +343,14 @@ void Samples::MPC_TPM()
 	unsigned char decryptedtext[128];
 	int decryptedtext_len, ciphertext_len;
 	// Encrypt the plaintext
-	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), key, iv,
+	//const char * keytmp = ByteVecToString(key).c_str();
+	//const char * key_str = strstr(keytmp, "_#_");
+	const char * key_str = ByteVecToString(key).c_str();
+	//const char * ivtmp = ByteVecToString(iv).c_str();
+	//const char * iv_str = strstr(ivtmp, "_#_");
+	const char * iv_str = ByteVecToString(iv).c_str();
+
+	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), (unsigned char *)key_str, (unsigned char *)iv_str,
 		ciphertext);
 
 	//cout << endl << "test2" << endl << endl;
@@ -352,7 +359,7 @@ void Samples::MPC_TPM()
 	printf("Ciphertext is:\n");
 	BIO_dump_fp(stdout, (const char *)ciphertext, ciphertext_len);
 	// Decrypt the ciphertext
-	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
+	decryptedtext_len = decrypt(ciphertext, ciphertext_len, (unsigned char *)key_str, (unsigned char *)iv_str,
 		decryptedtext);
 	// Add a NULL terminator. We are expecting printable text
 	decryptedtext[decryptedtext_len] = '\0';
