@@ -571,23 +571,23 @@ namespace Tpm2Lib {
         [SpecTypeName("TPM_SPEC_LEVEL")]
         Level = 00,
         /// <summary>
-        /// the version number of the spec (001.53 * 100)
+        /// the version number of the spec (001.51 * 100)
         /// </summary>
         [EnumMember]
         [SpecTypeName("TPM_SPEC_VERSION")]
-        Version = 153,
+        Version = 151,
         /// <summary>
         /// the year of the version
         /// </summary>
         [EnumMember]
         [SpecTypeName("TPM_SPEC_YEAR")]
-        Year = 2019,
+        Year = 2018,
         /// <summary>
-        /// the day of the year (February 19)
+        /// the day of the year (October 10)
         /// </summary>
         [EnumMember]
         [SpecTypeName("TPM_SPEC_DAY_OF_YEAR")]
-        DayOfYear = 28
+        DayOfYear = 283
     }
     [DataContract]
     [SpecTypeName("TPM_GENERATED")]
@@ -2500,13 +2500,13 @@ namespace Tpm2Lib {
         [SpecTypeName("TPM_PT_VENDOR_TPM_TYPE")]
         VendorTpmType = 0x00000100 * 1 + 10, // 0x10A
         /// <summary>
-        /// the most-significant 32 bits of a TPM vendor-specific value indicating the version number of the firmware. See 10.12.2 and 10.12.9.
+        /// the most-significant 32 bits of a TPM vendor-specific value indicating the version number of the firmware. See 10.12.2 and 10.12.8.
         /// </summary>
         [EnumMember]
         [SpecTypeName("TPM_PT_FIRMWARE_VERSION_1")]
         FirmwareVersion1 = 0x00000100 * 1 + 11, // 0x10B
         /// <summary>
-        /// the least-significant 32 bits of a TPM vendor-specific value indicating the version number of the firmware. See 10.12.2 and 10.12.9.
+        /// the least-significant 32 bits of a TPM vendor-specific value indicating the version number of the firmware. See 10.12.2 and 10.12.8.
         /// </summary>
         [EnumMember]
         [SpecTypeName("TPM_PT_FIRMWARE_VERSION_2")]
@@ -2665,7 +2665,8 @@ namespace Tpm2Lib {
         [SpecTypeName("TPM_PT_PS_LEVEL")]
         PsLevel = 0x00000100 * 1 + 36, // 0x124
         /// <summary>
-        /// a platform specific value
+        /// the specification Revision times 100 for the platform-specific specification
+        /// EXAMPLE	Revision 01.01 would have a value of 101.
         /// </summary>
         [EnumMember]
         [SpecTypeName("TPM_PT_PS_REVISION")]
@@ -3292,7 +3293,7 @@ namespace Tpm2Lib {
     [DataContract]
     [SpecTypeName("TPM_NT")]
     /// <summary>
-    /// This table lists the values of the TPM_NT field of a TPMA_NV. See Table 210 for usage.
+    /// This table lists the values of the TPM_NT field of a TPMA_NV. See Table 208 for usage.
     /// </summary>
     public enum Nt : uint
     {
@@ -3397,13 +3398,13 @@ namespace Tpm2Lib {
         Level = 00, // 0x0
         [EnumMember]
         [SpecTypeName("PLATFORM_VERSION")]
-        Version = 153, // 0x99
+        Version = 151, // 0x97
         [EnumMember]
         [SpecTypeName("PLATFORM_YEAR")]
-        Year = 2019, // 0x7E3
+        Year = 2018, // 0x7E2
         [EnumMember]
         [SpecTypeName("PLATFORM_DAY_OF_YEAR")]
-        DayOfYear = 28 // 0x1C
+        DayOfYear = 283 // 0x11B
     }
     [DataContract]
     [SpecTypeName("Implementation")]
@@ -4759,7 +4760,7 @@ namespace Tpm2Lib {
     //------------------------- UNIONS -----------------------------------------
     //-----------------------------------------------------------------------------
     /// <summary>
-    /// Table 88  Definition of TPMU_NAME Union <>
+    /// Table 87  Definition of TPMU_NAME Union <>
     /// (One of [TpmHash, TpmHandle])
     /// </summary>
     public interface INameUnion
@@ -4767,7 +4768,7 @@ namespace Tpm2Lib {
         NameUnionTagValues GetUnionSelector();
     }
     /// <summary>
-    /// Table 114  Definition of TPMU_CAPABILITIES Union <OUT>
+    /// Table 113  Definition of TPMU_CAPABILITIES Union <OUT>
     /// (One of [AlgPropertyArray, HandleArray, CcaArray, CcArray, CcArray, PcrSelectionArray, TaggedTpmPropertyArray, TaggedPcrPropertyArray, EccCurveArray, TaggedPolicyArray])
     /// </summary>
     public interface ICapabilitiesUnion
@@ -4775,8 +4776,8 @@ namespace Tpm2Lib {
         Cap GetUnionSelector();
     }
     /// <summary>
-    /// Table 127  Definition of TPMU_ATTEST Union <OUT>
-    /// (One of [CertifyInfo, CreationInfo, QuoteInfo, CommandAuditInfo, SessionAuditInfo, TimeAttestInfo, NvCertifyInfo, NvDigestCertifyInfo])
+    /// Table 125  Definition of TPMU_ATTEST Union <OUT>
+    /// (One of [CertifyInfo, CreationInfo, QuoteInfo, CommandAuditInfo, SessionAuditInfo, TimeAttestInfo, NvCertifyInfo, NvCertifyHashInfo])
     /// </summary>
     public interface IAttestUnion
     {
@@ -4815,7 +4816,7 @@ namespace Tpm2Lib {
         TpmAlgId GetUnionSelector();
     }
     /// <summary>
-    /// Table 152  Definition of TPMU_SCHEME_KEYEDHASH Union <IN/OUT, S>
+    /// Table 150  Definition of TPMU_SCHEME_KEYEDHASH Union <IN/OUT, S>
     /// (One of [SchemeHmac, SchemeXor, NullSchemeKeyedhash])
     /// </summary>
     public interface ISchemeKeyedhashUnion
@@ -4831,7 +4832,7 @@ namespace Tpm2Lib {
         TpmAlgId GetUnionSelector();
     }
     /// <summary>
-    /// Table 161  Definition of TPMU_KDF_SCHEME Union <IN/OUT, S>
+    /// Table 159  Definition of TPMU_KDF_SCHEME Union <IN/OUT, S>
     /// (One of [SchemeMgf1, SchemeKdf1Sp80056a, SchemeKdf2, SchemeKdf1Sp800108, NullKdfScheme])
     /// </summary>
     public interface IKdfSchemeUnion
@@ -4871,7 +4872,7 @@ namespace Tpm2Lib {
         TpmAlgId GetUnionSelector();
     }
     /// <summary>
-    /// Table 194 defines the possible parameter definition structures that may be contained in the public portion of a key. If the Object can be a parent, the first field must be a TPMT_SYM_DEF_OBJECT. See 11.1.7.
+    /// Table 192 defines the possible parameter definition structures that may be contained in the public portion of a key. If the Object can be a parent, the first field must be a TPMT_SYM_DEF_OBJECT. See 11.1.7.
     /// (One of [KeyedhashParms, SymcipherParms, RsaParms, EccParms, AsymParms])
     /// </summary>
     public interface IPublicParmsUnion
@@ -4879,7 +4880,7 @@ namespace Tpm2Lib {
         TpmAlgId GetUnionSelector();
     }
     /// <summary>
-    /// Table 200  Definition of TPMU_SENSITIVE_COMPOSITE Union <IN/OUT, S>
+    /// Table 198  Definition of TPMU_SENSITIVE_COMPOSITE Union <IN/OUT, S>
     /// (One of [Tpm2bPrivateKeyRsa, Tpm2bEccParameter, Tpm2bSensitiveData, Tpm2bSymKey, Tpm2bPrivateVendorSpecific])
     /// </summary>
     public interface ISensitiveCompositeUnion
@@ -4926,7 +4927,7 @@ namespace Tpm2Lib {
                     case TpmSt.AttestSessionAudit: return typeof(SessionAuditInfo);
                     case TpmSt.AttestTime: return typeof(TimeAttestInfo);
                     case TpmSt.AttestNv: return typeof(NvCertifyInfo);
-                    case TpmSt.AttestNvDigest: return typeof(NvDigestCertifyInfo);
+                    case TpmSt.AttestNvDigest: return typeof(NvCertifyHashInfo);
                 }
             }
             else if (unionInterface == typeof(ISymDetailsUnion))
@@ -5292,7 +5293,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 80  Definition of Types for TPM2B_NONCE
+    /// Table 79  Definition of Types for TPM2B_NONCE
     /// </summary>
     [DataContract]
     [SpecTypeName("TPM2B_NONCE")]
@@ -5655,7 +5656,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 91  Definition of TPMS_PCR_SELECTION Structure
+    /// Table 90  Definition of TPMS_PCR_SELECTION Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -5883,7 +5884,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// This ticket is produced by TPM2_SequenceComplete() or TPM2_Hash() when the message that was digested did not start with TPM_GENERATED_VALUE. The ticket is computed by
+    /// This ticket is produced by TPM2_SequenceComplete() when the message that was digested did not start with TPM_GENERATED_VALUE. The ticket is computed by
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmHandle))]
@@ -7244,8 +7245,8 @@ namespace Tpm2Lib {
     /// This structure contains the Name and hash of the contents of the selected NV Index that is certified by TPM2_NV_Certify(). The data is hashed using hash of the signing scheme.
     /// </summary>
     [DataContract]
-    [SpecTypeName("TPMS_NV_DIGEST_CERTIFY_INFO")]
-    public partial class NvDigestCertifyInfo: TpmStructureBase, IAttestUnion
+    [SpecTypeName("TPMS_NV_CERTIFY_HASH_INFO")]
+    public partial class NvCertifyHashInfo: TpmStructureBase, IAttestUnion
     {
         /// <summary>
         /// Name of the NV Index
@@ -7259,20 +7260,20 @@ namespace Tpm2Lib {
         [MarshalAs(1, MarshalType.VariableLengthArray, "nvDigestSize", 2)]
         [DataMember()]
         public byte[] nvDigest;
-        public NvDigestCertifyInfo()
+        public NvCertifyHashInfo()
         {
             indexName = null;
             nvDigest = null;
         }
-        public NvDigestCertifyInfo(NvDigestCertifyInfo the_NvDigestCertifyInfo)
+        public NvCertifyHashInfo(NvCertifyHashInfo the_NvCertifyHashInfo)
         {
-            if((Object) the_NvDigestCertifyInfo == null ) throw new ArgumentException(Globs.GetResourceString("parmError"));
-            indexName = the_NvDigestCertifyInfo.indexName;
-            nvDigest = the_NvDigestCertifyInfo.nvDigest;
+            if((Object) the_NvCertifyHashInfo == null ) throw new ArgumentException(Globs.GetResourceString("parmError"));
+            indexName = the_NvCertifyHashInfo.indexName;
+            nvDigest = the_NvCertifyHashInfo.nvDigest;
         }
         ///<param name = "the_indexName">Name of the NV Index</param>
         ///<param name = "the_nvDigest">hash of the contents of the index</param>
-        public NvDigestCertifyInfo(
+        public NvCertifyHashInfo(
         byte[] the_indexName,
         byte[] the_nvDigest
         )
@@ -7284,13 +7285,13 @@ namespace Tpm2Lib {
         {
             return TpmSt.AttestNvDigest;
         }
-        new public NvDigestCertifyInfo Copy()
+        new public NvCertifyHashInfo Copy()
         {
-            return Marshaller.FromTpmRepresentation<NvDigestCertifyInfo>(this.GetTpmRepresentation());
+            return Marshaller.FromTpmRepresentation<NvCertifyHashInfo>(this.GetTpmRepresentation());
         }
         public override TpmStructureBase Clone()
         {
-            return Marshaller.FromTpmRepresentation<NvDigestCertifyInfo>(this.GetTpmRepresentation());
+            return Marshaller.FromTpmRepresentation<NvCertifyHashInfo>(this.GetTpmRepresentation());
         }
     }
     /// <summary>
@@ -7308,7 +7309,7 @@ namespace Tpm2Lib {
     [KnownType(typeof(SessionAuditInfo))]
     [KnownType(typeof(CreationInfo))]
     [KnownType(typeof(NvCertifyInfo))]
-    [KnownType(typeof(NvDigestCertifyInfo))]
+    [KnownType(typeof(NvCertifyHashInfo))]
     [SpecTypeName("TPMS_ATTEST")]
     public partial class Attest: TpmStructureBase
     {
@@ -7352,7 +7353,7 @@ namespace Tpm2Lib {
         public ulong firmwareVersion { get; set; }
         /// <summary>
         /// the type-specific attestation information
-        /// (One of [CertifyInfo, CreationInfo, QuoteInfo, CommandAuditInfo, SessionAuditInfo, TimeAttestInfo, NvCertifyInfo, NvDigestCertifyInfo])
+        /// (One of [CertifyInfo, CreationInfo, QuoteInfo, CommandAuditInfo, SessionAuditInfo, TimeAttestInfo, NvCertifyInfo, NvCertifyHashInfo])
         /// </summary>
         [MarshalAs(6, MarshalType.Union, "type")]
         [DataMember()]
@@ -7379,7 +7380,7 @@ namespace Tpm2Lib {
         ///<param name = "the_extraData">external information supplied by caller NOTE	A TPM2B_DATA structure provides room for a digest and a method indicator to indicate the components of the digest. The definition of this method indicator is outside the scope of this specification.</param>
         ///<param name = "the_clockInfo">Clock, resetCount, restartCount, and Safe</param>
         ///<param name = "the_firmwareVersion">TPM-vendor-specific value identifying the version number of the firmware</param>
-        ///<param name = "the_attested">the type-specific attestation information(One of CertifyInfo, CreationInfo, QuoteInfo, CommandAuditInfo, SessionAuditInfo, TimeAttestInfo, NvCertifyInfo, NvDigestCertifyInfo)</param>
+        ///<param name = "the_attested">the type-specific attestation information(One of CertifyInfo, CreationInfo, QuoteInfo, CommandAuditInfo, SessionAuditInfo, TimeAttestInfo, NvCertifyInfo, NvCertifyHashInfo)</param>
         public Attest(
         Generated the_magic,
         byte[] the_qualifiedSigner,
@@ -8039,7 +8040,7 @@ namespace Tpm2Lib {
     public partial class Tpm2bLabel: TpmStructureBase
     {
         /// <summary>
-        /// symmetric data for a created object or the label and context for a derived object
+        /// symmetic data for a created object or the label and context for a derived object
         /// </summary>
         [Range(MaxVal = 32u /*LABEL_MAX_BUFFER*/)]
         [MarshalAs(0, MarshalType.VariableLengthArray, "size", 2)]
@@ -8054,7 +8055,7 @@ namespace Tpm2Lib {
             if((Object) the_Tpm2bLabel == null ) throw new ArgumentException(Globs.GetResourceString("parmError"));
             buffer = the_Tpm2bLabel.buffer;
         }
-        ///<param name = "the_buffer">symmetric data for a created object or the label and context for a derived object</param>
+        ///<param name = "the_buffer">symmetic data for a created object or the label and context for a derived object</param>
         public Tpm2bLabel(
         byte[] the_buffer
         )
@@ -8118,7 +8119,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 142  Definition of TPM2B_DERIVE Structure
+    /// Table 140  Definition of TPM2B_DERIVE Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmDerive))]
@@ -8126,7 +8127,7 @@ namespace Tpm2Lib {
     public partial class Tpm2bDerive: TpmStructureBase
     {
         /// <summary>
-        /// symmetric data for a created object or the label and context for a derived object
+        /// symmetic data for a created object or the label and context for a derived object
         /// </summary>
         [Range(MaxVal = 68u /*sizeof(TPMS_DERIVE)*/)]
         [MarshalAs(0, MarshalType.SizedStruct, "size", 2)]
@@ -8141,7 +8142,7 @@ namespace Tpm2Lib {
             if((Object) the_Tpm2bDerive == null ) throw new ArgumentException(Globs.GetResourceString("parmError"));
             buffer = the_Tpm2bDerive.buffer;
         }
-        ///<param name = "the_buffer">symmetric data for a created object or the label and context for a derived object</param>
+        ///<param name = "the_buffer">symmetic data for a created object or the label and context for a derived object</param>
         public Tpm2bDerive(
         TpmDerive the_buffer
         )
@@ -8165,7 +8166,7 @@ namespace Tpm2Lib {
     public partial class Tpm2bSensitiveData: TpmStructureBase, ISensitiveCompositeUnion
     {
         /// <summary>
-        /// symmetric data for a created object or the label and context for a derived object
+        /// symmetic data for a created object or the label and context for a derived object
         /// </summary>
         [Range(MaxVal = 128u /*sizeof(TPMU_SENSITIVE_CREATE)*/)]
         [MarshalAs(0, MarshalType.VariableLengthArray, "size", 2)]
@@ -8180,7 +8181,7 @@ namespace Tpm2Lib {
             if((Object) the_Tpm2bSensitiveData == null ) throw new ArgumentException(Globs.GetResourceString("parmError"));
             buffer = the_Tpm2bSensitiveData.buffer;
         }
-        ///<param name = "the_buffer">symmetric data for a created object or the label and context for a derived object</param>
+        ///<param name = "the_buffer">symmetic data for a created object or the label and context for a derived object</param>
         public Tpm2bSensitiveData(
         byte[] the_buffer
         )
@@ -8386,7 +8387,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 150  Definition of Types for HMAC_SIG_SCHEME
+    /// Table 148  Definition of Types for HMAC_SIG_SCHEME
     /// </summary>
     [DataContract]
     [SpecTypeName("TPMS_SCHEME_HMAC")]
@@ -8785,7 +8786,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 157  Definition of TPMT_SIG_SCHEME Structure
+    /// Table 155  Definition of TPMT_SIG_SCHEME Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -9132,7 +9133,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 162  Definition of TPMT_KDF_SCHEME Structure
+    /// Table 160  Definition of TPMT_KDF_SCHEME Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -9280,7 +9281,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 167  Definition of {RSA} TPMT_RSA_SCHEME Structure
+    /// Table 165  Definition of {RSA} TPMT_RSA_SCHEME Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -9346,7 +9347,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 169  Definition of {RSA} TPMT_RSA_DECRYPT Structure
+    /// Table 167  Definition of {RSA} TPMT_RSA_DECRYPT Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -9630,7 +9631,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 178  Definition of (TPMT_SIG_SCHEME) {ECC} TPMT_ECC_SCHEME Structure
+    /// Table 176  Definition of (TPMT_SIG_SCHEME) {ECC} TPMT_ECC_SCHEME Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -9893,7 +9894,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 180  Definition of {RSA} TPMS_SIGNATURE_RSA Structure
+    /// Table 178  Definition of {RSA} TPMS_SIGNATURE_RSA Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -9948,7 +9949,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 180  Definition of {RSA} TPMS_SIGNATURE_RSA Structure
+    /// Table 178  Definition of {RSA} TPMS_SIGNATURE_RSA Structure
     /// </summary>
     [DataContract]
     [SpecTypeName("TPMS_SIGNATURE_RSASSA")]
@@ -9984,7 +9985,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 180  Definition of {RSA} TPMS_SIGNATURE_RSA Structure
+    /// Table 178  Definition of {RSA} TPMS_SIGNATURE_RSA Structure
     /// </summary>
     [DataContract]
     [SpecTypeName("TPMS_SIGNATURE_RSAPSS")]
@@ -10020,7 +10021,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 182  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
+    /// Table 180  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -10080,7 +10081,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 182  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
+    /// Table 180  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
     /// </summary>
     [DataContract]
     [SpecTypeName("TPMS_SIGNATURE_ECDSA")]
@@ -10118,7 +10119,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 182  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
+    /// Table 180  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
     /// </summary>
     [DataContract]
     [SpecTypeName("TPMS_SIGNATURE_ECDAA")]
@@ -10156,7 +10157,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 182  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
+    /// Table 180  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
     /// </summary>
     [DataContract]
     [SpecTypeName("TPMS_SIGNATURE_SM2")]
@@ -10194,7 +10195,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 182  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
+    /// Table 180  Definition of {ECC} TPMS_SIGNATURE_ECC Structure
     /// </summary>
     [DataContract]
     [SpecTypeName("TPMS_SIGNATURE_ECSCHNORR")]
@@ -10256,7 +10257,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 185 shows the basic algorithm-agile structure when a symmetric or asymmetric signature is indicated. The sigAlg parameter indicates the algorithm used for the signature. This structure is output from commands such as the attestation commands and TPM2_Sign, and is an input to commands such as TPM2_VerifySignature(), TPM2_PolicySigned(), and TPM2_FieldUpgradeStart().
+    /// Table 183 shows the basic algorithm-agile structure when a symmetric or asymmetric signature is indicated. The sigAlg parameter indicates the algorithm used for the signature. This structure is output from commands such as the attestation commands and TPM2_Sign, and is an input to commands such as TPM2_VerifySignature(), TPM2_PolicySigned(), and TPM2_FieldUpgradeStart().
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -10318,7 +10319,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 187  Definition of TPM2B_ENCRYPTED_SECRET Structure
+    /// Table 185  Definition of TPM2B_ENCRYPTED_SECRET Structure
     /// </summary>
     [DataContract]
     [SpecTypeName("TPM2B_ENCRYPTED_SECRET")]
@@ -10793,7 +10794,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// Table 196 defines the public area structure. The Name of the object is nameAlg concatenated with the digest of this structure using nameAlg.
+    /// Table 194 defines the public area structure. The Name of the object is nameAlg concatenated with the digest of this structure using nameAlg.
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -11634,7 +11635,7 @@ namespace Tpm2Lib {
         [DataMember()]
         public ulong sequence { get; set; }
         /// <summary>
-        /// a handle indicating if the context is a session, object, or sequence object (see Table 217  Context Handle Values
+        /// a handle indicating if the context is a session, object, or sequence object (see Table 215  Context Handle Values
         /// </summary>
         [MarshalAs(1)]
         [DataMember()]
@@ -11667,7 +11668,7 @@ namespace Tpm2Lib {
             contextBlob = the_Context.contextBlob;
         }
         ///<param name = "the_sequence">the sequence number of the context NOTE	Transient object contexts and session contexts used different counters.</param>
-        ///<param name = "the_savedHandle">a handle indicating if the context is a session, object, or sequence object (see Table 217  Context Handle Values</param>
+        ///<param name = "the_savedHandle">a handle indicating if the context is a session, object, or sequence object (see Table 215  Context Handle Values</param>
         ///<param name = "the_hierarchy">the hierarchy of the context</param>
         ///<param name = "the_contextBlob">the context data and integrity HMAC</param>
         public Context(
@@ -17021,7 +17022,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// The purpose of this command is to generate an X.509 certificate that proves an object with a specific public key and attributes is loaded in the TPM. In contrast to TPM2_Certify, which uses a TCG-defined data structure to convey attestation information, TPM2_CertifyX509 encodes the attestation information in a DER-encoded X.509 certificate that is compliant with RFC5280 Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile.
+    /// The purpose of this command is to generate an X.509 certificate that proves an object with specific public key and attributes is loaded in the TPM. In contrast to TPM2_Certify, which uses a TCG-defined data structure to convey attestation information, TPM2_CertifyX509 encodes the attestation information in a DER-encoded X.509 certificate that is compliant with RFC5280 Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile.
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmHandle))]
@@ -17133,7 +17134,7 @@ namespace Tpm2Lib {
         }
     }
     /// <summary>
-    /// The purpose of this command is to generate an X.509 certificate that proves an object with a specific public key and attributes is loaded in the TPM. In contrast to TPM2_Certify, which uses a TCG-defined data structure to convey attestation information, TPM2_CertifyX509 encodes the attestation information in a DER-encoded X.509 certificate that is compliant with RFC5280 Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile.
+    /// The purpose of this command is to generate an X.509 certificate that proves an object with specific public key and attributes is loaded in the TPM. In contrast to TPM2_Certify, which uses a TCG-defined data structure to convey attestation information, TPM2_CertifyX509 encodes the attestation information in a DER-encoded X.509 certificate that is compliant with RFC5280 Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile.
     /// </summary>
     [DataContract]
     [KnownType(typeof(TpmAlgId))]
@@ -17177,7 +17178,7 @@ namespace Tpm2Lib {
             }
         }
         /// <summary>
-        /// The signature over tbsDigest
+        /// The signature over tbsHash
         /// (One of [SignatureRsassa, SignatureRsapss, SignatureEcdsa, SignatureEcdaa, SignatureSm2, SignatureEcschnorr, TpmHash, SchemeHash, NullSignature])
         /// </summary>
         [MarshalAs(3, MarshalType.Union, "signatureSigAlg")]
@@ -17196,7 +17197,7 @@ namespace Tpm2Lib {
         }
         ///<param name = "the_addedToCertificate">the DER encoded fields added to partialCertificate to make it a complete RFC5280 TBSCertificate.</param>
         ///<param name = "the_tbsDigest">the digest that was signed</param>
-        ///<param name = "the_signature">The signature over tbsDigest(One of SignatureRsassa, SignatureRsapss, SignatureEcdsa, SignatureEcdaa, SignatureSm2, SignatureEcschnorr, TpmHash, SchemeHash, NullSignature)</param>
+        ///<param name = "the_signature">The signature over tbsHash(One of SignatureRsassa, SignatureRsapss, SignatureEcdsa, SignatureEcdaa, SignatureSm2, SignatureEcschnorr, TpmHash, SchemeHash, NullSignature)</param>
         public Tpm2CertifyX509Response(
         byte[] the_addedToCertificate,
         byte[] the_tbsDigest,
@@ -25809,7 +25810,7 @@ namespace Tpm2Lib {
             return outS.timeInfo;
         }
         /// <summary>
-        /// The purpose of this command is to generate an X.509 certificate that proves an object with a specific public key and attributes is loaded in the TPM. In contrast to TPM2_Certify, which uses a TCG-defined data structure to convey attestation information, TPM2_CertifyX509 encodes the attestation information in a DER-encoded X.509 certificate that is compliant with RFC5280 Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile.
+        /// The purpose of this command is to generate an X.509 certificate that proves an object with specific public key and attributes is loaded in the TPM. In contrast to TPM2_Certify, which uses a TCG-defined data structure to convey attestation information, TPM2_CertifyX509 encodes the attestation information in a DER-encoded X.509 certificate that is compliant with RFC5280 Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile.
         /// </summary>
         ///<param name = "objectHandle">handle of the object to be certified Auth Index: 1 Auth Role: ADMIN</param>
         ///<param name = "signHandle">handle of the key used to sign the attestation structure Auth Index: 2 Auth Role: USER</param>
@@ -25824,7 +25825,7 @@ namespace Tpm2Lib {
         ///<param name = "tbsDigestSize">size in octets of the buffer field; may be 0</param>
         ///<param name = "tbsDigest">the digest that was signed</param>
         ///<param name = "signatureSigAlg">selector of the algorithm used to construct the signature</param>
-        ///<param name = "signature">The signature over tbsDigest(One of SignatureRsassa, SignatureRsapss, SignatureEcdsa, SignatureEcdaa, SignatureSm2, SignatureEcschnorr, TpmHash, SchemeHash, NullSignature)</param>
+        ///<param name = "signature">The signature over tbsHash(One of SignatureRsassa, SignatureRsapss, SignatureEcdsa, SignatureEcdaa, SignatureSm2, SignatureEcschnorr, TpmHash, SchemeHash, NullSignature)</param>
         [SuppressMessage("Microsoft.Design", "CA1021")]
         [TpmCommand]
         public byte[] CertifyX509(

@@ -124,7 +124,7 @@ namespace Tpm2Lib
         /// </summary>
         public static TpmRc ErrorNumber (TpmRc rawResponse)
         {
-            if (Tpm2.IsTbsError(rawResponse) || Tpm2.IsTssError(rawResponse))
+            if (Tpm2.IsTbsError((uint)rawResponse))
                 return rawResponse;
 
             const uint Fmt1 = (uint)TpmRc.RcFmt1;   // Format 1 code (TPM 2 only)

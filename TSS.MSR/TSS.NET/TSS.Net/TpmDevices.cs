@@ -443,30 +443,30 @@ namespace Tpm2Lib
         private void ConnectWorker(string hostName, int port, out NetworkStream theStream, out TcpClient theClient)
         {
             IPAddress simulatorAddress;
-            theClient = new TcpClient();
             // first try to interpret as a dotted DNS name
             bool parsedOk = IPAddress.TryParse(hostName, out simulatorAddress);
-            Task ipConTask = theClient.ConnectAsync(parsedOk ? simulatorAddress : GetIPAddressFromHost(hostName), port);
-            bool res = true;
-            if (SocketTimeout != -1)
-                res = ipConTask.Wait(SocketTimeout * 1000);
-            else
+            if (parsedOk)
+            {
+                theClient = new TcpClient();
+                Task ipConTask = theClient.ConnectAsync(simulatorAddress, port);
                 ipConTask.Wait();
-            if (!res)
-                throw (new TssException("Failed to establish socket connection"));
+                theClient.NoDelay = true;
+                theStream = theClient.GetStream();
+                return;
+            }
+            // else we try the the DNS hostname
+            theClient = new TcpClient();
+            Task dnsConTask = theClient.ConnectAsync(GetIPAddressFromHost(hostName), port);
+            dnsConTask.Wait();
             theClient.NoDelay = true;
             theStream = theClient.GetStream();
-            return;
         }
 
         public void SetSocketTimeout(int seconds)
         {
             int t = seconds * 1000;
-            if (CommandClient != null)
-            {
-                CommandClient.ReceiveTimeout = t;
-                CommandClient.SendTimeout = t;
-            }
+            CommandClient.ReceiveTimeout = t;
+            CommandClient.SendTimeout = t;
             if (PlatformClient != null)
             {
                 PlatformClient.SendTimeout = t;
@@ -592,20 +592,18 @@ namespace Tpm2Lib
 
         public override void DispatchCommand(CommandModifier active, byte[] inBuf, out byte[] outBuf)
         {
-            outBuf = new byte[]{0x80, 0x01,             // TPM_ST_NO_SESSIONS
-                                0, 0, 0, 0x0A,          // length
-                                0x40, 0x28, 0x00, 0x10  // TSS_DISPATCH_FAILED
-                                };
-            if (CommandStream == null)
-                return;
             if (LinuxTrm)
             {
                 if (Globs.NetToHost4U(Globs.CopyData(inBuf, 6, 4)) == (uint)TpmCc.Startup)
                 {
-                    outBuf[6] = outBuf[7] = 0; outBuf[8] = 0x01; outBuf[9] = 0; // TPM_RC_INITIALIZE
+                    outBuf = new byte[]{0x80, 0x01,             // TPM_ST_NO_SESSIONS
+                                        0, 0, 0, 0x0A,          // length
+                                        0, 0, 0x01, 0x00        // TPM_RC_INITIALIZE
+                                       };
                     return;
                 }
             }
+
             UndoCancelContext();
             var b = new ByteBuf();
             b.Append(Globs.HostToNet((int)TcpTpmCommands.SendCommand));
@@ -703,7 +701,7 @@ namespace Tpm2Lib
         /// <returns></returns>
         private byte[] Read(NetworkStream stream, int numBytes)
         {
-            var res = Globs.GetZeroBytes(numBytes);
+            var res = new byte[numBytes];
             int numRead = 0;
             while (numRead < numBytes)
             {

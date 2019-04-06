@@ -6,17 +6,11 @@ Microsoft Confidential
 */
 #pragma once
 
-#include <algorithm>    // required here for gcc C++ 11
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <stack>
 
 #include "fdefs.h"
-
-#ifdef __linux__
-#   include <unistd.h>
-#endif
 
 _TPMCPP_BEGIN
 
@@ -71,7 +65,7 @@ class OutByteBuf {
         }
 
         int GetPos() {
-            return (int)buf.size();
+            return buf.size();
         }
 
         std::vector<BYTE>& GetBuf() {
@@ -130,7 +124,7 @@ class InByteBuf {
                 theRest[j - pos] = buf[j];
             }
 
-            pos = (int)buf.size();
+            pos = buf.size();
             return theRest;
         }
 
@@ -172,10 +166,6 @@ class InByteBuf {
         bool eof() {
             return pos == (int)buf.size();
         }
-
-        int GetPos() const { return pos; }
-
-        stack<int> sizedStructLen;
 
     protected:
         vector<BYTE> buf;
@@ -232,7 +222,8 @@ inline void Sleep(int numMillisecs)
 {
 #ifdef WIN32
     ::Sleep(numMillisecs);
-#elif __linux__
+#endif
+#ifdef __linux__
     usleep(numMillisecs * 1000);
 #endif
 }

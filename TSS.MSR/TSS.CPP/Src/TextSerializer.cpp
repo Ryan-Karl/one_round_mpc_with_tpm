@@ -30,8 +30,14 @@ string OutStructSerializer::Serialize(TpmStructureBase *p)
 
     StartStruct(tpInfo->Name);
 
-    for (int j = 0; j < (int)fields.size(); j++) {
-        bool lastInStruct = j == (int)fields.size() - 1;
+    for (size_t j = 0; j < fields.size(); j++) {
+        MarshallInfo& thisElem = fields[j];
+
+        if (thisElem.ElementName == "parameters") {
+            cerr << "";
+        }
+
+        bool lastInStruct = j == fields.size() - 1;
         void *fieldPtr = p->ElementInfo(j, -1, xx, yy, -1);
 
         if (yy != NULL) {
@@ -54,6 +60,10 @@ string OutStructSerializer::Serialize(TpmStructureBase *p)
 
             p->ElementInfo(j, -1, arrayCount, yy, -1);
             StartArray(arrayCount);
+
+            if (fInfo.ElementName == "pcrValues") {
+                cerr << "";
+            }
 
             for (int c = 0; c < arrayCount; c++) {
                 void *pElem = p->ElementInfo(j, c, xx, yy, -1);
@@ -234,8 +244,8 @@ void OutStructSerializer::OutByteArray(vector<BYTE>& arr, bool lastInStruct)
 {
     switch (tp) {
         case SerializationType::Text: {
-            size_t maxSize = 17;
-            size_t size = arr.size();
+            unsigned int maxSize = 17;
+            unsigned int size = arr.size();
 
             if (precise) {
                 maxSize = size + 1;
@@ -247,7 +257,7 @@ void OutStructSerializer::OutByteArray(vector<BYTE>& arr, bool lastInStruct)
 
             s << "[";
 
-            for (size_t j = 0; j < arr.size(); j++) {
+            for (unsigned int j = 0; j < arr.size(); j++) {
                 if ((j > maxSize) && (j < arr.size() - 4)) {
                     continue;
                 }
@@ -270,7 +280,7 @@ void OutStructSerializer::OutByteArray(vector<BYTE>& arr, bool lastInStruct)
         case SerializationType::JSON: {
             s << "[";
 
-            for (size_t j = 0; j < arr.size(); j++) {
+            for (unsigned int j = 0; j < arr.size(); j++) {
                 s << (UINT32)arr[j];
 
                 if (j != arr.size() - 1) {
@@ -431,7 +441,7 @@ bool  InStructSerializer::DeSerialize(TpmStructureBase *p)
     UINT64 val;
     TpmStructureBase *yy;
 
-    for (int j = 0; j < (int)fields.size(); j++) {
+    for (size_t j = 0; j < fields.size(); j++) {
         void *fieldPtr = p->ElementInfo(j, -1, xx, yy, -1);
         MarshallInfo& fInfo = fields[j];
 
@@ -624,11 +634,20 @@ DoSpecialProcessing:
         }
 
 EndProcessElement:
-        if (j != (int)fields.size() - 1 && !NextChar(','))
-            return false;
+
+        if (j != fields.size() - 1) {
+            if (!NextChar(',')) {
+                return false;
+            }
+        }
+
     }
 
-    return NextChar('}');
+    if (!NextChar('}')) {
+        return false;
+    }
+
+    return true;
 }
 
 bool InStructSerializer::StartStruct()

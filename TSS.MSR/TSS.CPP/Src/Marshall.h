@@ -17,8 +17,7 @@ enum class MarshallType {
     VariableLengthArray,
     SpecialVariableLengthArray, // Used for TPMT_HA where the alg indirectly decides the length
     ConstantValue,
-    LengthOfStruct,
-    EncryptedVariableLengthArray
+    LengthOfStruct
 };
 
 ///<summary>Type of the element</summary>

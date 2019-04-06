@@ -126,7 +126,7 @@ class _DLLEXP_ AUTH_SESSION {
 ///<summary>This class encapsulates the data needed to call Activate().</summary>
 class ActivationData {
     public:
-        TPMS_ID_OBJECT CredentialBlob;
+        std::vector<BYTE> CredentialBlob;
     public:
         std::vector<BYTE> Secret;
 };

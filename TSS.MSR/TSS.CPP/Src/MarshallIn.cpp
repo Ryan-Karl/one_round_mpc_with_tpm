@@ -43,9 +43,6 @@ void TpmStructureBase::FromBufInternal(InByteBuf& buf)
         throw domain_error("Not a marshallable type");
     }
 
-    int mshlStartPos = buf.GetPos();
-    int curStructSize = 0;
-
     // Else go through the fields extracting bytes from the InByteBuf, endian-converting
     // them and stuffing them in the structure.
     for (UINT32 j = 0; j < myInfo->Fields.size(); j++) {
@@ -53,9 +50,7 @@ void TpmStructureBase::FromBufInternal(InByteBuf& buf)
 
         if (fInfo.IsArray) {
             // Get the array len (might be len-prepended, fixed, or TPM_ALG_ID-derived
-            UINT32 arrayCount = fInfo.ElementMarshallType == MarshallType::EncryptedVariableLengthArray
-                              ? buf.sizedStructLen.top() - (buf.GetPos() - mshlStartPos)
-                              : GetArrayLen(*myInfo, fInfo);
+            UINT32 arrayCount = GetArrayLen(*myInfo, j, fInfo);
 
             // Set the array size
             this->ElementInfo(j, -1, arrayCountX, pUnion, arrayCount);
@@ -100,13 +95,7 @@ void TpmStructureBase::FromBufInternal(InByteBuf& buf)
                 s = dynamic_cast<TpmStructureBase *> (pUnion);
             }
 
-            if (curStructSize)
-                buf.sizedStructLen.push(curStructSize);
             s->FromBufInternal(buf);
-            if (curStructSize) {
-                buf.sizedStructLen.pop();
-                curStructSize = 0;
-            }
             continue;
         }
 
@@ -148,8 +137,6 @@ void TpmStructureBase::FromBufInternal(InByteBuf& buf)
             void *pField = ElementInfo(j, -1, arrayCountX, pUnion, -1);
             vector<BYTE> v = buf.GetEndianConvertedVec(fInfo.ElementSize);
             memcpy(pField, &v[0], fInfo.ElementSize);
-            if (fInfo.ElementMarshallType == MarshallType::LengthOfStruct)
-                curStructSize = fInfo.ElementSize == 2 ? *static_cast<unsigned short *>(pField) : *static_cast<int*>(pField);
             continue;
         }
 
@@ -161,6 +148,7 @@ void TpmStructureBase::FromBufInternal(InByteBuf& buf)
 }
 
 UINT32 TpmStructureBase::GetArrayLen(StructMarshallInfo& fields, 
+                                     int fieldNum,
                                      MarshallInfo& fieldInfo)
 {
     _ASSERT(fieldInfo.IsArray);

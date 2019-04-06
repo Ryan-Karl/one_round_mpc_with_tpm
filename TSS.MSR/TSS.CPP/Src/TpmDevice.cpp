@@ -319,7 +319,7 @@ void TpmTcpDevice::DispatchCommand(std::vector<BYTE>& outBytes)
     buf << (UINT32)TcpTpmCommands::SendCommand << (BYTE)locality << (UINT32)outBytes.size() << outBytes;
 
     // Send to TPM over command stream
-    Send(commandSocket, &buf.GetBuf()[0], (int)buf.GetBuf().size());
+    Send(commandSocket, &buf.GetBuf()[0], buf.GetBuf().size());
 
     return;
 }
@@ -347,7 +347,7 @@ bool TpmTcpDevice::ResponseIsReady()
 
     // Note that the first argument to select is important on
     // non-WIN32 systems, even though it is ignored by WIN32.
-    int numReady = select(((int)commandSocket + 1), &fds, 0, 0, &tv);
+    int numReady = select((commandSocket + 1), &fds, 0, 0, &tv);
 
     return numReady == 1;
 }
@@ -407,12 +407,13 @@ void TpmTbsDevice::DispatchCommand(std::vector<BYTE>& outBytes)
                                           TBS_COMMAND_LOCALITY_ZERO,
                                           TBS_COMMAND_PRIORITY_NORMAL,
                                           &outBytes[0],
-                                          (UINT32)outBytes.size(),
+                                          outBytes.size(),
                                           resultBuffer,
                                           &resSize);
     if (res != TBS_SUCCESS) {
         ostringstream resx;
         resx << "TBS SubmitCommand error: " << hex << res << dec;
+        cerr << resx.str() << endl;
         throw runtime_error(resx.str());
     }
 
