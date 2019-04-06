@@ -244,11 +244,11 @@ void Samples::MPC_TPM()
 		NullVec,
 		vector<TPMS_PCR_SELECTION>());
 
-	ByteVec nonce{ 5, 6, 7 };
+	//ByteVec nonce{ 5, 6, 7 };
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
-	TPM_HANDLE signingKey = MakeChildSigningKey(keyHandle, true);
-	ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
-
+	//TPM_HANDLE signingKey = MakeChildSigningKey(keyHandle, true);
+	//ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
+	/*
 	CreateResponse newSigningKey = tpm.Create(keyHandle,
 		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
 		storagePrimaryTemplate,
@@ -275,7 +275,7 @@ void Samples::MPC_TPM()
 	}
 
 	_ASSERT(sigOk);
-
+	*/
 
 	int nvIndex = 1000;
 	ByteVec nvAuth{ 1, 5, 1, 1 };
@@ -383,7 +383,7 @@ void Samples::MPC_TPM()
 	printf("Decrypted text is:\n");
 	printf("%s\n", decryptedtext);
 
-	// Get a key attestation.  For simplicity we have the signingKey self-certify b
+/*	// Get a key attestation.  For simplicity we have the signingKey self-certify b
 	cout << ">> Key Quoting" << endl;
 	CertifyResponse keyInfo = tpm.Certify(signingKey, signingKey, nonce, TPMS_NULL_SIG_SCHEME());
 
@@ -401,9 +401,9 @@ void Samples::MPC_TPM()
 	if (sigOk) {
 		cout << "Key certification validated" << endl;
 	}
-
-	tpm.FlushContext(signingKey);
-	tpm.FlushContext(toCertify);
+	*/
+	//tpm.FlushContext(signingKey);
+	//tpm.FlushContext(toCertify);
 	tpm.FlushContext(keyHandle);
 
 	return;
