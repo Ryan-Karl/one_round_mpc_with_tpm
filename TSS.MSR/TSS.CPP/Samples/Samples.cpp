@@ -1,12 +1,10 @@
+
 /*++
 
 Copyright (c) 2013, 2014  Microsoft Corporation
 Microsoft Confidential
 
 */
-
-#pragma warning(disable: 4800);
-
 #include "stdafx.h"
 #include "Samples.h"
 #include <openssl/conf.h>
@@ -16,12 +14,20 @@ Microsoft Confidential
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include "ShamirSecret.h"
+
+#define kBUFFERSIZE 4096	// How many bytes to read at a time
+
+
 #include <cstdio>
 #include <iostream>
-//#include "pch.h"
-#include <mpir.h>
-#include <mpirxx.h>
+
+#include <modes.h>
+#include <aes.h>
+
+#pragma pop_macro("new")
+
+//https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
+//https://stackoverflow.com/questions/15203562/crypto-giving-a-compiler-error-in-algparam-h
 
 // The following macro checks that the sample did not leave any keys in the TPM.
 #define _check AssertNoLoadedKeys();
@@ -33,6 +39,8 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *plaintext);
 void handleErrors(void);
+
+
 
 void RunSamples();
 
@@ -124,9 +132,9 @@ void Samples::RunAllSamples()
 	PolicyORSample();
 	_check;
 	CounterTimer();
-	_check;*/
+	_check;
 	Attestation();
-	_check;/*
+	_check;
 	Admin();
 	_check;
 	PolicyCpHash();
@@ -190,6 +198,22 @@ void Samples::Announce(const char *testName)
 
 void Samples::MPC_TPM()
 {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	Announce("MPC_TPM");
 
 	// We will make a key in the "null hierarchy".
@@ -202,6 +226,7 @@ void Samples::MPC_TPM()
 			TPMT_SYM_DEF_OBJECT::NullObject(),
 			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
+
 	// Create the key
 	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
 		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
@@ -209,40 +234,8 @@ void Samples::MPC_TPM()
 		storagePrimaryTemplate,
 		NullVec,
 		vector<TPMS_PCR_SELECTION>());
-	
+
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
-
-	//TPM_HANDLE signingKey = MakeChildSigningKey(keyHandle, true);
-	//ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
-	//ByteVec nonce{ 5, 6, 7 };
-	/*
-	CreateResponse newSigningKey = tpm.Create(keyHandle,
-		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
-		storagePrimaryTemplate,
-		NullVec,
-		vector<TPMS_PCR_SELECTION>());
-
-	TPM_HANDLE toCertify = tpm.Load(keyHandle,
-		newSigningKey.outPrivate,
-		newSigningKey.outPublic);
-
-	CertifyCreationResponse createQuote = tpm.CertifyCreation(signingKey,
-		toCertify,
-		nonce,
-		newSigningKey.creationHash,
-		TPMS_NULL_SIG_SCHEME(),
-		newSigningKey.creationTicket);
-
-	bool sigOk = pubKey.outPublic.ValidateCertifyCreation(nonce,
-		newSigningKey.creationHash,
-		createQuote);
-
-	if (sigOk) {
-		cout << "Key creation certification validated" << endl;
-	}
-
-	_ASSERT(sigOk);
-	*/
 
 	int nvIndex = 1000;
 	ByteVec nvAuth{ 1, 5, 1, 1 };
@@ -271,6 +264,7 @@ void Samples::MPC_TPM()
 
 	// Should not be able to read before the first increment
 	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
+
 
 	// Now encrypt using TSS.C++ library functions with padding
 
@@ -314,6 +308,8 @@ void Samples::MPC_TPM()
 
 		}
 	}
+	//cout << endl << "test1" << endl << endl;
+
 
 	//AES
 	// Set up the key and iv. Do not hard code these in a real application.
@@ -326,9 +322,7 @@ void Samples::MPC_TPM()
 	unsigned char *plaintext =
 		(unsigned char *)"The quick brown fox jumps over the lazy dog";
 	// Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be longer than the plaintext, dependant on the algorithm and mode
-
-	
-	ShamirSecret splitter();
+	cout << "The message is " << plaintext << endl << endl;
 
 	unsigned char ciphertext[128];
 	// Buffer for the decrypted text
@@ -337,6 +331,8 @@ void Samples::MPC_TPM()
 	// Encrypt the plaintext
 	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), key, iv,
 		ciphertext);
+
+	//cout << endl << "test2" << endl << endl;
 
 	// Do something useful with the ciphertext here
 	printf("Ciphertext is:\n");
@@ -350,28 +346,8 @@ void Samples::MPC_TPM()
 	printf("Decrypted text is:\n");
 	printf("%s\n", decryptedtext);
 
-/*	// Get a key attestation.  For simplicity we have the signingKey self-certify b
-	cout << ">> Key Quoting" << endl;
-	CertifyResponse keyInfo = tpm.Certify(signingKey, signingKey, nonce, TPMS_NULL_SIG_SCHEME());
+	//cout << endl << "test3" << endl << endl;
 
-	// The TPM returns the siganture block that it signed: interpret it as an
-	// attestation structure then cast down into the nested members...
-	TPMS_ATTEST& ky = keyInfo.certifyInfo;
-
-	auto kyx = dynamic_cast <TPMS_CERTIFY_INFO *>(ky.attested);
-	cout << "Name of certified key:" << endl << "  " << kyx->name << endl;
-	cout << "Qualified name of certified key:" << endl << "  " << kyx->qualifiedName << endl;
-
-	// Validate then cerify against the known name of the key
-	sigOk = pubKey.outPublic.ValidateCertify(pubKey.outPublic, nonce, keyInfo);
-
-	if (sigOk) {
-		cout << "Key certification validated" << endl;
-	}
-	*/
-	//tpm.FlushContext(signingKey);
-	//tpm.FlushContext(toCertify);
-	tpm.FlushContext(keyHandle);
 
 	return;
 }
@@ -1825,92 +1801,6 @@ void Samples::Attestation()
 	// To get attestation information we need a restricted signing key and privacy authorization.
 	TPM_HANDLE primaryKey = MakeStoragePrimary();
 	TPM_HANDLE signingKey = MakeChildSigningKey(primaryKey, true);
-	ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
-
-	// Get a key attestation.  For simplicity we have the signingKey self-certify b
-	cout << ">> Key Quoting" << endl;
-	ByteVec nonce{ 5, 6, 7 };
-	CertifyResponse keyInfo = tpm.Certify(signingKey, signingKey, nonce, TPMS_NULL_SIG_SCHEME());
-
-	// The TPM returns the siganture block that it signed: interpret it as an
-	// attestation structure then cast down into the nested members...
-	TPMS_ATTEST& ky = keyInfo.certifyInfo;
-
-	auto kyx = dynamic_cast <TPMS_CERTIFY_INFO *>(ky.attested);
-	cout << "Name of certified key:" << endl << "  " << kyx->name << endl;
-	cout << "Qualified name of certified key:" << endl << "  " << kyx->qualifiedName << endl;
-
-	// Validate then cerify against the known name of the key
-	bool sigOk = pubKey.outPublic.ValidateCertify(pubKey.outPublic, nonce, keyInfo);
-
-	if (sigOk) {
-		cout << "Key certification validated" << endl;
-	}
-
-	_ASSERT(sigOk);
-
-	// CertifyCreation provides a "birth certificate" for a newly createed object
-	TPMT_PUBLIC templ(TPM_ALG_ID::SHA1,
-		TPMA_OBJECT::sign |           // Key attributes
-		TPMA_OBJECT::fixedParent |
-		TPMA_OBJECT::fixedTPM |
-		TPMA_OBJECT::sensitiveDataOrigin |
-		TPMA_OBJECT::userWithAuth,
-		NullVec,                      // No policy
-		TPMS_RSA_PARMS(
-			TPMT_SYM_DEF_OBJECT(TPM_ALG_ID::_NULL, 0, TPM_ALG_ID::_NULL),
-			TPMS_SCHEME_RSASSA(TPM_ALG_ID::SHA1), 2048, 65537),
-		TPM2B_PUBLIC_KEY_RSA(NullVec));
-
-	// Ask the TPM to create the key. For simplicity we will leave the other parameters
-	// (apart from the template) the same as for the storage key.
-	CreateResponse newSigningKey = tpm.Create(primaryKey,
-		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
-		templ,
-		NullVec,
-		vector<TPMS_PCR_SELECTION>());
-
-	TPM_HANDLE toCertify = tpm.Load(primaryKey,
-		newSigningKey.outPrivate,
-		newSigningKey.outPublic);
-
-	CertifyCreationResponse createQuote = tpm.CertifyCreation(signingKey,
-		toCertify,
-		nonce,
-		newSigningKey.creationHash,
-		TPMS_NULL_SIG_SCHEME(),
-		newSigningKey.creationTicket);
-	tpm.FlushContext(toCertify);
-	tpm.FlushContext(primaryKey);
-
-	sigOk = pubKey.outPublic.ValidateCertifyCreation(nonce,
-		newSigningKey.creationHash,
-		createQuote);
-	if (sigOk) {
-		cout << "Key creation certification validated" << endl;
-	}
-
-	_ASSERT(sigOk);
-
-	tpm.FlushContext(signingKey);
-
-	return;
-}
-
-
-
-/*
-
-void Samples::Attestation()
-{
-	Announce("Attestation");
-
-	// Attestation is the TPM signing internal data structures. The TPM can perform
-	// several-types of attestation: we demonstrate signing PCR, keys, and time.
-
-	// To get attestation information we need a restricted signing key and privacy authorization.
-	TPM_HANDLE primaryKey = MakeStoragePrimary();
-	TPM_HANDLE signingKey = MakeChildSigningKey(primaryKey, true);
 
 	// First PCR-signing (quoting). We will sign PCR-7.
 	cout << ">> PCR Quoting" << endl;
@@ -1965,7 +1855,7 @@ void Samples::Attestation()
 		timeNonce,
 		TPMS_NULL_SIG_SCHEME());
 
-	// The TPM returns the siganture block that it signed: interpret it as an
+	// The TPM returns the siganture block that it signed: interpret it as an 
 	// attestation structure then cast down into the nested members...
 	TPMS_ATTEST& tm = timeQuote.timeInfo;
 	auto tmx = dynamic_cast <TPMS_TIME_ATTEST_INFO *>(tm.attested);
@@ -2099,9 +1989,6 @@ void Samples::Attestation()
 
 	return;
 }
-
-*/
-
 
 void Samples::Admin()
 {
