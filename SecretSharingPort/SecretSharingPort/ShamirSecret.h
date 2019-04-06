@@ -1,15 +1,23 @@
+
+
 #ifndef SHAMIRSECRET_H
 #define SHAMIRSECRET_H
 
+#define NOMINMAX
+
 //#include "pch.h"
-#include <iostream>
-#include <cassert>
+//#include <iostream>
+//#include <cassert>
+#include <ctime>
+
+
 #include <vector>
 #include <chrono>
 #include <random>
 #include <utility>
-#include <array>
-#include <set>
+
+//#include <array>
+//#include <set>
 #include <stdexcept>
 
 
@@ -23,8 +31,8 @@
 #error No OS defined!
 #endif
 
-typedef std::chrono::high_resolution_clock myclock;
-const static myclock::time_point beginning = myclock::now();
+//typedef std::chrono::high_resolution_clock myclock;
+//const static myclock::time_point beginning = myclock::now();
 
 
 
@@ -129,8 +137,10 @@ std::vector<std::pair<mpz_class, mpz_class> > ShamirSecret::getShares(const mpz_
   //Random initialization - may need to change this for cryptographic security
   gmp_randstate_t state;
   gmp_randinit_mt(state);
-  myclock::duration d = myclock::now() - beginning;
-  unsigned seed = d.count();
+  //myclock::duration d = myclock::now() - beginning;
+  //Get a random seed
+  std::random_device rd;
+  unsigned int seed = rd();
   gmp_randseed_ui(state, seed);
   //Instead of random initialization, set the secret to be given by the user
   mpz_class poly_secret = secret;

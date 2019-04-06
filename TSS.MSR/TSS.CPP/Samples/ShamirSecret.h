@@ -138,7 +138,9 @@ std::vector<std::pair<mpz_class, mpz_class> > ShamirSecret::getShares(const mpz_
   gmp_randstate_t state;
   gmp_randinit_mt(state);
   //myclock::duration d = myclock::now() - beginning;
-  unsigned seed = myclock::now();
+  //Get a random seed
+  std::random_device rd;
+  unsigned int seed = rd();
   gmp_randseed_ui(state, seed);
   //Instead of random initialization, set the secret to be given by the user
   mpz_class poly_secret = secret;
