@@ -200,6 +200,17 @@ std::string ByteVecToString(const std::vector<BYTE> &v) {
 	return str;
 }
 
+mpz_class ByteVecToMPZ(const std::vector<BYTE> &v){
+	mpz_class mcand = 1;
+	mpz_class result = 0;
+	for(const auto & c : v){
+		result += mcand*c;
+		//Shift left by 8 bits
+		mpz_mul_2exp(mcand.get_mpz_t(), mcand.get_mpz_t(), 8);
+	}
+	return result;
+}
+
 
 void Samples::MPC_TPM()
 {
