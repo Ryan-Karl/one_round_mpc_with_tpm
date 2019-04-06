@@ -325,8 +325,13 @@ void Samples::MPC_TPM()
 	key = tpm._GetRandLocal(AES_KEY_SIZE);
 	iv = tpm._GetRandLocal(IV_SIZE);
 
+	std::cout << "Debug: KEY and IV:  " << key << std::endl;
+
+
+
+
 	mpz_class prime;
-	mpz_class mpz_key(ByteVecToString(key));
+	mpz_class mpz_key(ByteVecToString(key), 16);
 	std::cout << "DEBUG: key in mpz format is " << mpz_key << std::endl;
 	mpz_nextprime(prime.get_mpz_t(), mpz_key.get_mpz_t());
 
