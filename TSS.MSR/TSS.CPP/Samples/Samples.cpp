@@ -19,6 +19,8 @@ Microsoft Confidential
 #include <modes.h>
 #include <aes.h>
 #include "ShamirSecret.h"
+#include <vector>
+#include <iterator>
 
 
 //https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
@@ -310,7 +312,26 @@ void Samples::MPC_TPM()
 	// Set up the key and iv. Do not hard code these in a real application.
 
 	// A 256 bit key
-	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
+	unsigned char *key = (unsigned char *)"012345678901234567890123456789";
+
+	mpz_class prime ("57099490552234559313841509188710245615660110448061204237138064972009357632249");
+
+	//placeholder until we determine # of wires owned
+	unsigned int number_shares = 10;
+	unsigned int minimum = 5;
+
+	ShamirSecret splitKeys(prime, number_shares, minimum);
+
+	//std::vector<std::pair <mpz_class, mpz_class> > shares = splitKeys.getShares((char*)key);
+	std::vector<std::pair<mpz_class, mpz_class> > shares = splitKeys.getShares((char*)key);
+	std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares), std::begin(shares) + minimum);
+	//std::cout << shares
+
+	splitKeys.getSecretString(partialShares);
+
+
+
+
 	// A 128 bit IV
 	unsigned char *iv = (unsigned char *)"0123456789012345";
 	// Message to be encrypted
