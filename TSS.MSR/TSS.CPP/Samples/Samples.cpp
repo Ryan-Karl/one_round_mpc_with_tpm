@@ -196,7 +196,6 @@ void Samples::MPC_TPM()
 			TPMT_SYM_DEF_OBJECT::NullObject(),
 			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
-
 	// Create the key
 	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
 		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
@@ -204,11 +203,11 @@ void Samples::MPC_TPM()
 		storagePrimaryTemplate,
 		NullVec,
 		vector<TPMS_PCR_SELECTION>());
-
-	//ByteVec nonce{ 5, 6, 7 };
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
+
 	//TPM_HANDLE signingKey = MakeChildSigningKey(keyHandle, true);
 	//ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
+	//ByteVec nonce{ 5, 6, 7 };
 	/*
 	CreateResponse newSigningKey = tpm.Create(keyHandle,
 		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
