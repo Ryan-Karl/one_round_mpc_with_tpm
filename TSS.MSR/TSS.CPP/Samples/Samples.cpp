@@ -13,44 +13,9 @@ Microsoft Confidential
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
 #include "ShamirSecret.h"
-
-#define kBUFFERSIZE 4096	// How many bytes to read at a time
-
-#pragma push_macro("new")
-#undef new
-/* #includes for Crypto++ go here */
-
 #include <cstdio>
 #include <iostream>
-#include <osrng.h>
-using CryptoPP::AutoSeededRandomPool;
-
-#include <cryptlib.h>
-using CryptoPP::Exception;
-
-#include <hex.h>
-using CryptoPP::HexEncoder;
-using CryptoPP::HexDecoder;
-
-#include <filters.h>
-using CryptoPP::StringSink;
-using CryptoPP::StringSource;
-using CryptoPP::StreamTransformationFilter;
-
-#include <secblock.h>
-using CryptoPP::SecByteBlock;
-
-#include <modes.h>
-#include <aes.h>
-#include <filters.h>
-#include <ida.h>
-
-#pragma pop_macro("new")
-
-//https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
-
 
 // The following macro checks that the sample did not leave any keys in the TPM.
 #define _check AssertNoLoadedKeys();
@@ -219,10 +184,6 @@ void Samples::Announce(const char *testName)
 
 void Samples::MPC_TPM()
 {
-<<<<<<< HEAD
-
-=======
->>>>>>> 96adebfe690ed8376c9f8bb05af3bdac687147ee
 	Announce("MPC_TPM");
 
 	// We will make a key in the "null hierarchy".
