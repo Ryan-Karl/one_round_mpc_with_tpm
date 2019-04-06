@@ -192,23 +192,17 @@ void Samples::Announce(const char *testName)
 	SetCol(1);
 }
 
+std::string ByteVecToString(const std::vector<BYTE> v){
+	std::string str = "";
+	for(const auto & c : v){
+		str += c;
+	}
+	return str;
+}
+
 
 void Samples::MPC_TPM()
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	Announce("MPC_TPM");
@@ -312,36 +306,32 @@ void Samples::MPC_TPM()
 	// Set up the key and iv. Do not hard code these in a real application.
 
 	// A 256 bit key
-	unsigned char *key = (unsigned char *)"012345678901234567890123456789";
+
+
+	#define AES_KEY_SIZE 32
+	#define IV_SIZE 16
+	std::vector<BYTE> key, iv;
+	key = tpm.GetRandLocal(AES_KEY_SIZE);
+	iv = tpm.GetRandLocal(IV_SIZE);
 
 	mpz_class prime;
-	mpz_class mpz_key(key);
+	mpz_class mpz_key(ByteVecToString(key);
 	std::cout << "DEBUG: key in mpz format is " << mpz_key << std::endl;
 	mpz_nextprime(prime.get_mpz_t(), mpz_key);
-	unsigned int numTests = 10;
-	//Force a prime to be returned (to a very high probability)
-	while(mpz_probab_prime_p(prime, numTests) != 2){
-		mpz_nextprime(prime.get_mpz_t(), prime.get_mpz_t());
-	}
+	
 
-	//placeholder until we determine # of wires owned
+	//placeholders until we determine # of wires owned
 	unsigned int number_shares = 10;
 	unsigned int minimum = 5;
 
 	ShamirSecret splitKeys(prime, number_shares, minimum);
 
-	//std::vector<std::pair <mpz_class, mpz_class> > shares = splitKeys.getShares((char*)key);
-	std::vector<std::pair<mpz_class, mpz_class> > shares = splitKeys.getShares((char*)key);
+	std::vector<std::pair<mpz_class, mpz_class> > shares = splitKeys.getShares(key);
 	std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares), std::begin(shares) + minimum);
-	//std::cout << shares
+
 
 	splitKeys.getSecretString(partialShares);
 
-
-
-
-	// A 128 bit IV
-	unsigned char *iv = (unsigned char *)"0123456789012345";
 	// Message to be encrypted
 	unsigned char *plaintext =
 		(unsigned char *)"The quick brown fox jumps over the lazy dog";
@@ -371,8 +361,6 @@ void Samples::MPC_TPM()
 	printf("%s\n", decryptedtext);
 
 	//cout << endl << "test3" << endl << endl;
-
-
 	return;
 }
 
