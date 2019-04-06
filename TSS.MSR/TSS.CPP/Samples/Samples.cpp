@@ -4,6 +4,9 @@ Copyright (c) 2013, 2014  Microsoft Corporation
 Microsoft Confidential
 
 */
+
+#pragma warning(disable: 4800);
+
 #include "stdafx.h"
 #include "Samples.h"
 #include <openssl/conf.h>
@@ -16,6 +19,9 @@ Microsoft Confidential
 #include "ShamirSecret.h"
 #include <cstdio>
 #include <iostream>
+//#include "pch.h"
+#include <mpir.h>
+#include <mpirxx.h>
 
 // The following macro checks that the sample did not leave any keys in the TPM.
 #define _check AssertNoLoadedKeys();
@@ -203,6 +209,7 @@ void Samples::MPC_TPM()
 		storagePrimaryTemplate,
 		NullVec,
 		vector<TPMS_PCR_SELECTION>());
+	
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
 
 	//TPM_HANDLE signingKey = MakeChildSigningKey(keyHandle, true);

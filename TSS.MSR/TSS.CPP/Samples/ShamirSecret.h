@@ -1,7 +1,6 @@
 #ifndef SHAMIRSECRET_H
 #define SHAMIRSECRET_H
 
-#include "pch.h"
 #include <iostream>
 #include <cassert>
 #include <vector>
