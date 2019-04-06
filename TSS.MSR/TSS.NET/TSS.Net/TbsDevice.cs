@@ -321,6 +321,7 @@ namespace Tpm2Lib
         }
     } // class TbsWrapper
 
+#if !WINDOWS_UWP
     internal class TpmDllWrapper
     {
         public class NativeMethods
@@ -329,7 +330,7 @@ namespace Tpm2Lib
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern bool SetDllDirectory(string lpPathName);
 
-#region TpmExports
+    #region TpmExports
 
             [DllImport("tpm.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern void _TPM_Init();
@@ -353,9 +354,9 @@ namespace Tpm2Lib
             [DllImport("tpm.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern void Signal_Hash_End();
 
-#endregion
+    #endregion
 
-#region PlatformExports
+    #region PlatformExports
             const string platform = "tpm.dll"; // "platform.dll";
 
             [DllImport(platform, CallingConvention = CallingConvention.Cdecl)]
@@ -394,7 +395,7 @@ namespace Tpm2Lib
             [DllImport(platform, CallingConvention = CallingConvention.Cdecl)]
             public static extern void _plat__ClearNvAvail();
 
-#endregion
+    #endregion
         }
     } // class TpmDllWrapper
 
@@ -629,4 +630,5 @@ namespace Tpm2Lib
             Close();
         }
     } // class InprocTpm
+#endif //WINDOWS_UWP
 }
