@@ -314,7 +314,15 @@ void Samples::MPC_TPM()
 	// A 256 bit key
 	unsigned char *key = (unsigned char *)"012345678901234567890123456789";
 
-	mpz_class prime ("57099490552234559313841509188710245615660110448061204237138064972009357632249");
+	mpz_class prime;
+	mpz_class mpz_key(key);
+	std::cout << "DEBUG: key in mpz format is " << mpz_key << std::endl;
+	mpz_nextprime(prime.get_mpz_t(), mpz_key);
+	unsigned int numTests = 10;
+	//Force a prime to be returned (to a very high probability)
+	while(mpz_probab_prime_p(prime, numTests) != 2){
+		mpz_nextprime(prime.get_mpz_t(), prime.get_mpz_t());
+	}
 
 	//placeholder until we determine # of wires owned
 	unsigned int number_shares = 10;
