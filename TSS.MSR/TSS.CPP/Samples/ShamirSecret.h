@@ -9,6 +9,7 @@
 #include <utility>
 #include <array>
 #include <set>
+#include <stdexcept>
 
 
 #ifdef __linux__
@@ -21,25 +22,25 @@
 #error No OS defined!
 #endif
 
-using std::pair;
-using std::vector;
-using std::cout;
-using std::endl;
-
 typedef std::chrono::high_resolution_clock myclock;
-static myclock::time_point beginning = myclock::now();
+const static myclock::time_point beginning = myclock::now();
+
+
 
 class ShamirSecret{
 
 private:
+
+
+
   mpz_class prime;
   //char * secret;
   unsigned int num_shares;
   unsigned int min_shares_to_recover;
 
-  static bool hasDuplicates(const vector<pair<mpz_class, mpz_class> > & shares);
+  static bool hasDuplicates(const std::vector<std::pair<mpz_class, mpz_class> > & shares);
   static mpz_class PI(const std::vector<mpz_class> & vals);
-  mpz_class eval_at(const vector<mpz_class> & poly, const mpz_class & x) const ;
+  mpz_class eval_at(const std::vector<mpz_class> & poly, const mpz_class & x) const ;
   mpz_class divmod(const mpz_class & num, const mpz_class & den) const ;
 
 public:
@@ -49,11 +50,11 @@ public:
     }
   }
 
-  vector<pair<mpz_class, mpz_class> > getShares(const char * secret) const ;
-  vector<pair<mpz_class, mpz_class> > getShares(const mpz_class & secret) const ;
+  std::vector<std::pair<mpz_class, mpz_class> > getShares(const char * secret) const ;
+  std::vector<std::pair<mpz_class, mpz_class> > getShares(const mpz_class & secret) const ;
 
-  mpz_class getSecret(const vector<pair<mpz_class, mpz_class> > & shares) const ;
-  const char * getSecretString(const vector<pair<mpz_class, mpz_class> > & shares) const ;
+  mpz_class getSecret(const std::vector<std::pair<mpz_class, mpz_class> > & shares) const ;
+  const char * getSecretString(std::vector<std::pair<mpz_class, mpz_class> > & shares) const ;
 };
 
 mpz_class ShamirSecret::PI(const std::vector<mpz_class> & vals){
@@ -62,7 +63,7 @@ mpz_class ShamirSecret::PI(const std::vector<mpz_class> & vals){
   return accum;
 }
 
-mpz_class ShamirSecret::getSecret(const vector<pair<mpz_class, mpz_class> > & shares) const {
+mpz_class ShamirSecret::getSecret(const std::vector<std::pair<mpz_class, mpz_class> > & shares) const {
   #ifdef DEBUG
   if(hasDuplicates(shares)){
     throw std::logic_error("Shares contain duplicate x-values");
@@ -113,15 +114,15 @@ mpz_class ShamirSecret::getSecret(const vector<pair<mpz_class, mpz_class> > & sh
   return ret;
 }
 
-const char * ShamirSecret::getSecretString(const vector<pair<mpz_class, mpz_class> > & shares) const {
+const char * ShamirSecret::getSecretString(std::vector<std::pair<mpz_class, mpz_class> > & shares) const {
   mpz_class mpz_result = getSecret(shares);
   return mpz_result.get_str().c_str();
 }
 
 
-vector<pair<mpz_class, mpz_class> > ShamirSecret::getShares(const mpz_class & secret) const {
-  vector<mpz_class> poly;
-  vector<pair<mpz_class, mpz_class>> points;
+std::vector<std::pair<mpz_class, mpz_class> > ShamirSecret::getShares(const mpz_class & secret) const {
+  std::vector<mpz_class> poly;
+  std::vector<std::pair<mpz_class, mpz_class>> points;
   poly.reserve(num_shares);
   points.reserve(num_shares);
   //Random initialization - may need to change this for cryptographic security
@@ -144,19 +145,19 @@ vector<pair<mpz_class, mpz_class> > ShamirSecret::getShares(const mpz_class & se
   for(unsigned int i = 1; i < (num_shares+1); i++){
     mpz_class point_first = i;
     mpz_class point_second = eval_at(poly, point_first);
-    pair<mpz_class, mpz_class> point(point_first, point_second);
+    std::pair<mpz_class, mpz_class> point(point_first, point_second);
     points.push_back(point);
   }
 
   return points;
 }
 
-vector<pair<mpz_class, mpz_class> > ShamirSecret::getShares(const char * secret) const{
+std::vector<std::pair<mpz_class, mpz_class> > ShamirSecret::getShares(const char * secret) const{
   mpz_class mpz_secret(secret);
   return getShares(mpz_secret);
 }
 
-bool ShamirSecret::hasDuplicates(const vector<pair<mpz_class, mpz_class> > & shares){
+bool ShamirSecret::hasDuplicates(const std::vector<std::pair<mpz_class, mpz_class> > & shares){
   for(size_t i = 0; i < shares.size(); i++){
     for(size_t j = 0; j < shares.size(); j++){
       if(i==j){continue;}
@@ -166,7 +167,7 @@ bool ShamirSecret::hasDuplicates(const vector<pair<mpz_class, mpz_class> > & sha
   return false;
 }
 
-mpz_class ShamirSecret::eval_at(const vector<mpz_class> & poly, const mpz_class & x) const {
+mpz_class ShamirSecret::eval_at(const std::vector<mpz_class> & poly, const mpz_class & x) const {
     mpz_class accum;
     for(size_t i = poly.size(); i-- > 0; ){
       accum *= x;
