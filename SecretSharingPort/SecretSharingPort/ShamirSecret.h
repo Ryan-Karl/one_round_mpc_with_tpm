@@ -184,7 +184,4 @@ mpz_class ShamirSecret::divmod(const mpz_class & num, const mpz_class & den) con
     return s*num;
 }
 
-
-
-
 #endif
