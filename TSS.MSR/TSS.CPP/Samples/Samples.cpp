@@ -15,6 +15,8 @@ Microsoft Confidential
 #include <string.h>
 #include <stdarg.h>
 
+#include "ShamirSecret.h"
+
 #define kBUFFERSIZE 4096	// How many bytes to read at a time
 
 #pragma push_macro("new")
@@ -220,21 +222,6 @@ void Samples::Announce(const char *testName)
 
 void Samples::MPC_TPM()
 {
-	
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	Announce("MPC_TPM");
 
@@ -345,6 +332,9 @@ void Samples::MPC_TPM()
 		(unsigned char *)"The quick brown fox jumps over the lazy dog";
 	// Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be longer than the plaintext, dependant on the algorithm and mode
 	cout << "The message is " << plaintext << endl << endl;
+
+	
+	ShamirSecret splitter();
 
 	unsigned char ciphertext[128];
 	// Buffer for the decrypted text
