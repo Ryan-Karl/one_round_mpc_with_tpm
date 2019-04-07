@@ -46,9 +46,11 @@ int accept_and_send(SOCKET & ListenSocket, std::ifstream & ifs) {
 
 	std::string fileData;
 	while (std::getline(ifs, fileData)) {
-		char * msg = new char[fileData.size() + 1];
+		//Need newline plus null terminator
+		char * msg = new char[fileData.size() + 2];
 		std::copy(fileData.begin(), fileData.end(), msg);
 		msg[fileData.size()] = '\n';
+		msg[fileData.size()+1] = '\0';
 
 		iSendResult = send(ClientSocket, msg, fileData.size() + 1, 0);
 
