@@ -1,4 +1,3 @@
-root@dd61bd1feead:~/frigaterelease/src# cat out 
 IN 0 1
 IN 1 1
 IN 2 1
