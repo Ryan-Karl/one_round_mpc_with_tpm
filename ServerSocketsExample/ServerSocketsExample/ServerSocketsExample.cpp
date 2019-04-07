@@ -52,7 +52,7 @@ int accept_and_send(SOCKET & ListenSocket, std::ifstream & ifs) {
 		msg[fileData.size()] = '\n';
 		msg[fileData.size()+1] = '\0';
 
-		iSendResult = send(ClientSocket, msg, fileData.size() + 1, 0);
+		iSendResult = send(ClientSocket, msg, fileData.size() + 2, 0);
 
 		delete[] msg;
 
