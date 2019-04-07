@@ -1,3 +1,5 @@
-﻿  pch.cpp
-  ServerSocketsExample.cpp
-  ServerSocketsExample.vcxproj -> C:\Users\ckrkr\source\repos\ServerSocketsExample\Debug\ServerSocketsExample.exe
+﻿  ServerSocketsExample.cpp
+c:\users\ckrkr\documents\github\one_round_temp\serversocketsexample\serversocketsexample\serversocketsexample.cpp(42): warning C4101: 'recvbuf': unreferenced local variable
+c:\users\ckrkr\documents\github\one_round_temp\serversocketsexample\serversocketsexample\serversocketsexample.cpp(199): warning C4101: 'recvbuf': unreferenced local variable
+c:\users\ckrkr\documents\github\one_round_temp\serversocketsexample\serversocketsexample\serversocketsexample.cpp(200): warning C4101: 'iSendResult': unreferenced local variable
+  ServerSocketsExample.vcxproj -> C:\Users\ckrkr\Documents\GitHub\one_round_temp\ServerSocketsExample\Debug\ServerSocketsExample.exe

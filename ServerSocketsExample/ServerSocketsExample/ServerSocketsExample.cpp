@@ -11,6 +11,13 @@
 #include <WS2tcpip.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
+#include <iostream>
+#include <fstream>
+//using std::cout;
+//using std::endl;
+//using std::string;
+//using std::ifstream;
 
 
 // link with Ws2_32.lib
@@ -19,7 +26,96 @@
 #define DEFAULT_PORT "27015"
 #define DEFAULT_BUFFER_LENGTH	512
 
-int main() {
+
+int accept_and_send(SOCKET & ListenSocket, std::ifstream & ifs) {
+	// Accept a client socket
+	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
+
+	if (ClientSocket == INVALID_SOCKET)
+	{
+		printf("accept failed: %d\n", WSAGetLastError());
+		closesocket(ListenSocket);
+		WSACleanup();
+		return -1;
+	}
+
+	char recvbuf[DEFAULT_BUFFER_LENGTH];
+	int iSendResult;
+
+	std::string fileData;
+	while (std::getline(ifs, fileData)) {
+		char * msg = new char[fileData.size() + 1];
+		std::copy(fileData.begin(), fileData.end(), msg);
+		msg[fileData.size()] = '\n';
+
+		iSendResult = send(ClientSocket, msg, fileData.size() + 1, 0);
+
+		delete[] msg;
+
+		if (iSendResult == SOCKET_ERROR) {
+			printf("send failed: %d\n", WSAGetLastError());
+			closesocket(ClientSocket);
+			WSACleanup();
+			return 1;
+		}
+
+	}
+
+
+
+	/*
+	//  until the client shutdown the connection
+	do {
+		iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFFER_LENGTH, 0);
+		if (iResult > 0)
+		{
+			char msg[DEFAULT_BUFFER_LENGTH];
+			memset(&msg, 0, sizeof(msg));
+			strncpy(msg, recvbuf, iResult);
+
+			printf("Received: %s\n", msg);
+
+			iSendResult = send(ClientSocket, recvbuf, iResult, 0);
+
+			if (iSendResult == SOCKET_ERROR)
+			{
+				printf("send failed: %d\n", WSAGetLastError());
+				closesocket(ClientSocket);
+				WSACleanup();
+				return 1;
+			}
+
+			printf("Bytes sent: %ld\n", iSendResult);
+		}
+		else if (iResult == 0)
+			printf("Connection closed\n");
+		else
+		{
+			printf("recv failed: %d\n", WSAGetLastError());
+			closesocket(ClientSocket);
+			WSACleanup();
+			//return 1;
+		}
+	} while (iResult > 0);
+
+	*/
+
+	closesocket(ClientSocket);
+	return 0;
+}
+
+//First arg is file to send, second is number of parties
+int main(int argc, char ** argv) {
+
+	if (argc != 2) {
+		std::cout << "No file given!" << std::endl;
+		return 0;
+	}
+#define MIN_PARTIES 3
+	if (atoi(argv[2]) < MIN_PARTIES) {
+		std::cout << "Not enough parties: " << atoi(argv[2]) << std::endl;
+		return 0;
+	}
 
 	WSADATA wsaData;
 
@@ -103,39 +199,18 @@ int main() {
 	char recvbuf[DEFAULT_BUFFER_LENGTH];
 	int iSendResult;
 
-	// reveice until the client shutdown the connection
-	do {
-		iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFFER_LENGTH, 0);
-		if (iResult > 0)
-		{
-			char msg[DEFAULT_BUFFER_LENGTH];
-			memset(&msg, 0, sizeof(msg));
-			strncpy(msg, recvbuf, iResult);
-
-			printf("Received: %s\n", msg);
-
-			iSendResult = send(ClientSocket, recvbuf, iResult, 0);
-
-			if (iSendResult == SOCKET_ERROR)
-			{
-				printf("send failed: %d\n", WSAGetLastError());
-				closesocket(ClientSocket);
-				WSACleanup();
-				return 1;
-			}
-
-			printf("Bytes sent: %ld\n", iSendResult);
+	unsigned int num_parties = atoi(argv[2]);
+	for (unsigned int i = 0; i < num_parties; i++) {
+		std::ifstream ifs (argv[1]);
+		if (!ifs.good()) {
+			std::cout << "Unspecified error opening file " << argv[1] << std::endl;
+			return 0;
 		}
-		else if (iResult == 0)
-			printf("Connection closed\n");
-		else
-		{
-			printf("recv failed: %d\n", WSAGetLastError());
-			closesocket(ClientSocket);
-			WSACleanup();
-			//return 1;
+		if (accept_and_send(ListenSocket, ifs) < 0) {
+			return 1;
 		}
-	} while (iResult > 0);
+	}
+
 
 	// Free the resouces
 	closesocket(ListenSocket);
