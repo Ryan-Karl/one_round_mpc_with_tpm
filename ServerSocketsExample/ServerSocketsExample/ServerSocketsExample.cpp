@@ -39,6 +39,8 @@ int accept_and_send(SOCKET & ListenSocket, std::ifstream & ifs) {
 		return -1;
 	}
 
+	std::cout << "Accepted connection" << std::endl;
+
 	char recvbuf[DEFAULT_BUFFER_LENGTH];
 	int iSendResult;
 
@@ -181,6 +183,7 @@ int main(int argc, char ** argv) {
 		return 1;
 	}
 
+	/*
 	SOCKET ClientSocket;
 
 	ClientSocket = INVALID_SOCKET;
@@ -195,20 +198,23 @@ int main(int argc, char ** argv) {
 		WSACleanup();
 		return 1;
 	}
+	*/
 
 	char recvbuf[DEFAULT_BUFFER_LENGTH];
 	int iSendResult;
 
 	unsigned int num_parties = atoi(argv[2]);
 	for (unsigned int i = 0; i < num_parties; i++) {
+		std::cout << "Starting upload " << i << std::endl;
 		std::ifstream ifs (argv[1]);
 		if (!ifs.good()) {
 			std::cout << "Unspecified error opening file " << argv[1] << std::endl;
 			return 0;
 		}
-		if (accept_and_send(ListenSocket, ifs) < 0) {
+		if (accept_and_send(ListenSocket, ifs)) {
 			return 1;
 		}
+		std::cout << "Finished upload " << i << std::endl;
 	}
 
 

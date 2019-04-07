@@ -120,9 +120,10 @@ public:
 	};
 
 	// Receive message from server
-	bool RecvFile(std::ofstream & of)
+	bool RecvFile(std::ofstream & of, std::ostream & outstream)
 	{
 
+		outstream << "Starting download" << std::endl;
 		int iResult = 1;
 		while (iResult) {
 			char recvbuf[DEFAULT_BUFFER_LENGTH];
@@ -131,7 +132,10 @@ public:
 		}
 		if (iResult == SOCKET_ERROR) {
 			std::cout << "Socket error in receiving file" << std::endl;
+			return false;
 		}
+		outstream << "Received " << iResult << std::endl;
+
 
 		return true;
 		/*
@@ -190,15 +194,12 @@ int main(int argc, CHAR* argv[])
 		std::cout << "Error with file " << argv[1] << std::endl;
 		return 1;
 	}
-	if (!client.RecvFile(os)) {
+	if (!client.RecvFile(os, std::cout)) {
 		std::cout << "Error sending file";
 		return 1;
 	}
 
 	client.Stop();
-
-	getchar();
-
 
 	// don't forget to free the string after finished using it
 	delete[] ip_pointer;
