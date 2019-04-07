@@ -107,11 +107,11 @@ int accept_and_send(SOCKET & ListenSocket, std::ifstream & ifs) {
 //First arg is file to send, second is number of parties
 int main(int argc, char ** argv) {
 
-	if (argc != 2) {
+	if (argc != 3) {
 		std::cout << "No file given!" << std::endl;
 		return 0;
 	}
-#define MIN_PARTIES 3
+#define MIN_PARTIES 1
 	if (atoi(argv[2]) < MIN_PARTIES) {
 		std::cout << "Not enough parties: " << atoi(argv[2]) << std::endl;
 		return 0;

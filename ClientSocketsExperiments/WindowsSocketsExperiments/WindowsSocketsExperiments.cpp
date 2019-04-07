@@ -10,6 +10,7 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 
 // link with Ws2_32.lib
@@ -119,8 +120,21 @@ public:
 	};
 
 	// Receive message from server
-	bool Recv()
+	bool RecvFile(std::ofstream & of)
 	{
+
+		int iResult = 1;
+		while (iResult) {
+			char recvbuf[DEFAULT_BUFFER_LENGTH];
+			iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFFER_LENGTH, 0);
+			of << recvbuf;
+		}
+		if (iResult == SOCKET_ERROR) {
+			std::cout << "Socket error in receiving file" << std::endl;
+		}
+
+		return true;
+		/*
 		char recvbuf[DEFAULT_BUFFER_LENGTH];
 		int iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFFER_LENGTH, 0);
 
@@ -137,6 +151,8 @@ public:
 
 
 		return false;
+
+		*/
 	}
 
 private:
@@ -144,9 +160,15 @@ private:
 	SOCKET ConnectSocket;
 };
 
-
+//Takes in a filename to write to
 int main(int argc, CHAR* argv[])
 {
+
+	if (argc != 2) {
+		std::cout << "No filename given as input!" << std::endl;
+		return 0;
+	}
+
 	std::string msg;
 	//char* ip = "127.0.0.1";
 
@@ -155,7 +177,7 @@ int main(int argc, CHAR* argv[])
 	std::copy(ip.begin(), ip.end(), ip_pointer);
 	ip_pointer[ip.size()] = '\0'; // don't forget the terminating 0
 
-	
+
 
 
 	Client client(ip_pointer);
@@ -163,19 +185,14 @@ int main(int argc, CHAR* argv[])
 	if (!client.Start())
 		return 1;
 
-	while (true)
-	{
-		std::cout << "Send: ";
-		std::getline(std::cin, msg);
-
-		// Close the connection when user enter "close"
-		if (msg.compare("close") == 0)
-		{
-			break;
-		}
-
-		client.Send((char*)msg.c_str());
-		client.Recv();
+	std::ofstream os(argv[1]);
+	if (!os.good()) {
+		std::cout << "Error with file " << argv[1] << std::endl;
+		return 1;
+	}
+	if (!client.RecvFile(os)) {
+		std::cout << "Error sending file";
+		return 1;
 	}
 
 	client.Stop();
