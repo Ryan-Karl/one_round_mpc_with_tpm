@@ -1,6 +1,6 @@
-# one_round_mpc_with_tpm
+# One Round MPC With TPM
 
-Microsoft Insctructions
+Microsoft Instructions 
 ================================================
 
 Download Visual Studio from https://visualstudio.microsoft.com/downloads/
@@ -14,80 +14,6 @@ Click okay to various prompts in Visual Studio and eventually click Build->Build
 May need to download .NET 4.6 framework.
 
 May need to right click Samples.cpp and set as StartUp Project.
-
-
-Below Instructions for IBM Version (We switched to Microsoft)
-===================================================
-
-How to install TPM:
----------------------------------------------------
-Download from https://sourceforge.net/projects/ibmtpm20tss/ and https://sourceforge.net/projects/ibmswtpm2/
-Use tar xvf to unzip.
-
-sudo apt-get install openssl libssl-dev apache2 apache2-dev php php-dev libapache2-mod-php
-
-sudo mkdir /var/www/html/tpm2
-
-sudo chmod 777 /var/www/html/tpm2
-
-sudo mkdir /dev/tpm0
-
-sudo chmod 777 /dev/tpm0
-
-
-For TPM:
-------------------------------------------------------
-“cd” into “src” subdirectory of tpm directory and enter “make” (about 1 minute).
-
-Run command “./tpm_server”
-
-
-In seperate terminal, for TSS:
-------------------------------------------------------
-"cd" into "utils" subdirectory of tss directory and enter "make" (about 1 minute).
-
-run commmand "./reg.sh –a" (should recieve success message for 31 tests after 2-3 minutes but on first run may encounter errors)
-
-"cd" into "demo" subdirectory of tss directory and enter "make".
-
-In “utils” subdirectory of tss directory run “./powerup” and “./startup”. 
-
-sudo systemctl restart apache2
-
-sudo ufw allow 80
-
-In “utils” subdirectory of tss directory run “./powerup” and “./startup”. 
-
-Use Firefox to navigate to http://localhost/tpm2/index.php 
-
-May need to run "service httpd start" or "service httpd restart" if there is trouble connecting to the server.
-
-This will give you access to a GUI framework that demonstrates its core functionality (we are interested in generating keys and the nv indexes).
-
-
-Example TPM Program
----------------------------------------------------------
-The signapp.c source shows how several commands can be chained together to form an
-application. It does the following:
-
-> Start an authorization HMAC session
-
-> Create a primary storage key, using the session
-
-> Create a signing key under the storage key
-
-> Load the signing key, using the session
-
-> Sign a digest, using the session
-
-> Verify the signature
-
-> Flush the primary key
-
-> Flush the signing key
-
-> Flush the session
-
 
 Notes on Frigate Circuits:
 ----------------------------------------------------------------
@@ -130,8 +56,6 @@ copy(6) 7 25 17
 ...
 
 OUT 7 1
-
-
 
 
 IN 3 1 -> input next bit from party 1 to wire 3
