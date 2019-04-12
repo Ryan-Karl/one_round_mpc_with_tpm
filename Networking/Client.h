@@ -184,5 +184,24 @@ int main(int argc, CHAR* argv[])
 	return 0;
 }
 
+/*
+
+const std::vector<std::string> & hostnames, const std::vector<unsigned int> & ports
+//Check and initialize party data
+	if(hostnames.size() != ports.size() || hostnames.size() < 2){
+		std::cout << "Not enough parties: " << hostnames.size() << std::endl;
+		exit(0);
+	}
+	this->num_parties = hostnames.size();
+	parties = new PartyInfo[num_parties]
+	for(unsigned int i = 0; i < num_parties; i++){
+		parties[i].port = ports[i];
+		parties[i].hostname = hostnames[i];
+		parties[i].pubkey_file = Server::key_filename(parties[i].hostname, parties[i].port, i);
+	}
+
+	*/
+
+
 
 #endif
