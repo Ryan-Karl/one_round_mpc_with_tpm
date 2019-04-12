@@ -239,6 +239,12 @@ void Samples::MPC_TPM()
 		vector<TPMS_PCR_SELECTION>());
 
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
+	
+
+	// To get attestation information we need a restricted signing key and privacy authorization.
+	TPM_HANDLE primaryKey = MakeStoragePrimary();
+	TPM_HANDLE signingKey = MakeChildSigningKey(primaryKey, true);
+	ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
 
 	int nvIndex = 1000;
 	ByteVec nvAuth{ 1, 5, 1, 1 };
@@ -267,8 +273,7 @@ void Samples::MPC_TPM()
 
 	// Should not be able to read before the first increment
 	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
-
-
+	
 	// Now encrypt using TSS.C++ library functions with padding
 
 	ByteVec secret_Array[5];
@@ -282,6 +287,18 @@ void Samples::MPC_TPM()
 		enc_Array[j] = storagePrimary.outPublic.Encrypt(secret_Array[j], pad);
 	}
 
+	// Get a key attestation.
+	cout << ">> Key Quoting" << endl;
+	ByteVec nonce{ 5, 6, 7 };
+	CertifyResponse keyInfo = tpm.Certify(signingKey, signingKey, nonce, TPMS_NULL_SIG_SCHEME());
+
+	// Validate then cerify against the known name of the key
+	bool sigOk = pubKey.outPublic.ValidateCertify(pubKey.outPublic, nonce, keyInfo);
+
+	if (sigOk) {
+		cout << "Key certification validated" << endl;
+	}
+	
 	// First increment
 	tpm.NV_Increment(nvHandle, nvHandle);
 
@@ -311,25 +328,12 @@ void Samples::MPC_TPM()
 
 		}
 	}
-	//cout << endl << "test1" << endl << endl;
-
-
-	//AES
-	// Set up the key and iv. Do not hard code these in a real application.
-
-	// A 256 bit key
-
 
 #define AES_KEY_SIZE 32
 #define IV_SIZE 16
 	std::vector<BYTE> key, iv;
 	key = tpm._GetRandLocal(AES_KEY_SIZE);
 	iv = tpm._GetRandLocal(IV_SIZE);
-
-	//std::cout << "Printing KEY:  " << key << std::endl;
-
-
-
 
 	mpz_class prime;
 	mpz_class mpz_key = ByteVecToMPZ(key);
@@ -352,8 +356,6 @@ void Samples::MPC_TPM()
 
 	std::cout << "Recombined Key:             " << recombined_secret << std::endl;
 
-	//std::assert(recombined_secret == mpz_key);
-
 	// Message to be encrypted
 	unsigned char *plaintext =
 		(unsigned char *)"The quick brown fox jumps over the lazy dog";
@@ -375,8 +377,6 @@ void Samples::MPC_TPM()
 	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), (unsigned char *)key_str, (unsigned char *)iv_str,
 		ciphertext);
 
-	//cout << endl << "test2" << endl << endl;
-
 	// Do something useful with the ciphertext here
 	printf("Ciphertext is:\n");
 	BIO_dump_fp(stdout, (const char *)ciphertext, ciphertext_len);
@@ -389,7 +389,10 @@ void Samples::MPC_TPM()
 	printf("Decrypted text is:\n");
 	printf("%s\n", decryptedtext);
 
-	//cout << endl << "test3" << endl << endl;
+	
+	tpm.FlushContext(primaryKey);
+	tpm.FlushContext(signingKey);
+	
 	return;
 }
 
