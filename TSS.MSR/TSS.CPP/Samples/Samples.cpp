@@ -143,10 +143,10 @@ void Samples::MPC_TPM()
 		TPMA_OBJECT::decrypt |
 		TPMA_OBJECT::sensitiveDataOrigin |
 		TPMA_OBJECT::userWithAuth,
-		NullVec,  // No policy
+		NullVec,  
 		TPMS_RSA_PARMS(
 			TPMT_SYM_DEF_OBJECT::NullObject(),
-			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 1024, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
 	// Create the key
@@ -158,12 +158,17 @@ void Samples::MPC_TPM()
 		vector<TPMS_PCR_SELECTION>());
 
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
-	
 
-	// To get attestation information we need a restricted signing key and privacy authorization.
 	TPM_HANDLE primaryKey = MakeStoragePrimary();
 	TPM_HANDLE signingKey = MakeChildSigningKey(primaryKey, true);
 	ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
+
+
+	cout << "New RSA primary key" << endl << storagePrimary.outPublic.ToString() << endl;
+	cout << "Name of new key:" << endl;
+	cout << " Returned by TPM " << storagePrimary.name << endl;
+
+
 
 	int nvIndex = 1000;
 	ByteVec nvAuth{ 1, 5, 1, 1 };
@@ -999,7 +1004,7 @@ void Samples::TpmCallback(ByteVec command, ByteVec response)
 
 void Samples::Callback1()
 {
-	Announce("Installing callback");
+	//Announce("Installing callback");
 
 	// Install a callback that is invoked after the TPM command has been executed
 	tpm._SetResponseCallback(&Samples::TpmCallbackStatic, this);
@@ -1071,7 +1076,7 @@ void Samples::PrimaryKeys()
 
 	// Print out the public data for the new key. Note the parameter to
 	// ToString() "pretty-prints" the byte-arrays.
-	cout << "New RSA primary key" << endl << newPrimary.outPublic.ToString(false) << endl;
+	cout << "New RSA primary key" << endl << newPrimary.outPublic.ToString(true) << endl;
 
 	cout << "Name of new key:" << endl;
 	cout << " Returned by TPM " << newPrimary.name << endl;
