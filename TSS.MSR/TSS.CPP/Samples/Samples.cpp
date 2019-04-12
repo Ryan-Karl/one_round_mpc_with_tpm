@@ -288,7 +288,7 @@ void Samples::MPC_TPM()
 	}
 
 	// Get a key attestation.
-	cout << ">> Key Quoting" << endl;
+	
 	ByteVec nonce{ 5, 6, 7 };
 	CertifyResponse keyInfo = tpm.Certify(signingKey, signingKey, nonce, TPMS_NULL_SIG_SCHEME());
 
@@ -296,7 +296,7 @@ void Samples::MPC_TPM()
 	bool sigOk = pubKey.outPublic.ValidateCertify(pubKey.outPublic, nonce, keyInfo);
 
 	if (sigOk) {
-		cout << "Key certification validated" << endl;
+		cout << endl << "Key certification validated" << endl << endl;
 	}
 	
 	// First increment
