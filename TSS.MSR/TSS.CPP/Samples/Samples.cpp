@@ -44,7 +44,7 @@ void RunSamples();
 
 Samples::Samples()
 {
-	RunSamples();
+	//RunSamples();
 
 	device = new TpmTcpDevice("127.0.0.1", 2321);
 
