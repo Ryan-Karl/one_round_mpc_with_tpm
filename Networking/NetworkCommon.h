@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <thread>
 
 #define DEFAULT_PORTNUM 27015
 #define DEFAULT_PORT "27015"
@@ -13,6 +14,7 @@
 #define LABELS_EXTENSION ".tsv"
 #define FILE_DELIM '~'
 #define KEYBUFFER 128
+#define BASE_LABELFILE "labels_"
 
 #ifdef WIN32
 #include <WinSock2.h>
@@ -65,6 +67,7 @@ int RecvDelimitedFiles(const std::vector<std::string> & filenames, SOCKET & Conn
 	return 0;
 }
 
+//Sends only a single file
 int SendFile(int * ret, const std::string & filename, SOCKET & ClientSocket){
 	std::ifstream ifs(filename);
 	if(!ifs.good()){
@@ -99,9 +102,94 @@ int SendFile(int * ret, const std::string & filename, SOCKET & ClientSocket){
 			return *ret = 1;
 		}
 	}
-	closesocket(ClientSocket);
+	//closesocket(ClientSocket);
 	return *ret = 0;
 }
+
+//TODO add error checks
+int broadcast_file(int * ret, const std::string & filename, unsigned int num_connections){
+	Server s(port);
+	s.init();
+	s.accept_connections();
+	std::vector<std::string> fname_v;
+	fname_v.emplace_back(filename);
+	s.broadcast_files(fname_v);
+	return *ret = 0;
+}
+
+//TODO also return string?
+//Here partynum refers to the party we are recieving things from
+int receive_file(int * ret, const std::string & hostname, 
+	unsigned int port, unsigned int partynum){
+	//Construct output filename
+	std::string fname = BASE_LABELFILE;
+	std::string partystr;
+	std::ostringstream os;
+	os << partynum;
+	partystr = os.str();
+	fname += partystr;
+	fname += LABELS_EXTENSION;
+	std::ofstream ofs(fname);
+	if(!ofs.good()){
+		std::cerr << "ERROR opening output file " << fname << std::endl;
+		return *ret = 1;
+	}
+	char * host_cstr = new char(hostname.size()+1);
+	memcpy(host_cstr, hostname.c_str(), hostname.size()+1);
+	Client c(host_cstr, port);
+	c.Start();
+	c.RecvFileNamed(fname);
+	c.Stop();
+	delete[] host_cstr;
+	return *ret = 0;
+}
+
+
+
+int broadcast_and_receive(const std::vector<std::string> & hostnames, const std::vector<unsigned int> & ports,
+ const std::string & filename, unsigned int port, unsigned int partynum){
+	//Error checks
+	if(hostnames.size() != ports.size() || hostnames.size() < 2 || partynum >= hostnames.size()){
+		std::cerr << "ERROR: hostnames/ports" << std::endl;
+		return 1;
+	}
+	//Start server thread
+	int thread_ret = 0;
+	std::thread server_thread(&broadcast_file, thread_ret, filename, hostnames.size()-1);
+	//Start client threads
+	std::thread * client_threads = new std::thread[hostnames.size()];
+	int * rets = new int[hostnames.size()];
+	for(unsigned int i = 0; i < hostnames.size(); i++){
+		if(i == partynum){
+			continue;
+		}
+		client_threads[i] = std::thread(&receive_file, &(rets[i]), hostnames[i], ports[i], i);
+	}
+	//Join threads
+
+	for(auto & x : client_threads){
+		x.join();
+	}
+	server_thread.join();
+
+	for(const int & r : rets){
+		if(r){
+			std::cerr << "ERROR returning from client " << std::endl;
+			return 1;
+		}
+	}
+	if(thread_ret){
+		std::cerr << "ERROR returning from server" << std::endl;
+	}
+	delete[] client_threads;
+	delete[] rets;
+	return 0;
+}
+
+
+
+
+
 #else
 typedef unsigned char BYTE;
 #endif //End of Windows-only code
@@ -144,6 +232,7 @@ std::vector<BYTE> keyFromFile(const std::string & filename){
 
 	return vec;
 }
+
 
 
 

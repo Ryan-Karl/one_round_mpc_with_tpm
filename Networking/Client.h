@@ -24,8 +24,9 @@
 
 class Client {
 public:
-	Client(char* servername)
+	Client(char* servername, unsigned int p)
 	{
+		port = p;
 		szServerName = servername;
 		ConnectSocket = INVALID_SOCKET;
 	}
@@ -51,7 +52,7 @@ public:
 		hints.ai_protocol = IPPROTO_TCP;
 
 		// Resolve the server address and port
-		iResult = getaddrinfo(szServerName, DEFAULT_PORT, &hints, &result);
+		iResult = getaddrinfo(szServerName, port, &hints, &result);
 		if (iResult != 0)
 		{
 			printf("getaddrinfo failed: %d\n", iResult);
@@ -92,6 +93,10 @@ public:
 
 		return true;
 	};
+
+	Client::~Client(){
+		Stop();
+	}
 
 	// Free the resouces
 	void Stop() {
@@ -138,10 +143,20 @@ public:
 
 		return true;
 	}
+
+	bool RecvFileNamed(const std::string & outfile){
+		std::ofstream ofs(outfile);
+		if(!ofs.good()){
+			std::cerr << "ERROR with output file " << outfile << std::endl;
+			return false;
+		}
+		return RecvFile(ofs);
+	}
 	
 
 private:
 	char* szServerName;
+	unsigned int port;
 	SOCKET ConnectSocket;
 };
 

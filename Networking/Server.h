@@ -33,8 +33,7 @@ private:
 	SOCKET ListenSocket;
 	unsigned int num_parties;
 	PartyInfo[] parties;
-	std::string circuit_filename
-
+	std::string circuit_filename;
 
 
 	int send_file(int * ret, char * filename, SOCKET * ClientSocket);
@@ -62,11 +61,27 @@ public:
 
 }
 
+Server::~Server(){
+	close_connections();
+}
 
-Server::Server(unsigned int p, const std::string & cf): port(p), circuit_filename(cf){
-	port = p;
+void Server::close_connections(){
+	if(parties == nullptr){return;}
+	for(unsigned int i = 0; i < num_parties; i++){
+		closesocket(parties.partySocket);
+	}
+	closesocket(ListenSocket);
+	WSACleanup();
+	delete[] parties;
+	parties = nullptr;
+	return;
+}
+
+
+Server::Server(unsigned int p): port(p){
 	ListenSocket = INVALID_SOCKET;
 	ZeroMemory(&hints, sizeof(hints));
+	parties = nullptr;
 }
 
 int Server::init(){
@@ -169,9 +184,7 @@ int Server::accept_connections(unsigned int num_connections){
 	//Allocate room for parties
 	parties = new PartyInfo[num_connections];
 
-
-	
-	//Accept and spin off new threads
+	//Accept connections
 	for(unsigned int i = 0; i < num_connections; i++){
 		parties[i].partySocket = INVALID_SOCKET;
 		parties[i].partySocket = accept(ListenSocket, NULL, NULL);
@@ -183,13 +196,13 @@ int Server::accept_connections(unsigned int num_connections){
 			return -1;
 		}
 	}
-	
 	return 0;
 }
 
 int Server::send_files(unsigned int party, const std::vector<std::string> & filenames, int * ret){
 	int scrap;
-	char * delim_str = '~\0';
+	char * delim_str = "~\0";
+	delim_str[0] = FILE_DELIM;
 	int iSendResult;
 	for(size_t i = 0; i < filenames.size(); i++){
 		//Send file
