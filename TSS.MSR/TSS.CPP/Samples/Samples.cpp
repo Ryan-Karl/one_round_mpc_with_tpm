@@ -132,6 +132,30 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> &v){
 }
 
 
+std::vector<BYTE> mpz_to_vector(const mpz_t x) {
+	size_t size = (mpz_sizeinbase(x, 2) + CHAR_BIT - 1) / CHAR_BIT;
+	std::vector<BYTE> v(size);
+	mpz_export(&v[0], &size, 1, 1, 0, 0, x);
+	v.resize(size);
+	return v;
+}
+
+inline std::vector<BYTE> mpz_to_vector(mpz_class & x) {
+	return mpz_to_vector(x.get_mpz_t());
+}
+
+/*
+mpz_class ByteVecToMPZ(const std::vector<BYTE> &v) {
+	mpz_class mcand = 1;
+	mpz_class result = 0;
+	for (const auto & c : v) {
+		result += mcand * c;
+		//Shift left by 8 bits
+		mpz_mul_2exp(mcand.get_mpz_t(), mcand.get_mpz_t(), 8);
+	}
+	return result;
+}*/
+
 void Samples::MPC_TPM()
 {
 
@@ -312,6 +336,99 @@ void Samples::MPC_TPM()
 	// Show the decrypted text
 	printf("Decrypted text is:\n");
 	printf("%s\n", decryptedtext);
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
+
+
+	
+	//Define placeholder wire labels (assume three wires for test)
+	unsigned char * wire_0_0 = (unsigned char *)"WIRE_LABEL_0_0";
+	unsigned char * wire_0_1 = (unsigned char *)"WIRE_LABEL_0_1";
+	unsigned char wire_0_0_ciphertext[128];
+	unsigned char wire_0_1_ciphertext[128];
+
+	unsigned char * wire_1_0 = (unsigned char *)"WIRE_LABEL_1_0";
+	unsigned char * wire_1_1 = (unsigned char *)"WIRE_LABEL_1_1";
+	unsigned char wire_1_0_ciphertext[128];
+	unsigned char wire_1_1_ciphertext[128];
+
+	unsigned char * wire_2_0 = (unsigned char *)"WIRE_LABEL_2_0";
+	unsigned char * wire_2_1 = (unsigned char *)"WIRE_LABEL_2_1";
+	unsigned char wire_2_0_ciphertext[128];
+	unsigned char wire_2_1_ciphertext[128];
+
+	//Encrypt wire labels using AES
+	int wire_0_0_ciphertext = encrypt(wire_0_0, strlen((char *)wire_0_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_0_0_ciphertext);
+	int wire_0_1_ciphertext = encrypt(wire_0_1, strlen((char *)wire_0_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_0_1_ciphertext);
+
+	int wire_1_0_ciphertext = encrypt(wire_1_0, strlen((char *)wire_1_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_1_0_ciphertext);
+	int wire_1_1_ciphertext = encrypt(wire_1_1, strlen((char *)wire_1_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_1_1_ciphertext);
+
+	int wire_2_0_ciphertext = encrypt(wire_2_0, strlen((char *)wire_2_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_2_0_ciphertext);
+	int wire_2_1_ciphertext = encrypt(wire_2_1, strlen((char *)wire_2_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_2_1_ciphertext);
+
+	//Split AES encrypted wire labels into Shamir shares.
+	ShamirSecret splitKeys(prime, number_shares, minimum);
+
+	std::vector<std::pair<mpz_class, mpz_class> > shares_key = splitKeys.getShares(ByteVecToMPZ(key));
+	std::vector<std::pair<mpz_class, mpz_class> > shares_iv = splitKeys.getShares(ByteVecToMPZ(iv));
+
+	std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares_key), std::begin(shares_key) + minimum);
+	std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares_iv), std::begin(shares_iv) + minimum);
+
+	ByteVec wire_0_0_array[j] = storagePrimary.outPublic.Encrypt([BUFSIZ], pad);
+
+
+	ofstream myfile;
+	myfile.open("example.txt");
+
+
+
+
+	myfile << "Writing this to a file.\n";
+	myfile.close();
+
+	*/
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	
 	tpm.FlushContext(primaryKey);
