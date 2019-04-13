@@ -36,14 +36,27 @@ private:
 	std::string circuit_filename;
 
 
-	int send_file(int * ret, char * filename, SOCKET * ClientSocket);
+	//int send_file(int * ret, char * filename, SOCKET * ClientSocket);
+	int start_key_threads();
 
 
 public:
 	Server(unsigned int p, const std::string & cf);
+	Server::~Server(){
+		close_connections();
+	}	
 	
 	int init() ;
-	int broadcast(unsigned int num_connections, char * filename);	
+	//int broadcast(unsigned int num_connections, char * filename);
+	int receive_key(unsigned int party, int * ret);
+	int send_files(unsigned int party, const std::vector<std::string> & filenames, int * ret);	
+
+	
+
+	void close_connections();
+	int init();
+	int accept_connections(unsigned int num_connections);
+	int broadcast_files(const std::vector<std::string> & filenames);
 
 	static std::string key_filename(unsigned int party){
 		std::string s = "keyfile_";
@@ -59,11 +72,9 @@ public:
 		return s;
 	}
 
-}
+};
 
-Server::~Server(){
-	close_connections();
-}
+
 
 void Server::close_connections(){
 	if(parties == nullptr){return;}
@@ -249,147 +260,5 @@ int Server::broadcast_files(const std::vector<std::string> & filenames){
 	return 0;
 }
 
-
-
-int accept_and_send(SOCKET & ListenSocket, std::ifstream & ifs) {
-	// Accept a client socket
-	SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
-
-	if (ClientSocket == INVALID_SOCKET)
-	{
-		printf("accept failed: %d\n", WSAGetLastError());
-		closesocket(ListenSocket);
-		WSACleanup();
-		return -1;
-	}
-
-	char recvbuf[DEFAULT_BUFFER_LENGTH];
-	int iSendResult;
-
-	std::string fileData;
-	while (std::getline(ifs, fileData)) {
-		//Need newline plus null terminator
-		char * msg = new char[fileData.size() + 2];
-		std::copy(fileData.begin(), fileData.end(), msg);
-		msg[fileData.size()] = '\n';
-		msg[fileData.size()+1] = '\0';
-		//Send data
-		iSendResult = send(ClientSocket, msg, fileData.size() + 2, 0);
-
-		delete[] msg;
-
-		if (iSendResult == SOCKET_ERROR) {
-			printf("send failed: %d\n", WSAGetLastError());
-			closesocket(ClientSocket);
-			WSACleanup();
-			return 1;
-		}
-	}
-	closesocket(ClientSocket);
-	return 0;
-}
-
-//First arg is file to send, second is number of parties
-int main(int argc, char ** argv) {
-
-	if (argc != 3) {
-		std::cout << "No file given!" << std::endl;
-		return 0;
-	}
-#define MIN_PARTIES 1
-	if (atoi(argv[2]) < MIN_PARTIES) {
-		std::cout << "Not enough parties: " << atoi(argv[2]) << std::endl;
-		return 0;
-	}
-
-	WSADATA wsaData;
-
-	// Initialize Winsock
-	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0)
-	{
-		printf("WSAStartup failed: %d\n", iResult);
-		return 1;
-	}
-
-	struct addrinfo	*result = NULL,
-		hints;
-
-	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family = AF_INET;		// Internet address family is unspecified so that either an IPv6 or IPv4 address can be returned
-	hints.ai_socktype = SOCK_STREAM;	// Requests the socket type to be a stream socket for the TCP protocol
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags = AI_PASSIVE;
-
-	// Resolve the local address and port to be used by the server
-	iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
-	if (iResult != 0)
-	{
-		printf("getaddrinfo failed: %d\n", iResult);
-		WSACleanup();
-		return 1;
-	}
-
-	SOCKET ListenSocket = INVALID_SOCKET;
-
-	// Create a SOCKET for the server to listen for client connections
-	ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-
-	if (ListenSocket == INVALID_SOCKET)
-	{
-		printf("Error at socket(): %d\n", WSAGetLastError());
-		freeaddrinfo(result);
-		WSACleanup();
-		return 1;
-	}
-
-	// Setup the TCP listening socket
-	iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-
-	if (iResult == SOCKET_ERROR)
-	{
-		printf("bind failed: %d", WSAGetLastError());
-		freeaddrinfo(result);
-		closesocket(ListenSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	freeaddrinfo(result);
-
-	// To listen on a socket
-	if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR)
-	{
-		printf("listen failed: %d\n", WSAGetLastError());
-		closesocket(ListenSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	char recvbuf[DEFAULT_BUFFER_LENGTH];
-	int iSendResult;
-
-	unsigned int num_parties = atoi(argv[2]);
-	for (unsigned int i = 0; i < num_parties; i++) {
-		std::cout << "Starting upload " << i << std::endl;
-		std::ifstream ifs (argv[1]);
-		if (!ifs.good()) {
-			std::cout << "Unspecified error opening file " << argv[1] << std::endl;
-			return 0;
-		}
-		if (accept_and_send(ListenSocket, ifs)) {
-			return 1;
-		}
-		std::cout << "Finished upload " << i << std::endl;
-	}
-
-
-	// Free the resouces
-	closesocket(ListenSocket);
-	WSACleanup();
-
-	getchar();
-	return 0;
-}
 
 #endif

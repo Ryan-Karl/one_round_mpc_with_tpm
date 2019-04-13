@@ -31,7 +31,7 @@ public:
 		ConnectSocket = INVALID_SOCKET;
 	}
 
-	bool Start() {
+	bool connect() {
 		WSADATA wsaData;
 
 		// Initialize Winsock
@@ -95,11 +95,11 @@ public:
 	};
 
 	Client::~Client(){
-		Stop();
+		shutdown();
 	}
 
 	// Free the resouces
-	void Stop() {
+	void shutdown() {
 		int iResult = shutdown(ConnectSocket, SD_SEND);
 
 		if (iResult == SOCKET_ERROR)
@@ -152,6 +152,10 @@ public:
 		}
 		return RecvFile(ofs);
 	}
+
+	SOCKET getSocket(){
+		return ConnectSocket;
+	}
 	
 
 private:
@@ -159,64 +163,6 @@ private:
 	unsigned int port;
 	SOCKET ConnectSocket;
 };
-
-//Takes in a filename to write to
-int main(int argc, CHAR* argv[])
-{
-
-	if (argc != 2) {
-		std::cout << "No filename given as input!" << std::endl;
-		return 0;
-	}
-
-	std::string msg;
-	//TODO take in string as parameter
-	std::string ip = "127.0.0.1";
-	char * ip_pointer = new char[ip.size() + 1];
-	std::copy(ip.begin(), ip.end(), ip_pointer);
-	ip_pointer[ip.size()] = '\0'; // don't forget the terminating 0
-
-	Client client(ip_pointer);
-
-	if (!client.Start())
-		return 1;
-
-	std::ofstream os(argv[1]);
-	if (!os.good()) {
-		std::cout << "Error with file " << argv[1] << std::endl;
-		return 1;
-	}
-	if (!client.RecvFile(os, std::cout)) {
-		std::cout << "Error sending file";
-		return 1;
-	}
-
-	client.Stop();
-
-	// don't forget to free the string after finished using it
-	delete[] ip_pointer;
-
-	return 0;
-}
-
-/*
-
-const std::vector<std::string> & hostnames, const std::vector<unsigned int> & ports
-//Check and initialize party data
-	if(hostnames.size() != ports.size() || hostnames.size() < 2){
-		std::cout << "Not enough parties: " << hostnames.size() << std::endl;
-		exit(0);
-	}
-	this->num_parties = hostnames.size();
-	parties = new PartyInfo[num_parties]
-	for(unsigned int i = 0; i < num_parties; i++){
-		parties[i].port = ports[i];
-		parties[i].hostname = hostnames[i];
-		parties[i].pubkey_file = Server::key_filename(parties[i].hostname, parties[i].port, i);
-	}
-
-	*/
-
 
 
 #endif

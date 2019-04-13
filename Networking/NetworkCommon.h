@@ -137,9 +137,9 @@ int receive_file(int * ret, const std::string & hostname,
 	char * host_cstr = new char(hostname.size()+1);
 	memcpy(host_cstr, hostname.c_str(), hostname.size()+1);
 	Client c(host_cstr, port);
-	c.Start();
+	c.init();
 	c.RecvFileNamed(fname);
-	c.Stop();
+	c.shutdown();
 	delete[] host_cstr;
 	return *ret = 0;
 }
@@ -187,6 +187,17 @@ int broadcast_and_receive(const std::vector<std::string> & hostnames, const std:
 }
 
 
+void outputToStream(std::ostream & os, const std::vector<BYTE> & bv){
+	os << std::hex;
+	for(size_t i = 0; i < bv; i++){
+		os << bv[i];
+		/*
+		if((i%4) == 3){
+			os << " ";
+		}
+		*/
+	}
+}
 
 
 
@@ -232,6 +243,8 @@ std::vector<BYTE> keyFromFile(const std::string & filename){
 
 	return vec;
 }
+
+
 
 
 
