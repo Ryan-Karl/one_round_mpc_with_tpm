@@ -48,9 +48,9 @@ std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
 		iss >> std::hex;
 		std::vector<BYTE> tmp;
 		ret.push_back(tmp);
-		BYTE byteIn;
+		int byteIn;
 		while (iss >> std::hex >> byteIn) {
-			ret[ret.size() - 1].push_back(byteIn);
+			ret[ret.size() - 1].push_back(byteIn & 0xFF);
 		}
 	}
 	return ret;
