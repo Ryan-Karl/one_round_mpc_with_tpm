@@ -511,6 +511,12 @@ void Samples::MPC_TPM()
 			decrypted_RSA_ciphertext_wires[i] = tpm.RSA_Decrypt(keyHandle, RSA_ciphertext[i], TPMS_NULL_ASYM_SCHEME(), pad);
 		}
 
+		assert(wire_0_0_placeholder == decrypted_RSA_ciphertext_wires[0]);
+		assert(wire_0_1_placeholder == decrypted_RSA_ciphertext_wires[1]);
+		assert(wire_1_0_placeholder == decrypted_RSA_ciphertext_wires[2]);
+		assert(wire_1_1_placeholder == decrypted_RSA_ciphertext_wires[3]);
+		assert(wire_2_0_placeholder == decrypted_RSA_ciphertext_wires[4]);
+		assert(wire_2_1_placeholder == decrypted_RSA_ciphertext_wires[5]);
 
 		ByteVec recover_shares;
 
@@ -527,8 +533,8 @@ void Samples::MPC_TPM()
 
 		for (int k = 1; k < decrypted_RSA_ciphertext_wires.size(); k = (k + 2))
 		{
-			int decryptedWire_len = decrypt((unsigned char *)decrypted_RSA_ciphertext_wires[k].data(),
-				decrypted_RSA_ciphertext_wires.size(), (unsigned char *)key_str, (unsigned char *)iv_str, decrypted_wire);
+	//FIX THIS		int decryptedWire_len = decrypt((unsigned char *)decrypted_RSA_ciphertext_wires[k].data(),
+	//			decrypted_RSA_ciphertext_wires.size(), (unsigned char *)key_str, (unsigned char *)iv_str, decrypted_wire);
 		}
 
 
