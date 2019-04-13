@@ -49,7 +49,7 @@ std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
 		std::vector<BYTE> tmp;
 		ret.push_back(tmp);
 		BYTE byteIn;
-		while (iss >> byteIn) {
+		while (iss >> std::hex >> byteIn) {
 			ret[ret.size() - 1].push_back(byteIn);
 		}
 	}
@@ -285,7 +285,7 @@ void Samples::MPC_TPM()
 
 	// Should be able to increment
 	for (int j = 0; j < 5; j++) {
-		tpm.NV_Increment(nvHandle, nvHandle);
+		//tpm.NV_Increment(nvHandle, nvHandle);
 
 		dec_Array[j] = tpm.RSA_Decrypt(keyHandle, enc_Array[j], TPMS_NULL_ASYM_SCHEME(), pad);
 		cout << "My           secret: " << secret_Array[j] << endl;
@@ -308,60 +308,58 @@ void Samples::MPC_TPM()
 	*/
 #define AES_KEY_SIZE 32
 #define IV_SIZE 16
-	std::vector<BYTE> key, iv;
-	key = tpm._GetRandLocal(AES_KEY_SIZE);
-	iv = tpm._GetRandLocal(IV_SIZE);
+		std::vector<BYTE> key, iv;
+		key = tpm._GetRandLocal(AES_KEY_SIZE);
+		iv = tpm._GetRandLocal(IV_SIZE);
 
-	mpz_class prime;
-	mpz_class mpz_key = ByteVecToMPZ(key);
-	//May need to initialize prime differently
-	std::cout << "DEBUG: key in mpz format is " << mpz_key << std::endl;
-	mpz_nextprime(prime.get_mpz_t(), mpz_key.get_mpz_t());
-
-
-	//placeholders until we determine # of wires owned
-	unsigned int number_shares = 6;
-	unsigned int minimum = 3;
-
-/*	ShamirSecret splitKeys(prime, number_shares, minimum);
-
-	std::vector<std::pair<mpz_class, mpz_class> > shares = splitKeys.getShares(mpz_key);
-	std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares), std::begin(shares) + minimum);
+		mpz_class prime;
+		mpz_class mpz_key = ByteVecToMPZ(key);
+		//May need to initialize prime differently
+		std::cout << "DEBUG: key in mpz format is " << mpz_key << std::endl;
+		mpz_nextprime(prime.get_mpz_t(), mpz_key.get_mpz_t());
 
 
-	mpz_class recombined_secret = splitKeys.getSecret(partialShares);
+		//placeholders until we determine # of wires owned
+		unsigned int number_shares = 6;
+		unsigned int minimum = 3;
 
-	std::cout << "Recombined Key:             " << recombined_secret << std::endl;
-	*/
-	// Message to be encrypted
-	unsigned char *plaintext =
-		(unsigned char *)"The quick brown fox jumps over the lazy dog";
-	// Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be longer than the plaintext, dependant on the algorithm and mode
-	cout << "The message is " << plaintext << endl << endl;
+		//ShamirSecret splitKeys(prime, number_shares, minimum);
 
-	unsigned char ciphertext[128];
-	unsigned char decryptedtext[128];
-	int decryptedtext_len, ciphertext_len;
-	
-	const char * key_str = ByteVecToString(key).c_str();
-	const char * iv_str = ByteVecToString(iv).c_str();
+		//std::vector<std::pair<mpz_class, mpz_class> > shares = splitKeys.getShares(mpz_key);
+		//std::vector<std::pair<mpz_class, mpz_class> > partialShares(std::begin(shares), std::begin(shares) + minimum);
 
-	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), (unsigned char *)key_str, (unsigned char *)iv_str,
-		ciphertext);
 
-	// Do something useful with the ciphertext here
-	printf("Ciphertext is:\n");
-	BIO_dump_fp(stdout, (const char *)ciphertext, ciphertext_len);
-	// Decrypt the ciphertext
-	decryptedtext_len = decrypt(ciphertext, ciphertext_len, (unsigned char *)key_str, (unsigned char *)iv_str,
-		decryptedtext);
-	// Add a NULL terminator. We are expecting printable text
-	decryptedtext[decryptedtext_len] = '\0';
-	// Show the decrypted text
-	printf("Decrypted text is:\n");
-	printf("%s\n", decryptedtext);
+		//mpz_class recombined_secret = splitKeys.getSecret(partialShares);
 
-	
+		//std::cout << "Recombined Key:             " << recombined_secret << std::endl;
+
+		// Message to be encrypted
+		unsigned char *plaintext =
+			(unsigned char *)"The quick brown fox jumps over the lazy dog";
+		// Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be longer than the plaintext, dependant on the algorithm and mode
+		cout << "The message is " << plaintext << endl << endl;
+
+		unsigned char ciphertext[128];
+		unsigned char decryptedtext[128];
+		int decryptedtext_len, ciphertext_len;
+
+		const char * key_str = ByteVecToString(key).c_str();
+		const char * iv_str = ByteVecToString(iv).c_str();
+
+		ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), (unsigned char *)key_str, (unsigned char *)iv_str,
+			ciphertext);
+
+		// Do something useful with the ciphertext here
+		printf("Ciphertext is:\n");
+		BIO_dump_fp(stdout, (const char *)ciphertext, ciphertext_len);
+		// Decrypt the ciphertext
+		decryptedtext_len = decrypt(ciphertext, ciphertext_len, (unsigned char *)key_str, (unsigned char *)iv_str,
+			decryptedtext);
+		// Add a NULL terminator. We are expecting printable text
+		decryptedtext[decryptedtext_len] = '\0';
+		// Show the decrypted text
+		printf("Decrypted text is:\n");
+		printf("%s\n", decryptedtext);
 
 
 
@@ -376,190 +374,166 @@ void Samples::MPC_TPM()
 
 
 
-	
 
 
-	
-	//Define placeholder wire labels (assume three wires for test)
-	unsigned char * wire_0_0 = (unsigned char *)"WIRE_LABEL_0_0";
-	unsigned char * wire_0_1 = (unsigned char *)"WIRE_LABEL_0_1";
-	unsigned char wire_0_0_ciphertext[64];
-	unsigned char wire_0_1_ciphertext[64];
 
-	unsigned char * wire_1_0 = (unsigned char *)"WIRE_LABEL_1_0";
-	unsigned char * wire_1_1 = (unsigned char *)"WIRE_LABEL_1_1";
-	unsigned char wire_1_0_ciphertext[64];
-	unsigned char wire_1_1_ciphertext[64];
 
-	unsigned char * wire_2_0 = (unsigned char *)"WIRE_LABEL_2_0";
-	unsigned char * wire_2_1 = (unsigned char *)"WIRE_LABEL_2_1";
-	unsigned char wire_2_0_ciphertext[64];
-	unsigned char wire_2_1_ciphertext[64];
 
-	//Encrypt wire labels using AES
-	int wire_0_0_len = encrypt(wire_0_0, strlen((char *)wire_0_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_0_0_ciphertext);
-	int wire_0_1_len = encrypt(wire_0_1, strlen((char *)wire_0_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_0_1_ciphertext);
 
-	int wire_1_0_len = encrypt(wire_1_0, strlen((char *)wire_1_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_1_0_ciphertext);
-	int wire_1_1_len = encrypt(wire_1_1, strlen((char *)wire_1_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_1_1_ciphertext);
+		//Define placeholder wire labels (assume three wires for test)
+		unsigned char * wire_0_0 = (unsigned char *)"WIRE_LABEL_0_0";
+		unsigned char * wire_0_1 = (unsigned char *)"WIRE_LABEL_0_1";
+		unsigned char wire_0_0_ciphertext[64];
+		unsigned char wire_0_1_ciphertext[64];
 
-	int wire_2_0_len = encrypt(wire_2_0, strlen((char *)wire_2_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_2_0_ciphertext);
-	int wire_2_1_len = encrypt(wire_2_1, strlen((char *)wire_2_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_2_1_ciphertext);
+		unsigned char * wire_1_0 = (unsigned char *)"WIRE_LABEL_1_0";
+		unsigned char * wire_1_1 = (unsigned char *)"WIRE_LABEL_1_1";
+		unsigned char wire_1_0_ciphertext[64];
+		unsigned char wire_1_1_ciphertext[64];
 
-	//Split AES encrypted wire labels into Shamir shares.
-	ShamirSecret splitKeys(prime, number_shares, minimum);
+		unsigned char * wire_2_0 = (unsigned char *)"WIRE_LABEL_2_0";
+		unsigned char * wire_2_1 = (unsigned char *)"WIRE_LABEL_2_1";
+		unsigned char wire_2_0_ciphertext[64];
+		unsigned char wire_2_1_ciphertext[64];
 
-	std::vector<std::pair<mpz_class, mpz_class> > shares_key = splitKeys.getShares(ByteVecToMPZ(key));
-	std::vector<std::pair<mpz_class, mpz_class> > shares_iv = splitKeys.getShares(ByteVecToMPZ(iv));
+		//Encrypt wire labels using AES
+		int wire_0_0_len = encrypt(wire_0_0, strlen((char *)wire_0_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_0_0_ciphertext);
+		int wire_0_1_len = encrypt(wire_0_1, strlen((char *)wire_0_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_0_1_ciphertext);
 
-	std::vector<std::pair<mpz_class, mpz_class> > partialShares_key(std::begin(shares_key), std::begin(shares_key) + minimum);
-	std::vector<std::pair<mpz_class, mpz_class> > partialShares_iv(std::begin(shares_iv), std::begin(shares_iv) + minimum);
+		int wire_1_0_len = encrypt(wire_1_0, strlen((char *)wire_1_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_1_0_ciphertext);
+		int wire_1_1_len = encrypt(wire_1_1, strlen((char *)wire_1_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_1_1_ciphertext);
 
-	unsigned int numb_entries = sizeof(int) / sizeof(BYTE);
-	
-	std::vector<BYTE> wire_0_0_placeholder(wire_0_0_ciphertext, wire_0_0_ciphertext + 128);
-	std::vector<BYTE> wire_0_1_placeholder(wire_0_1_ciphertext, wire_0_1_ciphertext + 128);
-	std::vector<BYTE> wire_1_0_placeholder(wire_1_0_ciphertext, wire_1_0_ciphertext + 128);
-	std::vector<BYTE> wire_1_1_placeholder(wire_1_1_ciphertext, wire_1_1_ciphertext + 128);
-	std::vector<BYTE> wire_2_0_placeholder(wire_2_0_ciphertext, wire_2_0_ciphertext + 128);
-	std::vector<BYTE> wire_2_1_placeholder(wire_2_1_ciphertext, wire_2_1_ciphertext + 128);
+		int wire_2_0_len = encrypt(wire_2_0, strlen((char *)wire_2_0), (unsigned char *)key_str, (unsigned char *)iv_str, wire_2_0_ciphertext);
+		int wire_2_1_len = encrypt(wire_2_1, strlen((char *)wire_2_1), (unsigned char *)key_str, (unsigned char *)iv_str, wire_2_1_ciphertext);
 
-//	ByteVec wire_0_0_RSA_ciphertext = tpm.RSA_Encrypt(keyHandle, wire_0_0_ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	/*
-	for (int i = 0; i < partialShares_key.size(); i++)
-	{
-		ByteVec mpz_result = mpz_to_vector(partialShares_key[i].second);
+		//Split AES encrypted wire labels into Shamir shares.
+		ShamirSecret splitKeys(prime, number_shares, minimum);
 
-		for (int j = 0; j < AES_KEY_SIZE; j++)
-		{
-			if (j < mpz_result.size())
+		std::vector<std::pair<mpz_class, mpz_class> > shares_key = splitKeys.getShares(ByteVecToMPZ(key));
+		std::vector<std::pair<mpz_class, mpz_class> > shares_iv = splitKeys.getShares(ByteVecToMPZ(iv));
+
+		std::vector<std::pair<mpz_class, mpz_class> > partialShares_key(std::begin(shares_key), std::begin(shares_key) + minimum);
+		std::vector<std::pair<mpz_class, mpz_class> > partialShares_iv(std::begin(shares_iv), std::begin(shares_iv) + minimum);
+
+		unsigned int numb_entries = sizeof(int) / sizeof(BYTE);
+
+		std::vector<BYTE> wire_0_0_placeholder(wire_0_0_ciphertext, wire_0_0_ciphertext + 128);
+		std::vector<BYTE> wire_0_1_placeholder(wire_0_1_ciphertext, wire_0_1_ciphertext + 128);
+		std::vector<BYTE> wire_1_0_placeholder(wire_1_0_ciphertext, wire_1_0_ciphertext + 128);
+		std::vector<BYTE> wire_1_1_placeholder(wire_1_1_ciphertext, wire_1_1_ciphertext + 128);
+		std::vector<BYTE> wire_2_0_placeholder(wire_2_0_ciphertext, wire_2_0_ciphertext + 128);
+		std::vector<BYTE> wire_2_1_placeholder(wire_2_1_ciphertext, wire_2_1_ciphertext + 128);
+
+		//	ByteVec wire_0_0_RSA_ciphertext = tpm.RSA_Encrypt(keyHandle, wire_0_0_ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
+			/*
+			for (int i = 0; i < partialShares_key.size(); i++)
 			{
-				wire_0_0_placeholder.push_back(mpz_result[j]);
-				wire_0_1_placeholder.push_back(mpz_result[j]);
-				wire_1_0_placeholder.push_back(mpz_result[j]);
-				wire_1_1_placeholder.push_back(mpz_result[j]);
-				wire_2_0_placeholder.push_back(mpz_result[j]);
-				wire_2_1_placeholder.push_back(mpz_result[j]);
-			}
-			else 
-			{ 
-				wire_0_0_placeholder.push_back(0);
-				wire_0_1_placeholder.push_back(0);
-				wire_1_0_placeholder.push_back(0);
-				wire_1_1_placeholder.push_back(0);
-				wire_2_0_placeholder.push_back(0);
-				wire_2_1_placeholder.push_back(0);
-			}
+				ByteVec mpz_result = mpz_to_vector(partialShares_key[i].second);
 
-		}
-	}*/
+				for (int j = 0; j < AES_KEY_SIZE; j++)
+				{
+					if (j < mpz_result.size())
+					{
+						wire_0_0_placeholder.push_back(mpz_result[j]);
+						wire_0_1_placeholder.push_back(mpz_result[j]);
+						wire_1_0_placeholder.push_back(mpz_result[j]);
+						wire_1_1_placeholder.push_back(mpz_result[j]);
+						wire_2_0_placeholder.push_back(mpz_result[j]);
+						wire_2_1_placeholder.push_back(mpz_result[j]);
+					}
+					else
+					{
+						wire_0_0_placeholder.push_back(0);
+						wire_0_1_placeholder.push_back(0);
+						wire_1_0_placeholder.push_back(0);
+						wire_1_1_placeholder.push_back(0);
+						wire_2_0_placeholder.push_back(0);
+						wire_2_1_placeholder.push_back(0);
+					}
 
-					 //dec_Array[j] = tpm.RSA_Decrypt(keyHandle, enc_Array[j], TPMS_NULL_ASYM_SCHEME(), pad);
+				}
+			}*/
+
+			//dec_Array[j] = tpm.RSA_Decrypt(keyHandle, enc_Array[j], TPMS_NULL_ASYM_SCHEME(), pad);
 //	ByteVec wire_0_0_RSA_ciphertext = tpm.RSA_Encrypt(keyHandle, wire_0_0_placeholder, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	ByteVec wire_0_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_0_0_placeholder, pad);
-	ByteVec wire_0_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_0_1_placeholder, pad);
-	ByteVec wire_1_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_1_0_placeholder, pad);
-	ByteVec wire_1_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_1_1_placeholder, pad);
-	ByteVec wire_2_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_2_0_placeholder, pad);
-	ByteVec wire_2_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_2_1_placeholder, pad);
+		ByteVec wire_0_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_0_0_placeholder, pad);
+		ByteVec wire_0_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_0_1_placeholder, pad);
+		ByteVec wire_1_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_1_0_placeholder, pad);
+		ByteVec wire_1_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_1_1_placeholder, pad);
+		ByteVec wire_2_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_2_0_placeholder, pad);
+		ByteVec wire_2_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_2_1_placeholder, pad);
 
-	std::ofstream outfile("example.txt", ios::out | ios::binary);
+		std::ofstream outfile("example.txt", ios::out | ios::binary);
 
-	outputToStream(outfile, wire_0_0_RSA_ciphertext);
-	outfile << std::endl;
-	outputToStream(outfile, wire_0_1_RSA_ciphertext);
-	outfile << std::endl;
-	outputToStream(outfile, wire_1_0_RSA_ciphertext);
-	outfile << std::endl;
-	outputToStream(outfile, wire_1_1_RSA_ciphertext);
-	outfile << std::endl;
-	outputToStream(outfile, wire_2_0_RSA_ciphertext);
-	outfile << std::endl;
-	outputToStream(outfile, wire_2_1_RSA_ciphertext);
-	outfile << std::endl;
-/**
-	outfile.write((const char *) wire_0_0_RSA_ciphertext.data(), wire_0_0_RSA_ciphertext.size());
-	outfile << std::endl;
-	outfile.write((const char *)wire_0_1_RSA_ciphertext.data(), wire_0_1_RSA_ciphertext.size());
-	outfile << std::endl;
-	outfile.write((const char *)wire_1_0_RSA_ciphertext.data(), wire_1_0_RSA_ciphertext.size());
-	outfile << std::endl;
-	outfile.write((const char *)wire_1_1_RSA_ciphertext.data(), wire_1_1_RSA_ciphertext.size());
-	outfile << std::endl;
-	outfile.write((const char *)wire_2_0_RSA_ciphertext.data(), wire_2_0_RSA_ciphertext.size());
-	outfile << std::endl;
-	outfile.write((const char *)wire_2_1_RSA_ciphertext.data(), wire_2_1_RSA_ciphertext.size());
-	outfile.close();
-	*/
-	outfile.close();
+		outputToStream(outfile, wire_0_0_RSA_ciphertext);
+		outfile << std::endl;
+		outputToStream(outfile, wire_0_1_RSA_ciphertext);
+		outfile << std::endl;
+		outputToStream(outfile, wire_1_0_RSA_ciphertext);
+		outfile << std::endl;
+		outputToStream(outfile, wire_1_1_RSA_ciphertext);
+		outfile << std::endl;
+		outputToStream(outfile, wire_2_0_RSA_ciphertext);
+		outfile << std::endl;
+		outputToStream(outfile, wire_2_1_RSA_ciphertext);
+		outfile << std::endl;
 
-	ByteVec wire_0_0_RSA_ciphertext_file;
-	ByteVec wire_0_1_RSA_ciphertext_file;
-	ByteVec wire_1_0_RSA_ciphertext_file;
-	ByteVec wire_1_1_RSA_ciphertext_file;
-	ByteVec wire_2_0_RSA_ciphertext_file;
-	ByteVec wire_2_1_RSA_ciphertext_file;
+		outfile.close();
 
-	std::ifstream infile("example.txt", ios::in | ios::binary);
 
-	std::vector<std::vector<BYTE> > RSA_ciphertext = vectorsFromHexFile(infile);
-	
-	/*infile << std::endl;
-	vectorsFromHexFile(infile, wire_0_1_RSA_ciphertext_file);
-	infile << std::endl;
-	vectorsFromHexFile(infile, wire_1_0_RSA_ciphertext_file);
-	infile << std::endl;
-	vectorsFromHexFile(infile, wire_1_1_RSA_ciphertext_file);
-	infile << std::endl;
-	vectorsFromHexFile(infile, wire_2_0_RSA_ciphertext_file);
-	infile << std::endl;
-	vectorsFromHexFile(infile, wire_2_1_RSA_ciphertext_file);
-	infile << std::endl;
-	*/
 
-	infile.close();
 
-	std::vector <std::vector <BYTE> > decrypted_RSA_ciphertext_wires;
-	decrypted_RSA_ciphertext_wires.resize(6);
+		ByteVec wire_0_0_RSA_ciphertext_file;
+		ByteVec wire_0_1_RSA_ciphertext_file;
+		ByteVec wire_1_0_RSA_ciphertext_file;
+		ByteVec wire_1_1_RSA_ciphertext_file;
+		ByteVec wire_2_0_RSA_ciphertext_file;
+		ByteVec wire_2_1_RSA_ciphertext_file;
 
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		decrypted_RSA_ciphertext_wires[i] = tpm.RSA_Decrypt(keyHandle, RSA_ciphertext[i], TPMS_NULL_ASYM_SCHEME(), pad);
-	}
+		std::ifstream infile("example.txt");
 
-	/*ByteVec decrypted_RSA_ciphertext_wire_0_0 = tpm.RSA_Decrypt(keyHandle, RSA_ciphertext[0], TPMS_NULL_ASYM_SCHEME(), pad);
-	ByteVec decrypted_RSA_ciphertext_wire_0_1 = tpm.RSA_Decrypt(keyHandle, wire_0_1_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
-	ByteVec decrypted_RSA_ciphertext_wire_1_0 = tpm.RSA_Decrypt(keyHandle, wire_1_0_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
-	ByteVec decrypted_RSA_ciphertext_wire_1_1 = tpm.RSA_Decrypt(keyHandle, wire_1_1_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
-	ByteVec decrypted_RSA_ciphertext_wire_2_0 = tpm.RSA_Decrypt(keyHandle, wire_2_0_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
-	ByteVec decrypted_RSA_ciphertext_wire_2_1 = tpm.RSA_Decrypt(keyHandle, wire_2_1_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
-	*/
+		std::vector<std::vector<BYTE> > RSA_ciphertext = vectorsFromHexFile(infile);
 
-	ByteVec recover_shares;
-	/*
-	for (int i = 0; i < decrypted_RSA_ciphertext_wires.size(); i++)
+		assert(RSA_ciphertext[0] == wire_0_0_RSA_ciphertext);
+		assert(RSA_ciphertext[1] == wire_0_1_RSA_ciphertext);
+		assert(RSA_ciphertext[2] == wire_1_0_RSA_ciphertext);
+		assert(RSA_ciphertext[3] == wire_1_1_RSA_ciphertext);
+		assert(RSA_ciphertext[4] == wire_2_0_RSA_ciphertext);
+		assert(RSA_ciphertext[5] == wire_2_1_RSA_ciphertext);
+
+		infile.close();
+
+		std::vector <std::vector <BYTE> > decrypted_RSA_ciphertext_wires;
+		decrypted_RSA_ciphertext_wires.resize(6);
+
+		for (unsigned int i = 0; i < 6; i++)
 		{
-
+			decrypted_RSA_ciphertext_wires[i] = tpm.RSA_Decrypt(keyHandle, RSA_ciphertext[i], TPMS_NULL_ASYM_SCHEME(), pad);
 		}
-		= decrypted_RSA_ciphertext_wires
-	mpz_class recombined_secret = splitKeys.getSecret(partialShares);
-
-	std::cout << "Recombined Key:             " << recombined_secret << std::endl;
-	*/
-		
 
 
-	
+		ByteVec recover_shares;
+
+		/*for (int i = 0; i < decrypted_RSA_ciphertext_wires.size(); i = (i + 2))
+			{
+				recover_shares.push_back(decrypted_RSA_ciphertext_wires[i]);
+			}
+
+			mpz_class recombined_secret = splitKeys.getSecret(ByteVecToMPZ(recover_shares));
+			*/
+		//std::cout << "Recombined Key:             " << recombined_secret << std::endl;
+
+		unsigned char decrypted_wire[128];
+
+		for (int k = 1; k < decrypted_RSA_ciphertext_wires.size(); k = (k + 2))
+		{
+			int decryptedWire_len = decrypt((unsigned char *)decrypted_RSA_ciphertext_wires[k].data(),
+				decrypted_RSA_ciphertext_wires.size(), (unsigned char *)key_str, (unsigned char *)iv_str, decrypted_wire);
+		}
 
 
 
-
-
-
-
-
-
-
+	}
 
 	
 	tpm.FlushContext(primaryKey);
