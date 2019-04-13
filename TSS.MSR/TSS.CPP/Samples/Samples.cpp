@@ -40,6 +40,35 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 void handleErrors(void);
 
 
+std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
+	std::string line;
+	std::vector<std::vector<BYTE> > ret;
+	while (getline(ifs, line)) {
+		std::istringstream iss(line);
+		iss >> std::hex;
+		std::vector<BYTE> tmp;
+		ret.push_back(tmp);
+		BYTE byteIn;
+		while (iss >> byteIn) {
+			ret[ret.size() - 1].push_back(byteIn);
+		}
+	}
+	return ret;
+}
+
+void outputToStream(std::ostream & os, const std::vector<BYTE> & bv) {
+	os << std::hex;
+	for (size_t i = 0; i < bv.size(); i++) {
+		os << (int) bv[i];
+		os << " ";
+		/*
+		if((i%4) == 3){
+			os << " ";
+		}
+		*/
+	}
+}
+
 
 void RunSamples();
 
@@ -265,7 +294,7 @@ void Samples::MPC_TPM()
 		// And make sure that it's good
 		ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
 		cout << "Value after increment:       " << afterIncrement << endl << endl;
-
+		/*
 		if (j >= 4)
 		{
 			tpm.FlushContext(keyHandle);
@@ -276,7 +305,7 @@ void Samples::MPC_TPM()
 
 		}
 	}
-
+	*/
 #define AES_KEY_SIZE 32
 #define IV_SIZE 16
 	std::vector<BYTE> key, iv;
@@ -388,15 +417,15 @@ void Samples::MPC_TPM()
 
 	unsigned int numb_entries = sizeof(int) / sizeof(BYTE);
 	
-	std::vector<BYTE> wire_0_0_placeholder(wire_0_0_ciphertext, wire_0_0_ciphertext + 64);
-	std::vector<BYTE> wire_0_1_placeholder(wire_0_1_ciphertext, wire_0_1_ciphertext + 64);
-	std::vector<BYTE> wire_1_0_placeholder(wire_1_0_ciphertext, wire_1_0_ciphertext + 64);
-	std::vector<BYTE> wire_1_1_placeholder(wire_1_1_ciphertext, wire_1_1_ciphertext + 64);
-	std::vector<BYTE> wire_2_0_placeholder(wire_2_0_ciphertext, wire_2_0_ciphertext + 64);
-	std::vector<BYTE> wire_2_1_placeholder(wire_2_1_ciphertext, wire_2_1_ciphertext + 64);
+	std::vector<BYTE> wire_0_0_placeholder(wire_0_0_ciphertext, wire_0_0_ciphertext + 128);
+	std::vector<BYTE> wire_0_1_placeholder(wire_0_1_ciphertext, wire_0_1_ciphertext + 128);
+	std::vector<BYTE> wire_1_0_placeholder(wire_1_0_ciphertext, wire_1_0_ciphertext + 128);
+	std::vector<BYTE> wire_1_1_placeholder(wire_1_1_ciphertext, wire_1_1_ciphertext + 128);
+	std::vector<BYTE> wire_2_0_placeholder(wire_2_0_ciphertext, wire_2_0_ciphertext + 128);
+	std::vector<BYTE> wire_2_1_placeholder(wire_2_1_ciphertext, wire_2_1_ciphertext + 128);
 
 //	ByteVec wire_0_0_RSA_ciphertext = tpm.RSA_Encrypt(keyHandle, wire_0_0_ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	
+	/*
 	for (int i = 0; i < partialShares_key.size(); i++)
 	{
 		ByteVec mpz_result = mpz_to_vector(partialShares_key[i].second);
@@ -423,18 +452,32 @@ void Samples::MPC_TPM()
 			}
 
 		}
-	}
+	}*/
 
 					 //dec_Array[j] = tpm.RSA_Decrypt(keyHandle, enc_Array[j], TPMS_NULL_ASYM_SCHEME(), pad);
 //	ByteVec wire_0_0_RSA_ciphertext = tpm.RSA_Encrypt(keyHandle, wire_0_0_placeholder, TPMS_NULL_ASYM_SCHEME(), NullVec);
 	ByteVec wire_0_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_0_0_placeholder, pad);
-	ByteVec wire_0_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_0_1_placeholder, NullVec);
+	ByteVec wire_0_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_0_1_placeholder, pad);
 	ByteVec wire_1_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_1_0_placeholder, pad);
 	ByteVec wire_1_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_1_1_placeholder, pad);
 	ByteVec wire_2_0_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_2_0_placeholder, pad);
 	ByteVec wire_2_1_RSA_ciphertext = storagePrimary.outPublic.Encrypt(wire_2_1_placeholder, pad);
 
 	std::ofstream outfile("example.txt", ios::out | ios::binary);
+
+	outputToStream(outfile, wire_0_0_RSA_ciphertext);
+	outfile << std::endl;
+	outputToStream(outfile, wire_0_1_RSA_ciphertext);
+	outfile << std::endl;
+	outputToStream(outfile, wire_1_0_RSA_ciphertext);
+	outfile << std::endl;
+	outputToStream(outfile, wire_1_1_RSA_ciphertext);
+	outfile << std::endl;
+	outputToStream(outfile, wire_2_0_RSA_ciphertext);
+	outfile << std::endl;
+	outputToStream(outfile, wire_2_1_RSA_ciphertext);
+	outfile << std::endl;
+/**
 	outfile.write((const char *) wire_0_0_RSA_ciphertext.data(), wire_0_0_RSA_ciphertext.size());
 	outfile << std::endl;
 	outfile.write((const char *)wire_0_1_RSA_ciphertext.data(), wire_0_1_RSA_ciphertext.size());
@@ -447,21 +490,66 @@ void Samples::MPC_TPM()
 	outfile << std::endl;
 	outfile.write((const char *)wire_2_1_RSA_ciphertext.data(), wire_2_1_RSA_ciphertext.size());
 	outfile.close();
+	*/
+	outfile.close();
+
+	ByteVec wire_0_0_RSA_ciphertext_file;
+	ByteVec wire_0_1_RSA_ciphertext_file;
+	ByteVec wire_1_0_RSA_ciphertext_file;
+	ByteVec wire_1_1_RSA_ciphertext_file;
+	ByteVec wire_2_0_RSA_ciphertext_file;
+	ByteVec wire_2_1_RSA_ciphertext_file;
+
+	std::ifstream infile("example.txt", ios::in | ios::binary);
+
+	std::vector<std::vector<BYTE> > RSA_ciphertext = vectorsFromHexFile(infile);
+	
+	/*infile << std::endl;
+	vectorsFromHexFile(infile, wire_0_1_RSA_ciphertext_file);
+	infile << std::endl;
+	vectorsFromHexFile(infile, wire_1_0_RSA_ciphertext_file);
+	infile << std::endl;
+	vectorsFromHexFile(infile, wire_1_1_RSA_ciphertext_file);
+	infile << std::endl;
+	vectorsFromHexFile(infile, wire_2_0_RSA_ciphertext_file);
+	infile << std::endl;
+	vectorsFromHexFile(infile, wire_2_1_RSA_ciphertext_file);
+	infile << std::endl;
+	*/
+
+	infile.close();
+
+	std::vector <std::vector <BYTE> > decrypted_RSA_ciphertext_wires;
+	decrypted_RSA_ciphertext_wires.resize(6);
+
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		decrypted_RSA_ciphertext_wires[i] = tpm.RSA_Decrypt(keyHandle, RSA_ciphertext[i], TPMS_NULL_ASYM_SCHEME(), pad);
+	}
+
+	/*ByteVec decrypted_RSA_ciphertext_wire_0_0 = tpm.RSA_Decrypt(keyHandle, RSA_ciphertext[0], TPMS_NULL_ASYM_SCHEME(), pad);
+	ByteVec decrypted_RSA_ciphertext_wire_0_1 = tpm.RSA_Decrypt(keyHandle, wire_0_1_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
+	ByteVec decrypted_RSA_ciphertext_wire_1_0 = tpm.RSA_Decrypt(keyHandle, wire_1_0_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
+	ByteVec decrypted_RSA_ciphertext_wire_1_1 = tpm.RSA_Decrypt(keyHandle, wire_1_1_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
+	ByteVec decrypted_RSA_ciphertext_wire_2_0 = tpm.RSA_Decrypt(keyHandle, wire_2_0_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
+	ByteVec decrypted_RSA_ciphertext_wire_2_1 = tpm.RSA_Decrypt(keyHandle, wire_2_1_RSA_ciphertext_file, TPMS_NULL_ASYM_SCHEME(), pad);
+	*/
+
+	ByteVec recover_shares;
+	/*
+	for (int i = 0; i < decrypted_RSA_ciphertext_wires.size(); i++)
+		{
+
+		}
+		= decrypted_RSA_ciphertext_wires
+	mpz_class recombined_secret = splitKeys.getSecret(partialShares);
+
+	std::cout << "Recombined Key:             " << recombined_secret << std::endl;
+	*/
+		
+
 
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
