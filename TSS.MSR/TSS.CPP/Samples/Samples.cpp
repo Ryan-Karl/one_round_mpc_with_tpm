@@ -125,7 +125,8 @@ Samples::~Samples()
 void Samples::RunAllSamples()
 {
 	_check
-		MPC_TPM();
+		//MPC_TPM();
+	SoftwareKeys();
 	_check;
 
 	//Callback2();
