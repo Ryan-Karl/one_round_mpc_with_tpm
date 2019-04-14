@@ -24,14 +24,14 @@
 
 class Client {
 public:
-	Client(char* servername, unsigned int p)
+	Client(const char * servername, unsigned int p)
 	{
 		port = p;
 		szServerName = servername;
 		ConnectSocket = INVALID_SOCKET;
 	}
 
-	bool connect() {
+	bool Start() {
 		WSADATA wsaData;
 
 		// Initialize Winsock
@@ -52,7 +52,9 @@ public:
 		hints.ai_protocol = IPPROTO_TCP;
 
 		// Resolve the server address and port
-		iResult = getaddrinfo(szServerName, port, &hints, &result);
+		std::ostringstream convertPort;
+		convertPort << port;
+		iResult = getaddrinfo(szServerName, convertPort.str().c_str(), &hints, &result);
 		if (iResult != 0)
 		{
 			printf("getaddrinfo failed: %d\n", iResult);
@@ -99,7 +101,7 @@ public:
 	}
 
 	// Free the resouces
-	void shutdown() {
+	void Stop() {
 		int iResult = shutdown(ConnectSocket, SD_SEND);
 
 		if (iResult == SOCKET_ERROR)
@@ -159,10 +161,37 @@ public:
 	
 
 private:
-	char* szServerName;
+	const char* szServerName;
 	unsigned int port;
 	SOCKET ConnectSocket;
 };
+
+//TODO also return string?
+//Here partynum refers to the party we are recieving things from
+int receive_file(int * ret, const std::string & hostname, 
+	unsigned int port, unsigned int partynum){
+	//Construct output filename
+	std::string fname = BASE_LABELFILE;
+	std::string partystr;
+	std::ostringstream os;
+	os << partynum;
+	partystr = os.str();
+	fname += partystr;
+	fname += LABELS_EXTENSION;
+	std::ofstream ofs(fname);
+	if(!ofs.good()){
+		std::cerr << "ERROR opening output file " << fname << std::endl;
+		return *ret = 1;
+	}
+	char * host_cstr = new char(hostname.size()+1);
+	memcpy(host_cstr, hostname.c_str(), hostname.size()+1);
+	Client c(host_cstr, port);
+	c.init();
+	c.RecvFileNamed(fname);
+	c.Stop();
+	delete[] host_cstr;
+	return *ret = 0;
+}
 
 
 #endif
