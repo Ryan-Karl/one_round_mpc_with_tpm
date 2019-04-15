@@ -1,3 +1,6 @@
+
+
+
 #include "stdafx.h"
 #include "Samples.h"
 #include <openssl/conf.h>
@@ -18,7 +21,64 @@
 #include <fstream>
 
 
-TPMT_PUBLIC c_createAndStoreKey()
+TPMWrapper::TPMWrapper()
+{
+	//RunSamples();
+
+	device = new TpmTcpDevice("127.0.0.1", 2321);
+
+	if (!device->Connect()) {
+		throw runtime_error("Could not connect to TPM device.");
+	}
+
+	tpm._SetDevice(*device);
+
+	// The rest of this routine brings up the simulator.  This is generally not
+	// needed for a "real" TPM.
+
+	// If the simulator is not shut down cleanly (e.g. because the test app crashed)
+	// this is called a "disorderly shutdown" and the TPM goes into lockout.  The
+	// following routine will recover the TPM. This is optional - it just makes
+	// debugging more pleasant.
+	RecoverFromLockout();
+
+	// Otherwise, power-on the TPM. Note that we power off and then power on
+	// because PowerOff cannot fail, but PowerOn fails if the TPM is already
+	// "on."
+	device->PowerOff();
+	device->PowerOn();
+
+	// The following routine installs callbacks so that we can collect stats on
+	// commands executed.
+	Callback1();
+
+	// Startup the TPM
+	tpm.Startup(TPM_SU::CLEAR);
+
+	return;
+}
+
+TPMWrapper::~TPMWrapper(){
+	// A clean shutdown results in fewer lockout errors.
+	tpm.Shutdown(TPM_SU::CLEAR);
+	device->PowerOff();
+
+	// The following routine finalizes and prints the function stats.
+	//Callback2();
+
+	// REVISIT 
+	// delete device;
+}
+
+void TPMWrapper::Callback1(){
+	//Announce("Installing callback");
+
+	// Install a callback that is invoked after the TPM command has been executed
+	tpm._SetResponseCallback(&Samples::TpmCallbackStatic, this);
+}
+
+
+TPMT_PUBLIC TPMWrapper::c_createAndStoreKey()
 {
 	Announce("MPC_TPM");
 
@@ -81,7 +141,7 @@ TPMT_PUBLIC c_createAndStoreKey()
 	
 }
 
-bool c_writeKeyToFile(const std::string & filename, TPMT_PUBLIC& storagePrimary)
+bool TPMWrapper::c_writeKeyToFile(const std::string & filename, TPMT_PUBLIC& storagePrimary)
 {
 
 	// Next a full key (pub + prov)
@@ -95,7 +155,7 @@ bool c_writeKeyToFile(const std::string & filename, TPMT_PUBLIC& storagePrimary)
 	
 }
 
-std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
+std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
 {
 	
 	ByteVec plaintext;
@@ -106,57 +166,81 @@ std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t k
 
 	// Should now be able to read
 	ByteVec beforeIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
-	cout << "Initial counter data:     " << beforeIncrement << endl;
+	//cout << "Initial counter data:     " << beforeIncrement << endl;
 
 	// Should be able to increment
 	//for (int j = 0; j < 5; j++) {
-		tpm.NV_Increment(nvHandle, nvHandle);
+	tpm.NV_Increment(nvHandle, nvHandle);
 
-		plaintext = tpm.RSA_Decrypt(keyHandle, ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
-		cout << "Decrypted plaintext: " << plaintext << endl << endl;
+	plaintext = tpm.RSA_Decrypt(keyHandle, ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	//cout << "Decrypted plaintext: " << plaintext << endl << endl;
 
-		// And make sure that it's good
-		ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
-		cout << "Value after increment:       " << afterIncrement << endl << endl;
+	// And make sure that it's good
+	ByteVec afterIncrement = tpm.NV_Read(nvHandle, nvHandle, 8, 0);
+	//cout << "Value after increment:       " << afterIncrement << endl << endl;
 		
-		if (tpm.NV_Read(nvHandle, nvHandle, 8, 0) >= key_limit)
-		{
-			tpm.FlushContext(keyHandle);
-			cout << endl << "Flushed Key After Monotonic Counter Incremented" << endl << endl;
+	if (tpm.NV_Read(nvHandle, nvHandle, 8, 0) >= key_limit){
+		tpm.FlushContext(keyHandle);
+		//cout << endl << "Flushed Key After Monotonic Counter Incremented" << endl << endl;
 
-			// And then delete it
-			tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
+		// And then delete it
+		tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
 
-		}
-
-		return plaintext;
 	}
-	
-}
 
-TPMT_PUBLIC s_readKeyFromFile(const std::string & filename)
-{
+	return plaintext;
+}
 	
+
+TPMT_PUBLIC TPMWrapper::s_readKeyFromFile(const std::string & filename)
+{
+	//Assumes the key is all stored on a single line of the file
+	std::string rsa_key;
 	std::ifstream infile(filename);
-		std::getline(filename, RSA_KEY)
+	std::getline(filename, rsa_key);
 	infile.close();
 	
 	CreatePrimaryResponse reconstitutedKey;
-	reconstitutedKey.Deserialize(SerializationType::JSON, RSA_KEY);
+	reconstitutedKey.Deserialize(SerializationType::JSON, rsa_key);
 
 	TPM_HANDLE& keyHandle1 = reconstitutedKey.handle;
 
-	cout << "New RSA primary key" << endl << reconstitutedKey.outPublic.ToString() << endl;	
-
+	//cout << "New RSA primary key" << endl << reconstitutedKey.outPublic.ToString() << endl;	
+	//May need to return a different type
 	return reconstitutedKey;
 	
 }
 
 
-std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext)
+std::vector<BYTE> TPMWrapper::s_RSA_encrypt(const std::vector<BYTE> & plaintext, TPMT_PUBLIC & reconstitutedKey)
 {
 	ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, NullVec);
-	cout << "Encrypted ciphertext: " << ciphertext << endl;
+	//cout << "Encrypted ciphertext: " << ciphertext << endl;
 
 	return ciphertext;
+}
+
+
+void TPMWrapper::Announce(const char *testName)
+{
+	SetCol(0);
+	cout << flush;
+	cout << "================================================================================" << endl << flush;
+	cout << "          " << testName << endl << flush;
+	cout << "================================================================================" << endl << flush;
+	cout << flush;
+	SetCol(1);
+}
+
+void TPMWrapper::RecoverFromLockout()
+{
+	device->PowerOff();
+	device->PowerOn();
+	tpm.Startup(TPM_SU::CLEAR);
+
+	// Clear out any persistent ownerAuth
+	tpm.Clear(tpm._AdminPlatform);
+	tpm.Shutdown(TPM_SU::CLEAR);
+
+	return;
 }

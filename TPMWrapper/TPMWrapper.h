@@ -31,6 +31,7 @@ protected:
 void Announce(const char *testName);
 void RecoverFromLockout();
 TPM_HANDLE MakeStoragePrimary();
+void TPMWrapper::Callback1();
 
 
 vector<BYTE> NullVec;
@@ -40,8 +41,6 @@ _TPMCPP TpmTcpDevice *device;
 std::map<_TPMCPP TPM_CC, int> commandsInvoked;
 std::map<_TPMCPP TPM_RC, int> responses;
 std::vector<_TPMCPP TPM_CC> commandsImplemented;
-
-
 
 };
 
