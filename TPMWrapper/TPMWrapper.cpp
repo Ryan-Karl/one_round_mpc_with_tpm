@@ -18,7 +18,7 @@
 #include <fstream>
 
 
-bool c_createAndStoreKey()
+TPMT_PUBLIC c_createAndStoreKey()
 {
 	Announce("MPC_TPM");
 
@@ -76,10 +76,12 @@ bool c_createAndStoreKey()
 
 	// Should not be able to read before the first increment
 	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
+
+	return storagePrimary;
 	
 }
 
-bool c_writeKeyToFile(const std::string & filename)
+bool c_writeKeyToFile(const std::string & filename, TPMT_PUBLIC& storagePrimary)
 {
 
 	// Next a full key (pub + prov)
@@ -87,13 +89,13 @@ bool c_writeKeyToFile(const std::string & filename)
 
 	std::ofstream outfile(filename, ios::out | ios::binary);
 
-		outputToStream(outfile, keyContainer);
-		outfile << std::endl;
-		outfile.close();
+	outputToStream(outfile, keyContainer);
+	outfile << std::endl;
+	outfile.close();
 	
 }
 
-std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext)
+std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
 {
 	
 	ByteVec plaintext;
@@ -126,11 +128,13 @@ std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext)
 			tpm.NV_UndefineSpace(tpm._AdminOwner, nvHandle);
 
 		}
+
+		return plaintext;
 	}
 	
 }
 
-s_readKeyFromFile(const std::string & filename)
+TPMT_PUBLIC s_readKeyFromFile(const std::string & filename)
 {
 	
 	std::ifstream infile(filename);
@@ -143,6 +147,8 @@ s_readKeyFromFile(const std::string & filename)
 	TPM_HANDLE& keyHandle1 = reconstitutedKey.handle;
 
 	cout << "New RSA primary key" << endl << reconstitutedKey.outPublic.ToString() << endl;	
+
+	return reconstitutedKey;
 	
 }
 
@@ -151,4 +157,6 @@ std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext)
 {
 	ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, NullVec);
 	cout << "Encrypted ciphertext: " << ciphertext << endl;
+
+	return ciphertext;
 }
