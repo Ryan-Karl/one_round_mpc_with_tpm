@@ -1,0 +1,31 @@
+class TPMT_PUBLIC
+{
+    TPM_ALG_ID type = RSA (0x1)
+    TPM_ALG_ID nameAlg = SHA1 (0x4)
+    TPMA_OBJECT objectAttributes = sensitiveDataOrigin |
+                                    userWithAuth |
+                                    decrypt
+                                    (0x20060)
+    UINT16 authPolicySize = 0x00 (0)
+    BYTE[] authPolicy = []
+    TPMU_PUBLIC_PARMS parameters = class TPMS_RSA_PARMS
+    {
+        TPMT_SYM_DEF_OBJECT symmetric = class TPMT_SYM_DEF_OBJECT
+        {
+            TPM_ALG_ID algorithm = _NULL (0x10)
+            UINT16 keyBits = 0xcdcd (52685)
+            TPM_ALG_ID mode = ? (0xcdcd)
+        }
+        TPM_ALG_ID schemeScheme = OAEP (0x17)
+        TPMU_ASYM_SCHEME scheme = class TPMS_ENC_SCHEME_OAEP
+        {
+            TPM_ALG_ID hashAlg = SHA1 (0x4)
+        }
+        UINT16 keyBits = 0x400 (1024)
+        UINT32 exponent = 0x10001 (65537)
+    }
+    TPMU_PUBLIC_ID unique = class TPM2B_PUBLIC_KEY_RSA
+    {
+        UINT16 size = 0x80 (128)
+        BYTE[] buffer = [c8ae91d3 7b8ab091 208852b2 811b7295 953f53d9 f58eadb4 6a8aa4ad bdaea259 776ca9d4 95d26bd9 9d316ddc 367c437c ff634c89 25d54c9d 5e20888f 0a71d7ed c90a46cd 76e1cdc5 11860b7e c9f33665 91a4c61f 4607529e 80f2b53b f5b8af4e dc6dbd72 221156a8 f1fd5178 2546007e fa8575b5 375e9a9a 1080cabe 5378a3af]
+    }
