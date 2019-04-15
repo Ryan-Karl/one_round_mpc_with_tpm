@@ -6,47 +6,50 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include "TPMWrapper.h"
+#include "Networking.h"
+#include "utilities.h"
 
-#include "Client.h"
+#define KEYFILE "keyfile.txt"
+#define ENCFILE "encfile.txt"
+#define DECFILE "decfile.txt"
+#define NUMPARTIES_DEFAULT 1
 
 using namespace std;
 
 int main(int argc, char ** argv) {
-	/*
+	
 	if (argc < 2) {
-		cout << "ERROR: not enough files" << endl;
+		cout << "ERROR: provide an output filename" << endl;
 		return 0;
 	}
-	*/
-	Client c(LOCALHOST, DEFAULT_PORTNUM);
-	c.Start();
+	
+
+	TPMWrapper myTPM;
+	myTPM.c_createAndStoreKey();
+	myTPM.c_writeKeyToFile(KEYFILE);
+
+
+	Server s(LOCALHOST, DEFAULT_PORTNUM);
+	s.init();
+	s.accept_connections(NUMPARTIES_DEFAULT);
 	vector<string> filenames;
-	/*
-	string next_filename;
-	while (cin >> next_filename) {
-		filenames.push_back(next_filename);
-	}
-	*/
-	
-	for (int i = 1; i < argc; i++) {
-		string s(argv[i]);
-		filenames.push_back(s);
-	}
-	
-	SOCKET ClientSock = c.getSocket();
-	if (RecvDelimitedFiles(filenames, ClientSock, FILE_DELIM)) {
-		cout << "Error recieving files" << endl;
-		return 1;
-	}
+	//First send the file to encrypt, then the key file
+	filenames.push_back(argv[1]);
+	filenames.push_back(KEYFILE);
+	//Send files to garbler	
+	s.broadcast_files(filenames);
+	//Get encrypted file
+	ofstream file_out(ENCFILE);
+	RecvFile(file_out);
+	//Read file into memory and decrypt it
+	ifstream enc_instream(ENCFILE);
+	auto tmp = vectorsFromHexFile(enc_instream);
+	auto ciphertext = flatten(tmp);
+	auto decrypted = c_RSA_decrypt(ciphertext);
+	ofstream dec_out(DECFILE);
+	outputToStream(dec_out, decrypted);
+	//Verify that the input file and DECFILE are identical
+
 	return 0;
 }
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

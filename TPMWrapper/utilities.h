@@ -53,6 +53,14 @@ void outputToStream(std::ostream & os, const std::vector<BYTE> & bv) {
 	}
 }
 
+std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr){
+	std::vector<BYTE> ret;
+	for(const auto & vec : arr){
+		ret.insert(ret.end(), vec.begin(), vec.end());
+	}
+	return ret;
+}
+
 
 std::string ByteVecToString(const std::vector<BYTE> & v) {
 	std::string str = "";

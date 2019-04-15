@@ -50,7 +50,7 @@ public:
 	//int broadcast(unsigned int num_connections, char * filename);
 	int receive_key(unsigned int party, int * ret);
 	int send_files(unsigned int party, const std::vector<std::string> & filenames, int * ret);	
-
+	SOCKET getSocket();
 	
 
 	void close_connections();
@@ -75,6 +75,8 @@ public:
 		s += LABELS_EXTENSION;
 		return s;
 	}
+
+
 
 };
 
