@@ -96,8 +96,8 @@ public:
 		return true;
 	};
 
-	Client::~Client(){
-		shutdown();
+	~Client(){
+		Stop();
 	}
 
 	// Free the resouces
@@ -186,7 +186,7 @@ int receive_file(int * ret, const std::string & hostname,
 	char * host_cstr = new char(hostname.size()+1);
 	memcpy(host_cstr, hostname.c_str(), hostname.size()+1);
 	Client c(host_cstr, port);
-	c.init();
+	c.Start();
 	c.RecvFileNamed(fname);
 	c.Stop();
 	delete[] host_cstr;

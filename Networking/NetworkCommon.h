@@ -17,7 +17,7 @@
 #define BASE_LABELFILE "labels_"
 #define LOCALHOST "127.0.0.1"
 
-#ifdef WIN32
+//#ifdef WIN32
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 
@@ -56,11 +56,13 @@ int RecvDelimitedFiles(const std::vector<std::string> & filenames, SOCKET & Conn
 		}
 		os << recvbuf;
 	}
+	//Create an instream from the outstream
+	std::istringstream iss(os.str());
 	//Output each delimited substring to the file
 	for(const auto & fname : filenames){
 		std::ofstream ofs(fname);
 		std::string partial;
-		if(!std::getline(os, partial, delim)){
+		if(!std::getline(iss, partial, delim)){
 			std::cerr << "Not enough filenames provided: " << filenames.size() << std::endl;
 		}
 		ofs << partial;
@@ -79,7 +81,7 @@ int SendFile(int * ret, const std::string & filename, SOCKET & ClientSocket){
 	if (ClientSocket == INVALID_SOCKET)
 	{
 		printf("accept failed: %d\n", WSAGetLastError());
-		closesocket(ListenSocket);
+		closesocket(ClientSocket);
 		WSACleanup();
 		return *ret = -1;
 	}
@@ -98,7 +100,7 @@ int SendFile(int * ret, const std::string & filename, SOCKET & ClientSocket){
 
 		if (iSendResult == SOCKET_ERROR) {
 			printf("send failed: %d\n", WSAGetLastError());
-			closesocket(*ClientSocket);
+			closesocket(ClientSocket);
 			WSACleanup();
 			return *ret = 1;
 		}
@@ -110,7 +112,7 @@ int SendFile(int * ret, const std::string & filename, SOCKET & ClientSocket){
 
 void outputToStream(std::ostream & os, const std::vector<BYTE> & bv){
 	os << std::hex;
-	for(size_t i = 0; i < bv; i++){
+	for(size_t i = 0; i < bv.size(); i++){
 		os << bv[i];
 		/*
 		if((i%4) == 3){
@@ -121,10 +123,11 @@ void outputToStream(std::ostream & os, const std::vector<BYTE> & bv){
 }
 
 
-
+/*
 #else
 typedef unsigned char BYTE;
 #endif //End of Windows-only code
+*/
 
 //Get RSA key from keyfile
 //TODO set parameters based on key size - hardcoded right now
