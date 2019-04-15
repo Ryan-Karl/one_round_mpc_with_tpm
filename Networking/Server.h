@@ -225,28 +225,8 @@ int Server::accept_connections(unsigned int num_connections){
 }
 
 int Server::send_files(unsigned int party, const std::vector<std::string> & filenames, int * ret){
-	int scrap;
-	std::string delim_str = "~";
-	delim_str[0] = FILE_DELIM;
-	int iSendResult;
-	for(size_t i = 0; i < filenames.size(); i++){
-		//Send file
-		if(SendFile(ret, filenames[i], parties[party].partySocket)){
-			std::cerr << "Error sending " << filenames[i] << " to party " << party << std::endl;
-			return *ret = 1;
-		}
-		
-		//Send delimiter
-		iSendResult = send(parties[party].partySocket, delim_str.c_str(), 2, 0);
-		if (iSendResult == SOCKET_ERROR) {
-			printf("send failed: %d\n", WSAGetLastError());
-			closesocket(parties[party].partySocket);
-			WSACleanup();
-			return *ret = 1;
-		}
-		std::cout << "Sent file " << filenames[i] << std::endl;
-	}
-	return *ret = 0;
+	
+	return *ret = send_files(parties[party].partySocket, filenames, ret);
 }
 
 //Spins off threads to send files

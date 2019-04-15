@@ -4,11 +4,15 @@
 #include "pch.h"
 #include <iostream>
 
-#include "NetworkCommon.h"
-#include "Server.h"
+#include "Networking.h"
+#include "utilities.h"
 
 #include <iostream>
 #include <fstream>
+
+#define BASEFILE "basefile.txt"
+#define ENCFILE "encfile.txt"
+#define KEYFILE "keyfile.txt"
 
 using namespace std;
 
@@ -19,18 +23,25 @@ int main(int argc, char ** argv) {
 		return 0;
 	}
 
-	Server s(DEFAULT_PORTNUM);
-	s.init();
-	s.accept_connections(1);
+	Client c(LOCALHOST, DEFAULT_PORTNUM);
+	c.Start();
+	//Accept plaintext, then the key
 	vector<string> filenames;
-	for (int i = 1; i < argc; i++) {
-		string s(argv[i]);
-		filenames.push_back(s);
-	}
-	if (s.broadcast_files(filenames)) {
-		cout << "Broadcast failed" << endl;
-		return 1;
-	}
+	filenames.push_back(BASEFILE);
+	filenames.push_back(KEYFILE);
+	RecvDelimitedFiles(filenames, c.getSocket);
+	//Read in and decrypt file
+	TPMWrapper myTPM;
+	myTPM.s_readKeyFromFile(KEYFILE);
+	ifstream bfs(BASEFILE);
+	auto tmp = vectorsFromHexFile(bfs);
+	auto plaintext = flatten(tmp);
+	auto ciphertext = s_RSA_encrypt(plaintext);
+	//Write out and send file
+	ofstream os(ENCFILE);
+	outputToStream(os, ciphertext);
+	int trash;
+	SendFile(&trash, ENCFILE, c.getSocket());
 
 
 	return 0;

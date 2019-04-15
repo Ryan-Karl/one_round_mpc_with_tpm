@@ -42,7 +42,7 @@ int RecvFile(std::ofstream & of, SOCKET & ConnectSocket){
 	return 0;
 }
 
-int RecvDelimitedFiles(const std::vector<std::string> & filenames, SOCKET & ConnectSocket, char delim){
+int RecvDelimitedFiles(const std::vector<std::string> & filenames, SOCKET & ConnectSocket, char delim=FILE_DELIM){
 	std::ostringstream os;
 	int iResult = 1;
 	//Recieve all data, store in buffer
@@ -106,6 +106,31 @@ int SendFile(int * ret, const std::string & filename, SOCKET & ClientSocket){
 		}
 	}
 	//closesocket(ClientSocket);
+	return *ret = 0;
+}
+
+
+int send_files(SOCKET & mySock, const std::vector<std::string> & filenames, int * ret){
+	std::string delim_str = "~";
+	delim_str[0] = FILE_DELIM;
+	int iSendResult;
+	for(size_t i = 0; i < filenames.size(); i++){
+		//Send file
+		if(SendFile(ret, filenames[i], mySock)){
+			std::cerr << "Error sending " << filenames[i] << std::endl;
+			return *ret = 1;
+		}
+		
+		//Send delimiter
+		iSendResult = send(mySock, delim_str.c_str(), 2, 0);
+		if (iSendResult == SOCKET_ERROR) {
+			printf("send failed: %d\n", WSAGetLastError());
+			closesocket(mySock);
+			WSACleanup();
+			return *ret = 1;
+		}
+		std::cout << "Sent file " << filenames[i] << std::endl;
+	}
 	return *ret = 0;
 }
 
