@@ -1,8 +1,9 @@
-#ifdef UTILITIES_H
+#ifndef UTILITIES_H
 #define UTILITIES_H
 
+
 #include "stdafx.h"
-#include "Samples.h"
+//#include "Samples.h"
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -14,11 +15,13 @@
 #include <iostream>
 #include <modes.h>
 #include <aes.h>
-#include "ShamirSecret.h"
+//#include "ShamirSecret.h"
 #include <vector>
 #include <iterator>
 #include <cassert>
 #include <fstream>
+#include <mpir.h>
+#include <mpirxx.h>
 
 
 std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
@@ -71,7 +74,8 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> & v){
 }
 
 
-ByteVec mpz_to_vector(const mpz_t x) {
+
+std::vector<BYTE> mpz_to_vector(const mpz_t x) {
 	size_t size = (mpz_sizeinbase(x, 2) + CHAR_BIT - 1) / CHAR_BIT;
 	std::vector<BYTE> v(size);
 	mpz_export(&v[0], &size, 1, 1, 0, 0, x);
@@ -79,7 +83,7 @@ ByteVec mpz_to_vector(const mpz_t x) {
 	return v;
 }
 
-inline ByteVec mpz_to_vector(mpz_class & x) {
+inline std::vector<BYTE> mpz_to_vector(mpz_class & x) {
 	return mpz_to_vector(x.get_mpz_t());
 }
 
