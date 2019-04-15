@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include "TPMWrapper.h"
 
 #include "Client.h"
 
