@@ -18,7 +18,11 @@ bit xor_bit(bit b1, bit b2);
 
 wire_value * random_wire(int width);
 bit random_bit();
-bit hash(wire * ka, wire * kb, int gate_number);
+// Gives the hash of the concatenation of the below.  Must be of length (sec_param + 1)!
+// (split into arguments for convenience, will likely need to be concatenated)
+wire * hash(wire * ka, wire * kb, int gate_number);
+// For the final one.
+wire * hash(wire * ke, char * str, int gate_number);
 
 //Read frigate circuit and parse into structure
 void read_frigate_circuit(char * filename, Circuit * circuit);
