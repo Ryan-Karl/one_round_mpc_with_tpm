@@ -1,15 +1,24 @@
 // (at least) 64 bits -- is this the best way?
-//Should be able to be used for a general width wire
+//Should be able to be used for a general width sequence of bits
 typedef struct {
   char * bits;
   int len;
 } wire_value;
+
 typedef bool bit;
+const bit constbit_1 = true;
+const bit constbit_0 = false;
 
 void get_garbled_circuit(Circuit * c, PlayerInfo ** players);
 int eval_garbled_circuit(Circuit * c, PlayerInfo * player);
+
+wire_value * xor_wire(wire_value * w1, wire_value * w2);
+// xor_bit can of course be done without this concisely but just in case representation changes it will be nice to be able to abstract away
+bit xor_bit(bit b1, bit b2);
+
 wire_value * random_wire(int width);
-bit * random_bit();
+bit random_bit();
+bit hash(wire * ka, wire * kb, int gate_number);
 
 //Read frigate circuit and parse into structure
 void read_frigate_circuit(char * filename, Circuit * circuit);
@@ -36,12 +45,18 @@ typedef struct {
   //p - permutation bit
   bit p0;
   //k - key bits
-  wire_value k0;
+  wire_value * k0;
   bit p1;
-  wire_value k1;
+  wire_value * k1;
+
+  int gate_number;
 
   // garbled label for the NIOT, at least for root nodes (before the nested encryption and such)
-  bit garbled_label;
+  // Only used when wire is a gate, and when gate is not XOR
+  bit garbled_label_00;
+  bit garbled_label_01;
+  bit garbled_label_10;
+  bit garbled_label_11;
 
   bool is_root;
 
