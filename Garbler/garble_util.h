@@ -1,0 +1,69 @@
+// (at least) 64 bits -- is this the best way?
+//Should be able to be used for a general width wire
+typedef struct {
+  char * bits;
+  int len;
+} wire_value;
+typedef bool bit;
+
+void get_garbled_circuit(Circuit * c, PlayerInfo ** players);
+int eval_garbled_circuit(Circuit * c, PlayerInfo * player);
+wire_value * random_wire(int width);
+bit * random_bit();
+
+//Read frigate circuit and parse into structure
+void read_frigate_circuit(char * filename, Circuit * circuit);
+
+typedef struct {
+  // Shared in setup
+  char * randomness_file;
+  char * host;
+  char * port;
+  //Should this be a bytevec?
+  char * TPM_pubkey;
+} PlayerInfo;
+
+typedef enum gate_type {
+  GATE_XOR,
+  GATE_AND,
+  // Constant 0 gate
+  GATE_C0,
+  // Constant 1 gate
+  GATE_C1
+} gate_type;
+
+typedef struct {
+  //p - permutation bit
+  bit p0;
+  //k - key bits
+  wire_value k0;
+  bit p1;
+  wire_value k1;
+
+  // garbled label for the NIOT, at least for root nodes (before the nested encryption and such)
+  bit garbled_label;
+
+  bool is_root;
+
+  // If this is a leaf node, player has useful information.
+  bool is_leaf;
+  PlayerInfo * player;
+
+  // If this wire is the output of a gate, this section has useful information.
+  bool is_gate;
+  gate_type g_type;
+  Wire * left_child;
+  Wire * right_child;
+
+  // Will likely be used only during execution
+  wire_value value;
+} Wire;
+
+typedef struct {
+  // Null terminated array of pointers to output (resp. input) wires
+  Wire ** output_wires;
+  Wire ** input_wires;
+  long n_gates;
+  // Security parameter
+  int security;
+} Circuit;
