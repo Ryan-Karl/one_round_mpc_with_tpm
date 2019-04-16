@@ -36,20 +36,33 @@ int main(int argc, char ** argv) {
 	filenames.push_back(KEYFILE);
 	SOCKET mySock = c.getSocket();
 	RecvDelimitedFiles(filenames, mySock);
+  cout << "Received files" << endl;
+  c.Stop();
+
 	//Read in and decrypt file
 	TPMWrapper myTPM;
 	auto key = myTPM.s_readKeyFromFile(KEYFILE);
 	ifstream bfs(BASEFILE);
 	auto tmp = vectorsFromHexFile(bfs);
 	auto plaintext = flatten(tmp);
+
 	//Read key from file
 	auto ciphertext = myTPM.s_RSA_encrypt(plaintext, key);
+
 	//Write out and send file
 	ofstream os(ENCFILE);
 	outputToStream(os, ciphertext);
+
 	int trash;
-	
+	Server s(DEFAULT_PORTNUM);
+  if (s.init()) {
+		cout << "ERROR: accept" << endl;
+	}
+	if(s.accept_connections(NUMPARTIES_DEFAULT)) {
+		cout << "ERROR: accept" << endl;
+	}
 	SendFile(&trash, ENCFILE, mySock);
+  s.close_connections();
 
 
 	return 0;

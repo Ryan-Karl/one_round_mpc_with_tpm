@@ -44,11 +44,17 @@ int main(int argc, char ** argv) {
 	filenames.push_back(KEYFILE);
 	//Send files to garbler	
 	s.broadcast_files(filenames);
+  s.close_connections();
+
 	cout << "Finished broadcast" << endl;
 	//Get encrypted file
 	ofstream file_out(ENCFILE);
-	SOCKET serversock;
+  Client c(LOCALHOST, DEFAULT_PORTNUM);
+  c.Start();
+  SOCKET serversock = c.getSocket();
 	RecvFile(file_out, serversock);
+  c.Stop();
+
 	//Read file into memory and decrypt it
 	ifstream enc_instream(ENCFILE);
 	auto tmp = vectorsFromHexFile(enc_instream);
