@@ -7,7 +7,6 @@
 #include <map>
 #include <string>
 #include "stdafx.h"
-//#include "Samples.h"
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -19,7 +18,6 @@
 #include <iostream>
 #include <modes.h>
 #include <aes.h>
-//#include "ShamirSecret.h"
 #include <vector>
 #include <iterator>
 #include <cassert>
