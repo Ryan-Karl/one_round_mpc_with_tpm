@@ -72,6 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm - Copy (3)\TSS.MSR\TSS.CPP\Samples;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -151,11 +152,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\one_round_mpc_with_tpm - Copy (3)\TSS.MSR\TSS.CPP\Samples\TPMWrapper.h" />
+    <ClInclude Include="..\..\..\one_round_mpc_with_tpm - Copy (3)\TSS.MSR\TSS.CPP\Samples\utilities.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="NetworkCommon.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\one_round_mpc_with_tpm - Copy (3)\TSS.MSR\TSS.CPP\Samples\TpmCppTest.cpp" />
     <ClCompile Include="ClientTest.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

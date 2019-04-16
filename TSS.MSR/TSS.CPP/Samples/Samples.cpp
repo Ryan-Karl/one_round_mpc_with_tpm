@@ -213,9 +213,9 @@ void Samples::MPC_TPM()
 
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
 
-	TPM_HANDLE primaryKey = MakeStoragePrimary();
-	TPM_HANDLE signingKey = MakeChildSigningKey(primaryKey, true);
-	ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
+//	TPM_HANDLE primaryKey = MakeStoragePrimary();
+//	TPM_HANDLE signingKey = MakeChildSigningKey(primaryKey, true);
+//	ReadPublicResponse pubKey = tpm.ReadPublic(signingKey);
 
 
 	cout << "New RSA primary key" << endl << storagePrimary.outPublic.ToString() << endl;
@@ -268,14 +268,14 @@ void Samples::MPC_TPM()
 	// Get a key attestation.
 	
 	ByteVec nonce{ 5, 6, 7 };
-	CertifyResponse keyInfo = tpm.Certify(signingKey, signingKey, nonce, TPMS_NULL_SIG_SCHEME());
+//	CertifyResponse keyInfo = tpm.Certify(signingKey, signingKey, nonce, TPMS_NULL_SIG_SCHEME());
 
 	// Validate then cerify against the known name of the key
-	bool sigOk = pubKey.outPublic.ValidateCertify(pubKey.outPublic, nonce, keyInfo);
+//	bool sigOk = pubKey.outPublic.ValidateCertify(pubKey.outPublic, nonce, keyInfo);
 
-	if (sigOk) {
-		cout << endl << "Key certification validated" << endl << endl;
-	}
+//	if (sigOk) {
+//		cout << endl << "Key certification validated" << endl << endl;
+//	}
 	
 	// First increment
 	tpm.NV_Increment(nvHandle, nvHandle);
@@ -543,8 +543,8 @@ void Samples::MPC_TPM()
 	}
 
 	
-	tpm.FlushContext(primaryKey);
-	tpm.FlushContext(signingKey);
+	tpm.FlushContext(keyHandle);
+	//tpm.FlushContext(signingKey);
 	
 	return;
 }

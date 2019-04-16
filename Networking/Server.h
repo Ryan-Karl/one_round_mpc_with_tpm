@@ -32,7 +32,7 @@ private:
 	struct addrinfo hints;
 	SOCKET ListenSocket;
 	unsigned int num_parties;
-	PartyInfo[] parties;
+	PartyInfo * parties;
 	std::string circuit_filename;
 
 
@@ -41,8 +41,8 @@ private:
 
 
 public:
-	Server(unsigned int p, const std::string & cf);
-	Server::~Server(){
+	Server(unsigned int p);
+	~Server(){
 		close_connections();
 	}	
 	
@@ -50,27 +50,33 @@ public:
 	//int broadcast(unsigned int num_connections, char * filename);
 	int receive_key(unsigned int party, int * ret);
 	int send_files(unsigned int party, const std::vector<std::string> & filenames, int * ret);	
-
+	SOCKET getSocket();
 	
 
 	void close_connections();
-	int init();
 	int accept_connections(unsigned int num_connections);
 	int broadcast_files(const std::vector<std::string> & filenames);
+	int start_key_threads(unsigned int num_connections);
 
 	static std::string key_filename(unsigned int party){
 		std::string s = "keyfile_";
-		s += itoa(party);
+		std::ostringstream os;
+		os << party;
+		s += os.str();
 		s += ".txt";
 		return s;
 	}
 
 	static std::string labels_filename(unsigned int party){
 		std::string s = "labels_";
-		s += itoa(party);
+		std::ostringstream os;
+		os << party;
+		s += os.str();
 		s += LABELS_EXTENSION;
 		return s;
 	}
+
+
 
 };
 
@@ -79,7 +85,7 @@ public:
 void Server::close_connections(){
 	if(parties == nullptr){return;}
 	for(unsigned int i = 0; i < num_parties; i++){
-		closesocket(parties.partySocket);
+		closesocket(parties[i].partySocket);
 	}
 	closesocket(ListenSocket);
 	WSACleanup();
@@ -132,7 +138,10 @@ int Server::init(){
 	}
 
 	// Bind the socket
-	iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+	//iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+	//TODO check bind for errors - won't convert to int
+	bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+	/*
 	if (iResult == SOCKET_ERROR)
 	{
 		printf("bind failed: %d", WSAGetLastError());
@@ -141,6 +150,7 @@ int Server::init(){
 		WSACleanup();
 		return 1;
 	}
+	*/
 	//Free up some memory
 	freeaddrinfo(result);
 
@@ -158,25 +168,25 @@ int Server::init(){
 int Server::receive_key(unsigned int party, int * ret){
 	std::string keyfile = Server::key_filename(party);
 	std::ofstream ofs(keyfile); //Need to init with C string?
-	return *ret = RecvFile(ofs, parties[i].partySocket);
+	return *ret = RecvFile(ofs, parties[party].partySocket);
 }
 
 //Spins off threads to get key files
-int Server::start_key_threads(){
-	std::thread[] thread_list = new thread[num_connections];
-	int[] returns = new int[num_connections];
+int Server::start_key_threads(unsigned int num_connections){
+	std::thread * thread_list = new std::thread[num_connections];
+	int * returns = new int[num_connections];
 	for(unsigned int i = 0; i < num_connections; i++){
 		//Hope the passing by pointer works...
 		thread_list[i] = std::thread(&Server::receive_key, this, i, &(returns[i]));
 	}
 	//Join threads
-	for(auto & x : thread_list){
-		x.join();
+	for (unsigned int j = 0; j < num_connections; j++) {
+		thread_list[j].join();
 	}
 	//TODO more info if a connection fails
-	for(int r : returns){
-		if(r){
-			std::cout << "Error with connection " << r << std::endl;
+	for (unsigned int k = 0; k < num_connections; k++) {
+		if(returns[k]){
+			std::cout << "Error with connection " << returns[k] << std::endl;
 			exit(1);
 		}
 	}
@@ -188,12 +198,16 @@ int Server::start_key_threads(){
 
 //Accepts connections
 int Server::accept_connections(unsigned int num_connections){
+	/*
 	if(num_connections < 2){
 		std::cerr << "Not enough parties: " << num_connections << std::endl;
 		return 1;
 	}
+	*/
+
 	//Allocate room for parties
 	parties = new PartyInfo[num_connections];
+	num_parties = num_connections;
 
 	//Accept connections
 	for(unsigned int i = 0; i < num_connections; i++){
@@ -211,45 +225,27 @@ int Server::accept_connections(unsigned int num_connections){
 }
 
 int Server::send_files(unsigned int party, const std::vector<std::string> & filenames, int * ret){
-	int scrap;
-	char * delim_str = "~\0";
-	delim_str[0] = FILE_DELIM;
-	int iSendResult;
-	for(size_t i = 0; i < filenames.size(); i++){
-		//Send file
-		if(SendFile(&x, filenames[i], parties[party].partySocket)){
-			std::cerr << "Error sending " << filenames[i] << " to party " << party << std::endl;
-			return *ret = 1;
-		}
-		//Send delimiter
-		iSendResult = send(parties[party].partySocket, delim_str, 2, 0);
-		if (iSendResult == SOCKET_ERROR) {
-			printf("send failed: %d\n", WSAGetLastError());
-			closesocket(*ClientSocket);
-			WSACleanup();
-			return *ret = 1;
-		}
-	}
-	return *ret = 0;
+	
+	return *ret = send_files(parties[party].partySocket, filenames, ret);
 }
 
 //Spins off threads to send files
 int Server::broadcast_files(const std::vector<std::string> & filenames){
-	std::thread[] thread_list = new thread[num_parties];
-	int[] returns = new int[num_parties];
+	std::thread * thread_list = new std::thread[num_parties];
+	int * returns = new int[num_parties];
 
 	for(unsigned int i = 0; i < num_parties; i++){
 		//Hope the passing by pointer works...
 		thread_list[i] = std::thread(&Server::send_files, this, i, filenames, &(returns[i]));
 	}
 	//Join threads
-	for(auto & x : thread_list){
-		x.join();
+	for (unsigned int j = 0; j < num_parties; j++) {
+		thread_list[j].join();
 	}
 	//TODO more info if a connection fails
-	for(int r : returns){
-		if(r){
-			std::cout << "Error with connection " << r << std::endl;
+	for (unsigned int k = 0; k < num_parties; k++) {
+		if (returns[k]) {
+			std::cout << "Error with connection " << returns[k] << std::endl;
 			exit(1);
 		}
 	}
@@ -261,10 +257,10 @@ int Server::broadcast_files(const std::vector<std::string> & filenames){
 }
 
 //TODO add error checks
-int broadcast_file(int * ret, const std::string & filename, unsigned int num_connections){
+int broadcast_file(int * ret, const std::string & filename, unsigned int num_connections, unsigned int port){
 	Server s(port);
 	s.init();
-	s.accept_connections();
+	s.accept_connections(num_connections);
 	std::vector<std::string> fname_v;
 	fname_v.emplace_back(filename);
 	s.broadcast_files(fname_v);

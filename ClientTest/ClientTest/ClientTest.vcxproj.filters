@@ -24,12 +24,21 @@
     <ClInclude Include="Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\one_round_mpc_with_tpm - Copy (3)\TSS.MSR\TSS.CPP\Samples\utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\one_round_mpc_with_tpm - Copy (3)\TSS.MSR\TSS.CPP\Samples\TPMWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ClientTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\one_round_mpc_with_tpm - Copy (3)\TSS.MSR\TSS.CPP\Samples\TpmCppTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
