@@ -1,6 +1,10 @@
 // (at least) 64 bits -- is this the best way?
-typedef bit_wire unsigned long long;
-typedef bit bool;
+//Should be able to be used for a general width wire
+typedef struct {
+  char * bits;
+  int len;
+} bit_wire;
+typedef bool bit;
 
 void get_garbled_circuit(Circuit * c, PlayerInfo ** players);
 int eval_garbled_circuit(Circuit * c, PlayerInfo * player);
@@ -60,4 +64,3 @@ typedef struct {
   // Security parameter
   int security;
 } Circuit;
-
