@@ -17,17 +17,18 @@
 #define ENCFILE "encfile.txt"
 #define KEYFILE "keyfile.txt"
 #define NUMPARTIES_DEFAULT 1
+#define DEFAULT_TPM_PORT 2321
 
 using namespace std;
 
 
 int main(int argc, char ** argv) {
-	/*
+	
 	if (argc < 2) {
-		cout << "ERROR: not enough files" << endl;
+		cout << "ERROR: no port given" << endl;
 		return 0;
 	}
-	*/
+	
 
 	Client c(LOCALHOST, DEFAULT_PORTNUM);
 	if (!c.Start()) {
@@ -45,14 +46,16 @@ int main(int argc, char ** argv) {
   //Start server immediately
   Server s(DEFAULT_PORTNUM);
   if (s.init()) {
-	  cout << "ERROR: accept" << endl;
+	  cout << "ERROR: server init" << endl;
   }
+  else { cout << "Started server" << endl; }
   if (s.accept_connections(NUMPARTIES_DEFAULT)) {
 	  cout << "ERROR: accept" << endl;
   }
+  else { cout << "Accepted connection" << endl; }
 
 	//Read in and decrypt file
-	TPMWrapper myTPM;
+	TPMWrapper myTPM(argc >= 2? atoi(argv[1]) : DEFAULT_TPM_PORT);
 	auto key = myTPM.s_readKeyFromFile(KEYFILE);
 	ifstream bfs(BASEFILE);
 	auto tmp = vectorsFromHexFile(bfs);

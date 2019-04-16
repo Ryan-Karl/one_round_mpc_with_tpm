@@ -32,7 +32,7 @@ using namespace TpmCpp;
 
 class TPMWrapper {
 public:
-	TPMWrapper();
+	TPMWrapper(int port = 2321);
 	~TPMWrapper();
 	Tpm2 & GetTpm() {
 		return tpm;
@@ -113,11 +113,11 @@ void TPMWrapper::SetCol(UINT16 col)
 
 void TPMWrapper::RunTests() {}
 
-TPMWrapper::TPMWrapper()
+TPMWrapper::TPMWrapper(int port)
 {
 	//RunSamples();
 
-	device = new TpmTcpDevice("127.0.0.1", 2321);
+	device = new TpmTcpDevice("127.0.0.1", port);
 
 	if (!device->Connect()) {
 		throw runtime_error("Could not connect to TPM device.");

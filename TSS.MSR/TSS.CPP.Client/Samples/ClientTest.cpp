@@ -15,18 +15,20 @@
 #define ENCFILE "encfile.txt"
 #define DECFILE "decfile.txt"
 #define NUMPARTIES_DEFAULT 1
+#define DEFAULT_TPM_PORT 2321
 
 using namespace std;
 
+//First arg is filename to encrypt, second is port
 int main(int argc, char ** argv) {
 	
 	if (argc < 2) {
-		cout << "ERROR: provide an output filename" << endl;
+		cout << "ERROR: provide a filename" << endl;
 		return 0;
 	}
 	
 
-	TPMWrapper myTPM;
+	TPMWrapper myTPM(argc >= 3?atoi(argv[2]) : DEFAULT_TPM_PORT);
 	myTPM.c_createAndStoreKey();
 	myTPM.c_writeKeyToFile(KEYFILE);
 
