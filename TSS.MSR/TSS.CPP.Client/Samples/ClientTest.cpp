@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
 
 	Server s(DEFAULT_PORTNUM);
 	if (s.init()) {
-		cout << "ERROR: accept" << endl;
+		cout << "ERROR: init" << endl;
 	}
 	if(s.accept_connections(NUMPARTIES_DEFAULT)) {
 		cout << "ERROR: accept" << endl;

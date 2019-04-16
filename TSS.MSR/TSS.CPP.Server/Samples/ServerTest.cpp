@@ -16,6 +16,7 @@
 #define BASEFILE "basefile.txt"
 #define ENCFILE "encfile.txt"
 #define KEYFILE "keyfile.txt"
+#define NUMPARTIES_DEFAULT 1
 
 using namespace std;
 
@@ -29,7 +30,10 @@ int main(int argc, char ** argv) {
 	*/
 
 	Client c(LOCALHOST, DEFAULT_PORTNUM);
-	c.Start();
+	if (!c.Start()) {
+		cout << "Error starting client" << endl;
+		return 1;
+	}
 	//Accept plaintext, then the key
 	vector<string> filenames;
 	filenames.push_back(BASEFILE);
@@ -40,6 +44,12 @@ int main(int argc, char ** argv) {
   c.Stop();
   //Start server immediately
   Server s(DEFAULT_PORTNUM);
+  if (s.init()) {
+	  cout << "ERROR: accept" << endl;
+  }
+  if (s.accept_connections(NUMPARTIES_DEFAULT)) {
+	  cout << "ERROR: accept" << endl;
+  }
 
 	//Read in and decrypt file
 	TPMWrapper myTPM;
@@ -56,12 +66,7 @@ int main(int argc, char ** argv) {
 	outputToStream(os, ciphertext);
 
 	int trash;
-  if (s.init()) {
-		cout << "ERROR: accept" << endl;
-	}
-	if(s.accept_connections(NUMPARTIES_DEFAULT)) {
-		cout << "ERROR: accept" << endl;
-	}
+  
 	SendFile(&trash, ENCFILE, mySock);
   s.close_connections();
 
