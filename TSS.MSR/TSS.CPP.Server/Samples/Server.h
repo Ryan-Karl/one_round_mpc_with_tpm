@@ -1,13 +1,13 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#define WIN32_LEAN_AND_MEAN
+//#define WIN32_LEAN_AND_MEAN
 
 // ServerSocketsExample.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 #pragma warning(disable : 4996)
 
-#include "pch.h"
+//#include "pch.h"
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
@@ -37,7 +37,7 @@ private:
 
 
 	//int send_file(int * ret, char * filename, SOCKET * ClientSocket);
-	int start_key_threads();
+	//int start_key_threads();
 
 
 public:
@@ -50,9 +50,7 @@ public:
 	//int broadcast(unsigned int num_connections, char * filename);
 	int receive_key(unsigned int party, int * ret);
 	int send_files_server(unsigned int party, const std::vector<std::string> & filenames, int * ret);
-	SOCKET getSocket() {
-		return ListenSocket;
-	}
+	SOCKET getSocket() { return ListenSocket; }
 	
 
 	void close_connections();
@@ -140,11 +138,10 @@ int Server::init(){
 	}
 
 	// Bind the socket
-	//Call bind from global namespace
-	iResult = ::bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+	//iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
 	//TODO check bind for errors - won't convert to int
-	//bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-	
+	bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+	/*
 	if (iResult == SOCKET_ERROR)
 	{
 		printf("bind failed: %d", WSAGetLastError());
@@ -153,7 +150,7 @@ int Server::init(){
 		WSACleanup();
 		return 1;
 	}
-	
+	*/
 	//Free up some memory
 	freeaddrinfo(result);
 
@@ -228,7 +225,7 @@ int Server::accept_connections(unsigned int num_connections){
 }
 
 int Server::send_files_server(unsigned int party, const std::vector<std::string> & filenames, int * ret){
-	assert(parties != nullptr);
+	
 	return *ret = send_files(parties[party].partySocket, filenames, ret);
 }
 

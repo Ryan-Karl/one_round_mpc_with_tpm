@@ -32,14 +32,19 @@ int main(int argc, char ** argv) {
 
 
 	Server s(DEFAULT_PORTNUM);
-	s.init();
-	s.accept_connections(NUMPARTIES_DEFAULT);
+	if (s.init()) {
+		cout << "ERROR: accept" << endl;
+	}
+	if(s.accept_connections(NUMPARTIES_DEFAULT)) {
+		cout << "ERROR: accept" << endl;
+	}
 	vector<string> filenames;
 	//First send the file to encrypt, then the key file
 	filenames.push_back(argv[1]);
 	filenames.push_back(KEYFILE);
 	//Send files to garbler	
 	s.broadcast_files(filenames);
+	cout << "Finished broadcast" << endl;
 	//Get encrypted file
 	ofstream file_out(ENCFILE);
 	SOCKET serversock;

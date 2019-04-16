@@ -288,6 +288,10 @@ CreatePrimaryResponse TPMWrapper::s_readKeyFromFile(const std::string & filename
 	//Assumes the key is all stored on a single line of the file
 	std::string rsa_key;
 	std::ifstream infile(filename);
+	if (!infile.good()) {
+		std::cerr << "Bad filestream: " << filename << std::endl;
+		exit(1);
+	}
 	std::getline(infile, rsa_key);
 	infile.close();
 
