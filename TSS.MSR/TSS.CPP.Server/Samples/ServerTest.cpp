@@ -38,6 +38,8 @@ int main(int argc, char ** argv) {
 	RecvDelimitedFiles(filenames, mySock);
   cout << "Received files" << endl;
   c.Stop();
+  //Start server immediately
+  Server s(DEFAULT_PORTNUM);
 
 	//Read in and decrypt file
 	TPMWrapper myTPM;
@@ -54,7 +56,6 @@ int main(int argc, char ** argv) {
 	outputToStream(os, ciphertext);
 
 	int trash;
-	Server s(DEFAULT_PORTNUM);
   if (s.init()) {
 		cout << "ERROR: accept" << endl;
 	}
