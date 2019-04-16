@@ -3,12 +3,12 @@
 typedef struct {
   char * bits;
   int len;
-} bit_wire;
+} wire_value;
 typedef bool bit;
 
 void get_garbled_circuit(Circuit * c, PlayerInfo ** players);
 int eval_garbled_circuit(Circuit * c, PlayerInfo * player);
-bit_wire * random_wire(int width);
+wire_value * random_wire(int width);
 bit * random_bit();
 
 //Read frigate circuit and parse into structure
@@ -36,9 +36,9 @@ typedef struct {
   //p - permutation bit
   bit p0;
   //k - key bits
-  bit_wire k0;
+  wire_value k0;
   bit p1;
-  bit_wire k1;
+  wire_value k1;
 
   // garbled label for the NIOT, at least for root nodes (before the nested encryption and such)
   bit garbled_label;
@@ -56,7 +56,7 @@ typedef struct {
   Wire * right_child;
 
   // Will likely be used only during execution
-  bit_wire value;
+  wire_value value;
 } Wire;
 
 typedef struct {
