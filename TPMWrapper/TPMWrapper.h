@@ -19,7 +19,7 @@
 #include <iostream>
 #include <modes.h>
 #include <aes.h>
-#include "ShamirSecret.h"
+//#include "ShamirSecret.h"
 #include <vector>
 #include <iterator>
 #include <cassert>

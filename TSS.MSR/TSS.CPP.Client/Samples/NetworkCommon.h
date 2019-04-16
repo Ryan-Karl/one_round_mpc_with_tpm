@@ -134,18 +134,14 @@ int send_files(SOCKET & mySock, const std::vector<std::string> & filenames, int 
 	return *ret = 0;
 }
 
-
+/*
 void outputToStream(std::ostream & os, const std::vector<BYTE> & bv){
 	os << std::hex;
 	for(size_t i = 0; i < bv.size(); i++){
 		os << bv[i];
-		/*
-		if((i%4) == 3){
-			os << " ";
-		}
-		*/
 	}
 }
+*/
 
 
 /*

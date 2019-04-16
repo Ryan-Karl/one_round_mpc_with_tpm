@@ -256,16 +256,7 @@ int Server::broadcast_files(const std::vector<std::string> & filenames){
 	return 0;
 }
 
-//TODO add error checks
-int broadcast_file(int * ret, const std::string & filename, unsigned int num_connections, unsigned int port){
-	Server s(port);
-	s.init();
-	s.accept_connections(num_connections);
-	std::vector<std::string> fname_v;
-	fname_v.emplace_back(filename);
-	s.broadcast_files(fname_v);
-	return *ret = 0;
-}
+
 
 
 #endif

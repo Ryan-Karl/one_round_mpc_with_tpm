@@ -1,5 +1,6 @@
 // ClientTest.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
+#define NOMINMAX
 
 #include "pch.h"
 #include <iostream>
@@ -30,7 +31,7 @@ int main(int argc, char ** argv) {
 	myTPM.c_writeKeyToFile(KEYFILE);
 
 
-	Server s(LOCALHOST, DEFAULT_PORTNUM);
+	Server s(DEFAULT_PORTNUM);
 	s.init();
 	s.accept_connections(NUMPARTIES_DEFAULT);
 	vector<string> filenames;
@@ -41,12 +42,13 @@ int main(int argc, char ** argv) {
 	s.broadcast_files(filenames);
 	//Get encrypted file
 	ofstream file_out(ENCFILE);
-	RecvFile(file_out);
+	SOCKET serversock;
+	RecvFile(file_out, serversock);
 	//Read file into memory and decrypt it
 	ifstream enc_instream(ENCFILE);
 	auto tmp = vectorsFromHexFile(enc_instream);
 	auto ciphertext = flatten(tmp);
-	auto decrypted = c_RSA_decrypt(ciphertext);
+	auto decrypted = myTPM.c_RSA_decrypt(ciphertext, 10);
 	ofstream dec_out(DECFILE);
 	outputToStream(dec_out, decrypted);
 	//Verify that the input file and DECFILE are identical
