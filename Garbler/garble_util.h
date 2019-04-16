@@ -8,6 +8,8 @@ typedef bool bit;
 
 void get_garbled_circuit(Circuit * c, PlayerInfo ** players);
 int eval_garbled_circuit(Circuit * c, PlayerInfo * player);
+bit_wire * random_wire(int width);
+bit * random_bit();
 
 //Read frigate circuit and parse into structure
 void read_frigate_circuit(char * filename, Circuit * circuit);
@@ -58,6 +60,7 @@ typedef struct {
 } Wire;
 
 typedef struct {
+  // Null terminated array of pointers to output (resp. input) wires
   Wire ** output_wires;
   Wire ** input_wires;
   long n_gates;
