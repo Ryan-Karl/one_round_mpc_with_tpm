@@ -57,5 +57,7 @@ typedef struct {
   Wire ** output_wires;
   Wire ** input_wires;
   long n_gates;
+  // Security parameter
+  int security;
 } Circuit;
 
