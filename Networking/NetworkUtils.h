@@ -29,7 +29,7 @@ typedef socket_t SOCKET;
 
 //Abstract base class
 class NetworkNode{
-private:
+protected:
 	socket_t sock;
 	unsigned int port;
 public:
@@ -76,7 +76,53 @@ public:
 	virtual int stop() = 0;
 };
 
+class Client: NetworkNode{
+private:	
+	const char * servername;
 
+public:	
+
+	Client(unsigned int p_in, const char * servername_in):
+	 NetworkNode(p_in), servername(servername_in){}
+
+	 int init(){
+
+	 }
+
+};
+
+class Server: NetworkNode{
+private:
+	unsigned int num_connections;
+	socket_t * connections;
+
+public:
+
+	Server(unsigned int p_in): NetworkNode(p_in) {
+		num_connections = 0;
+		connections = nullptr;
+	}
+
+	bool hasConnections(){
+		return((!num_connections) && (connections == nullptr));
+	}	
+
+	int shutdown(){
+
+	}
+
+	int init(){
+
+	}
+
+	//Need to return an error if server has already accepted connections
+	int accept_connections(unsigned int num_cons){
+		if(hasConnections){
+			return 1;
+		}
+	}
+
+}
 
 
 
