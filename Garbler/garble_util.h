@@ -1,9 +1,17 @@
+#ifndef GARBLE_UTIL_H
+#define GARBLE_UTIL_H
 // (at least) 64 bits -- is this the best way?
 //Should be able to be used for a general width sequence of bits
-typedef struct {
+class wire_value {
+  public:
   char * bits;
   int len;
-} wire_value;
+  set(int i);
+  unset(int i);
+};
+
+wire_value::wire_value(int size);
+wire_value::~wire_value();
 
 typedef bool bit;
 const bit constbit_1 = true;
@@ -23,6 +31,7 @@ bit random_bit();
 wire_value * hash(wire_value * ka, wire_value * kb, int gate_number);
 // For the final one.
 wire_value * hash(wire_value * ke, char * str, int gate_number);
+wire_value * new_wire(int bitwidth);
 
 //Read frigate circuit and parse into structure
 void read_frigate_circuit(char * filename, Circuit * circuit);
@@ -86,3 +95,5 @@ typedef struct {
   // Security parameter
   int security;
 } Circuit;
+
+#endif
