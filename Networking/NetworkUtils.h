@@ -7,18 +7,23 @@
 #include <sstream>
 #include <vector>
 #include <thread>
+#include <cstring>
+//Are these *nix-only?
+#include <unistd.h>
+#include <netdb.h>
 
 #ifdef __linux__
-typedef socket_t int;
+typedef int socket_t;
 //May not need these defines
 #define INVALID_SOCKET (~0)
 #define SOCKET_ERROR (-1)
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #elif defined(WIN32)
 #include <WinSock2.h>
 #include <WS2tcpip.h>
-typedef socket_t SOCKET;
+typedef SOCKET socket_t;
 #else
 #error Unsupported operating system, supported systems are Linux and Windows
 #endif
@@ -42,42 +47,51 @@ protected:
   //TODO rewrite these so they can take in a client socket
 	int sendBytes(socket_t inSock, unsigned int buffer_size, void * buffer){
 		int bytesSent = 0;
-		while(bytes_sent < buffer_size){
-			if(send(inSock, buffer + bytesSent, buffer_size - bytesSent, 0) < 1){
+		int sent_tmp = 0;
+		while(bytesSent < buffer_size){
+			if((sent_tmp = send(inSock, (char*)buffer + bytesSent, buffer_size - bytesSent, 0)) < 0){
 				return 1;
 			}
+			bytesSent += sent_tmp;
 		}
 		return 0;
 	}
 	//Assumes buffer contains at least buffer_size bytes
 	int recvBytes(socket_t inSock, const unsigned int buffer_size, void * buffer){
 		int bytesRead = 0;
-		while(bytes_read < buffer_size){
-			if(recv(inSock, buffer + bytesRead, buffer_size - bytesRead, 0) < 1){
+		int read_tmp = 0;
+		while(bytesRead < buffer_size){
+			if((read_tmp = recv(inSock, (char*)buffer + bytesRead, buffer_size - bytesRead, 0)) < 0){
 				return 1;
 			}
+			bytesRead += read_tmp;
 		}
 		return 0;
 	}
 
 public:
+
 	NetworkNode(unsigned int p_in): port(p_in){
 		sock = INVALID_SOCKET;
 	}
 
 	int sendBuffer(socket_t inSock, unsigned int buffer_size, void * buffer){
-		return sendBytes(inSock, sizeof(buffer_size), htonl(buffer_size)) 
+		//Should't need this - size isn't being sent.
+		int size_out = htonl(buffer_size);
+		return sendBytes(inSock, sizeof(size_out), &size_out) 
 			|| sendBytes(inSock, buffer_size, buffer);
 	}
 
-	int recvBuffer(socket_t inSock, void * buffer, int & len){
+	int recvBuffer(socket_t inSock, void ** buffer, unsigned int & len){
 		unsigned int msgSize = 0;
 		if(recvBytes(inSock, sizeof(msgSize), (void *) (&msgSize))){
 			return 1;
 		}
 		len = ntohl(msgSize);
-		buffer = new char[len];
-		return recvBytes(inSock, len, (void *) buffer);
+		//DEBUGGING
+		std::cout << "Length is " << len << std::endl;
+		*buffer = new char[len];
+		return recvBytes(inSock, len, (void *) *buffer);
 	}
 
 
@@ -98,81 +112,76 @@ public:
     return NetworkNode::sendBuffer(sock, buffer_size, buffer);  
   }
 
-  int recvBuffer(void * buffer, int & len){
-    return recvBuffer(sock, buffer, len);
+  int recvBuffer(void ** buffer, unsigned int & len){
+    return NetworkNode::recvBuffer(sock, buffer, len);
   }
 
 	int init(){
-    int iResult;
-#ifdef WIN32
-    WSADATA wasData;
-   
-   if(iResult = WSAStartup(MAKEWORD(2,2), &wsaData)){
-     printf("WSAStartup failed: %d\n", iResult);
-     return 1;
-   }
-#elif defined(__linux__)
-//TODO linux startup, if needed
-#endif
+	    int iResult;
+	#ifdef WIN32
+	    WSADATA wsaData;
+	   
+	   if(iResult = WSAStartup(MAKEWORD(2,2), &wsaData)){
+	     printf("WSAStartup failed: %d\n", iResult);
+	     return 1;
+	   }
+	//TODO linux startup, if needed
+	#endif
 
-   struct addrinfo * result = NULL;
-   struct addrinfo * ptr = NULL;
-   struct addrinfo hints;
-   
-#ifdef WIN32
-   ZeroMemory(&hints, sizeof(hints));
-#elif defined(__linux__)
-   memset(hints, 0, sizeof(hints));
-#endif
+	   struct addrinfo *result = NULL;
+	   struct addrinfo *ptr = NULL;
+	   struct addrinfo hints;
+	   memset(&hints, 0, sizeof(hints));
 
-   hints.ai_family = AF_UNSPEC;
-   hints.ai_socktype = SOCK_STREAM;
-	 hints.ai_protocol = IPPROTO_TCP;
-#elif defined(__linux__)
-   //TODO fill in Linux network setup, if needed
-#endif
+	   hints.ai_family = AF_UNSPEC;
+	   hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+	   //TODO fill in Linux network setup, if needed
 
-   //Resolving server addr and port
-  std::ostringstream convertPort;
-  convertPort << port;
+	   //Resolving server addr and port
+	  std::ostringstream convertPort;
+	  convertPort << port;
 
-  if(iResult = getaddrinfo(servername, convertPort.str().c_str(), &hints, &result)){
-    printf("getaddrinfo failed: %d\n", iResult);
-#ifdef WIN32
-		WSACleanup();
-#endif
-    return 1;
-  }  
-  ptr = result;
+	  if(iResult = getaddrinfo(servername, convertPort.str().c_str(), &hints, &result)){
+	    printf("getaddrinfo failed: %d\n", iResult);
+	#ifdef WIN32
+			WSACleanup();
+	#endif
+	    return 1;
+	  }  
+	  ptr = result;
 
-  //Create socket to connect - Hope this is platform-independent
-  if((sock = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol)) == INVALID_SOCKET){
-    printf("Error at socket(): %d\n", WSAGetLastError());
-    freeaddrinfo(result);
-#ifdef WIN32
-    WSACleanup();
-#endif
-    return 1;
-  }
+	  //Create socket to connect - Hope this is platform-independent
+	  if((sock = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol)) == INVALID_SOCKET){
+	#ifdef WIN32	    
+	    printf("Error at socket(): %d\n", WSAGetLastError());
+	    freeaddrinfo(result);
+	    WSACleanup();
+	#endif
+	    freeaddrinfo(result);
+	    return 1;
+	  }
 
-  //Connect
-  iResult = connect(sock, ptr->ai_addr, (int)ptr->ad_addrlen);
-  if(iResult == SOCKET_ERROR){
-#ifdef WIN32
-    closeSocket(sock);
-#elif defined(__linux__)
-    close(sock);
-#endif
-    sock = INVALID_SOCKET;
-  }
-  
-  freeaddrinfo(result);
-  if(sock == INVALID_SOCKET){
-    printf("Unable to connect to server!\n");
-    WSACleanup();
-    return 1; 
-  }
-  return 0;
+	  //Connect
+	  iResult = connect(sock, ptr->ai_addr, (int)ptr->ai_addrlen);
+	  if(iResult == SOCKET_ERROR){
+	#ifdef WIN32
+	    closeSocket(sock);
+	#elif defined(__linux__)
+	    close(sock);
+	#endif
+	    sock = INVALID_SOCKET;
+	  }
+	  
+	  freeaddrinfo(result);
+	  if(sock == INVALID_SOCKET){
+	    printf("Unable to connect to server!\n");
+#ifdef WIN32	    
+	    WSACleanup();
+#endif	    
+	    return 1; 
+	  }
+	  return 0;
   }
 
   int stop(){
@@ -184,7 +193,9 @@ public:
     result = shutdown(sock, SHUT_RD);
 #endif    
     if(result == SOCKET_ERROR){
+#ifdef WIN32    	
       printf("shutdown failed: %d\n", WSAGetLastError());
+#endif      
       return 1;
     }
 #ifdef WIN32
@@ -197,7 +208,7 @@ public:
   }
 
   ~Client(){
-    
+    stop();
   }
 
 };
@@ -215,31 +226,157 @@ public:
 	}
 
 	bool hasConnections(){
-		return((!num_connections) && (connections == nullptr));
+		return(num_connections && (connections != nullptr));
 	}	
 
-  int init(){
-    
+  	int init(){
+  		int iResult = 0;
+#ifdef WIN32  		
+    	if(iResult = WSAStartup(MAKEWORK(2,2), &wsaData)){
+    		printf("WSAStartup failed: %d\n", iResult);
+			return 1;
+		}	
+#endif		
+		//Hints
+		struct addrinfo hints;
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+		hints.ai_flags = AI_PASSIVE;
+		//Get result w/ address and port of server
+		struct addrinfo * result = NULL;
+		std::ostringstream convertPort;
+	  	convertPort << port;
+		if(iResult = getaddrinfo(NULL, convertPort.str().c_str(), &hints, &result)){
+			printf("getaddrinfo failed: %d\n", iResult);
+#ifdef WIN32			
+			WSACleanup();
+#endif			
+			return 1;
+		}
+		//Create socket
+		sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+		if(sock == INVALID_SOCKET){
+#ifdef WIN32			
+			printf("Error at socket(): %d\n", WSAGetLastError());
+			freeaddrinfo(result);			
+			WSACleanup();
+#elif defined(__linux__)
+			printf("Error creating socket");			
+#endif			
+			return 1;
+		}
+		//Bind socket
+		if(bind(sock, result->ai_addr, result->ai_addrlen) == SOCKET_ERROR){
+#ifdef WIN32			
+			printf("bind failed: %d", WSAGetLastError());
+			freeaddrinfo(result);
+			closesocket(sock);			
+			WSACleanup();
+#elif defined(__linux__)
+			printf("Error binding socket");
+			close(sock);
+#endif			
+			return 1;
+		}
+		//Clear up addr info
+		freeaddrinfo(result);
+		//Start listening (connections are later)
+		if(listen(sock, SOMAXCONN) == SOCKET_ERROR){
+#ifdef WIN32			
+			printf("listen failed: %d\n", WSAGetLastError());
+			closesocket(sock);
+			WSACleanup();
+#elif defined(__linux__)
+			printf("Error listening");
+			close(sock);
+#endif			
+			return 1;
+		}
+
+		return 0;
 	}
 
-	int shutdown(){
+	~Server(){
+		stop();
+	}
 
+	int stop(){
+		if(!this->hasConnections()){
+			return 0;
+		}
+		for(unsigned int i = 0; i < num_connections; i++){
+#ifdef WIN32			
+			closesocket(connections[i]);
+#elif defined(__linux__)
+			close(connections[i]);
+#endif			
+		}
+#ifdef WIN32
+		closesocket(sock);
+		WSACleanup();
+#elif defined(__linux__)
+		close(sock);
+#endif		
+		delete[] connections;
+		connections = nullptr;
+		num_connections = 0;
+		return 0;
 	}
 
 	//Need to return an error if server has already accepted connections
 	int accept_connections(unsigned int num_cons){
-		if(hasConnections){
+		//Error if we already have connections
+		if(hasConnections() || (!num_cons)){
 			return 1;
 		}
+		//Allocate dynamic array of connections
+		num_connections = num_cons;
+		connections = new socket_t[num_connections];
+		for(unsigned int i = 0; i < num_connections; i++){
+			connections[i] = INVALID_SOCKET;
+			connections[i] = accept(sock, NULL, NULL);
+			if(connections[i] == INVALID_SOCKET){
+#ifdef WIN32
+				printf("accept failed: %d\n", WSAGetLastError());
+				//Keep this line? A single failure will end the whole system
+				closesocket(connections[i]);
+#elif defined(__linux__)
+				printf("Error accepting connection");
+				close(connections[i]);
+#endif				
+				return 1;
+			}
+		}
+		return 0;
 	}
 
-}
+	int sendBuffer(unsigned int party, unsigned int buffer_size, void * buffer){
+		if(!hasConnections()){
+			std::cerr << "ERROR: No connections initialized before send" << std::endl;
+			return 1;
+		}
+		if(party >= num_connections){
+			std::cerr << "ERROR: Connection out of bounds: " << party << std::endl;
+			return 1;
+		}
+    	return NetworkNode::sendBuffer(connections[party], buffer_size, buffer);  
+  	}
 
+  	int recvBuffer(unsigned int party, void ** buffer, unsigned int & len){
+  		if(!hasConnections()){
+			std::cerr << "ERROR: No connections initialized before send" << std::endl;
+			return 1;
+		}
+		if(party >= num_connections){
+			std::cerr << "ERROR: Connection out of bounds: " << party << std::endl;
+			return 1;
+		}
+    	return NetworkNode::recvBuffer(connections[party], buffer, len);
+  	}
 
-
-
-
-
+};
 
 
 #endif
