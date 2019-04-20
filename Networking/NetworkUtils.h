@@ -43,9 +43,7 @@ protected:
 	socket_t sock;
 	unsigned int port;
 
-
-  //TODO rewrite these so they can take in a client socket
-	int sendBytes(socket_t inSock, unsigned int buffer_size, void * buffer){
+	int sendBytes(socket_t inSock, unsigned int buffer_size, const void * buffer){
 		int bytesSent = 0;
 		int sent_tmp = 0;
 		while(bytesSent < buffer_size){
@@ -75,21 +73,26 @@ public:
 		sock = INVALID_SOCKET;
 	}
 
-	int sendBuffer(socket_t inSock, unsigned int buffer_size, void * buffer){
-		//Should't need this - size isn't being sent.
+	int sendString(socket_t inSock, unsigned int str_len, const char * str){
+		return sendBuffer(inSock, str_len, (const void*) str);
+	}
+
+	int recvString(socket_t inSock, unsigned int & str_len, char ** strloc){
+		return recvBuffer(inSock, str_len, (void **) strloc);
+	}
+
+	int sendBuffer(socket_t inSock, unsigned int buffer_size, const void * buffer){
 		int size_out = htonl(buffer_size);
 		return sendBytes(inSock, sizeof(size_out), &size_out) 
 			|| sendBytes(inSock, buffer_size, buffer);
 	}
 
-	int recvBuffer(socket_t inSock, void ** buffer, unsigned int & len){
+	int recvBuffer(socket_t inSock, unsigned int & len, void ** buffer){
 		unsigned int msgSize = 0;
 		if(recvBytes(inSock, sizeof(msgSize), (void *) (&msgSize))){
 			return 1;
 		}
 		len = ntohl(msgSize);
-		//DEBUGGING
-		std::cout << "Length is " << len << std::endl;
 		*buffer = new char[len];
 		return recvBytes(inSock, len, (void *) *buffer);
 	}
@@ -113,8 +116,16 @@ public:
   }
 
   int recvBuffer(void ** buffer, unsigned int & len){
-    return NetworkNode::recvBuffer(sock, buffer, len);
+    return NetworkNode::recvBuffer(sock, len, buffer);
   }
+
+  int sendString(unsigned int str_len, const char * str){
+		return NetworkNode::sendString(sock, str_len, str);
+	}
+
+	int recvString(unsigned int & str_len, char ** strloc){
+		return NetworkNode::recvString(sock, str_len, strloc);
+	}
 
 	int init(){
 	    int iResult;
@@ -373,8 +384,18 @@ public:
 			std::cerr << "ERROR: Connection out of bounds: " << party << std::endl;
 			return 1;
 		}
-    	return NetworkNode::recvBuffer(connections[party], buffer, len);
+    	return NetworkNode::recvBuffer(connections[party], len, buffer);
   	}
+
+
+  	int sendString(unsigned int conn, unsigned int str_len, const char * str){
+		return NetworkNode::sendString(connections[conn], str_len, str);
+	}
+
+	int recvString(unsigned int conn, unsigned int & str_len, char ** strloc){
+		return NetworkNode::recvString(connections[conn], str_len, strloc);
+	}
+
 
 };
 

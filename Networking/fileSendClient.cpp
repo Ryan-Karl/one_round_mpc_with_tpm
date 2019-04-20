@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 using namespace std;
 
@@ -18,11 +19,12 @@ int main(int argc, char ** argv){
 
 	cout << "Connected to server!" << endl;
 
-	int toSend = atoi(argv[1]);
-	if(c.sendBuffer(sizeof(toSend), (void *) & toSend)){
+	//int toSend = atoi(argv[1]);
+	//void * strAddr = &(argv[1]);
+	if(c.sendString(strlen(argv[1]), argv[1])){
 		cout << "ERROR: send" << endl;
 	}
-	cout << "Sent " << toSend << endl;
+	cout << "Sent " << argv[1] << endl;
 
 	c.stop();
 

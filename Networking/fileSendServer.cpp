@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <cstring>
 
 using namespace std;
 
@@ -25,16 +26,17 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	cout << "Accepted connection!" << endl;
-	int * received;
-	void * addr_rec = &received;
+	//int * received;
+	char * str;
+	void * addr_rec = &(str);
 	unsigned int len = 0;
-	if(s.recvBuffer(0, (void **)addr_rec, len)){
+	if(s.recvString(0, len, &str)){
 		cout << "Error with receive!" << endl;
 		return 1;
 	}
-	assert(len == sizeof(*received));
+	assert(len == strlen(str));
 
-	cout << "Received " << *received << endl;
+	cout << "Received " << str << endl;
 
 	s.stop();
 
