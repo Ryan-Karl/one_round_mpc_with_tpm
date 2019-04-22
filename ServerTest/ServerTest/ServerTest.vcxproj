@@ -152,9 +152,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\includes\networkutils.h" />
+    <ClInclude Include="..\includes\ShamirSecret.h" />
+    <ClInclude Include="..\includes\TPMWrapper.h" />
+    <ClInclude Include="..\includes\utilities.h" />
     <ClInclude Include="NetworkCommon.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Server.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

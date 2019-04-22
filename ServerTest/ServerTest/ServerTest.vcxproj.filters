@@ -21,7 +21,16 @@
     <ClInclude Include="NetworkCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Server.h">
+    <ClInclude Include="..\includes\networkutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes\ShamirSecret.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes\TPMWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\includes\utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
