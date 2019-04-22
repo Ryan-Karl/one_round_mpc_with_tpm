@@ -1,5 +1,4 @@
-// ClientTest.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+//g++ ClientTest.cpp -o client ../tpm_src/*.o  -lgmp -lssl -lcrypto -g
 #define NOMINMAX
 
 //#include "pch.h"

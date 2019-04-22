@@ -1,5 +1,4 @@
-// ServerTest.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+//g++ ServerTest.cpp -o server ../tpm_src/*.o  -lgmp -lssl -lcrypto -g
 
 #define NOMINMAX
 
