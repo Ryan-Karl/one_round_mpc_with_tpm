@@ -5,9 +5,9 @@
 
 //#include "pch.h"
 #include <iostream>
-#include "NetworkUtils.h"
-#include "utilities.h"
-#include "TPMWrapper.h"
+#include "../includes/NetworkUtils.h"
+#include "../includes/utilities.h"
+#include "../includes/TPMWrapper.h"
 
 #include <iostream>
 #include <fstream>
@@ -30,18 +30,19 @@ int main(int argc, char ** argv) {
 		return 0;
 	}
 
-	Server s(itoa(argv[1]));
+	Server s(atoi(argv[1]));
 	s.init();
 	s.accept_connections(1);
 	char * keystr;
-	unsigned int strlen;
-	s.recvString(strlen, &keystr);
-	TPMWrapper myTPM(atoi(argv[3]));
+	unsigned int strLen;
+	s.recvString(0, strLen, (char **)&keystr);
+	TPMWrapper myTpm(atoi(argv[3]));
 	string jsonStr(keystr);
 	auto key = myTpm.s_readKey(jsonStr);
 	vector<BYTE> toEncrypt = stringToByteVec(argv[2], strlen(argv[2]));
-	vector<BYTE> encryptedVec = s.s_RSA_encrypt(toEncrypt, key);
-	s.sendString(0, encryptedVec.size(), encryptedVec.data());
+	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key);
+	string encStr = ByteVecToString(encryptedVec);
+	s.sendString(0, encStr.size()+1, encStr.c_str());
 	s.stop();
 
 
