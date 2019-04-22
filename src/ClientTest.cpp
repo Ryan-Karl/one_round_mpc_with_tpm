@@ -29,13 +29,16 @@ int main(int argc, char ** argv) {
 	}
 	
 
-	TPMWrapper myTPM(atoi(argv[3]));
+	TPMWrapper myTPM(atoi(argv[2]));
 	myTPM.c_createAndStoreKey();
 	string keystring = myTPM.c_writeKey();
 
 
 	Client c(atoi(argv[1]), (argc >= 4? argv[3] : LOCALHOST));
 	c.init();
+	cout << "Got connection" << endl;
+	
+
 	c.sendString(keystring.size()+1, keystring.c_str());
 
 	char * encStr;

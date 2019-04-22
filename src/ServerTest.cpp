@@ -29,13 +29,14 @@ int main(int argc, char ** argv) {
 		return 0;
 	}
 
+	TPMWrapper myTpm(atoi(argv[3]));
 	Server s(atoi(argv[1]));
 	s.init();
 	s.accept_connections(1);
 	char * keystr;
 	unsigned int strLen;
 	s.recvString(0, strLen, (char **)&keystr);
-	TPMWrapper myTpm(atoi(argv[3]));
+	
 	string jsonStr(keystr);
 	auto key = myTpm.s_readKey(jsonStr);
 	vector<BYTE> toEncrypt = stringToByteVec(argv[2], strlen(argv[2]));
