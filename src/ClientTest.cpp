@@ -19,7 +19,7 @@
 
 using namespace std;
 
-//First arg is server port, second is TPM port
+//First arg is server port, second is TPM port, third is the host
 int main(int argc, char ** argv) {
 	
 
@@ -29,12 +29,12 @@ int main(int argc, char ** argv) {
 	}
 	
 
-	TPMWrapper myTPM(atoi(argv[2]));
+	TPMWrapper myTPM(atoi(argv[3]));
 	myTPM.c_createAndStoreKey();
 	string keystring = myTPM.c_writeKey();
 
 
-	Client c(atoi(argv[1]), LOCALHOST);
+	Client c(atoi(argv[1]), (argc >= 4? argv[3] : LOCALHOST));
 	c.init();
 	c.sendString(keystring.size()+1, keystring.c_str());
 
