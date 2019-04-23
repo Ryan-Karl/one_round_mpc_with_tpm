@@ -1,11 +1,8 @@
-// ServerTest.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
-
-
-#include "pch.h"
+//g++ ServerTest.cpp -o server ../tpm_src/*.o  -lgmp -lssl -lcrypto -g
 
 #define NOMINMAX
+
+#include "pch.h"
 #include <iostream>
 #include "../includes/NetworkUtils.h"
 #include "../includes/utilities.h"
@@ -26,30 +23,31 @@ using namespace std;
 
 //First arg is port, second is a string to encrypt, third is the TPM port
 int main(int argc, char ** argv) {
-	
+
 	if (argc < 4) {
 		cout << "First arg is port, second is a string to encrypt, third is the TPM port" << endl;
 		return 0;
 	}
 
+	TPMWrapper myTpm(atoi(argv[3]));
 	Server s(atoi(argv[1]));
 	s.init();
 	s.accept_connections(1);
 	char * keystr;
 	unsigned int strLen;
 	s.recvString(0, strLen, (char **)&keystr);
-	TPMWrapper myTpm(atoi(argv[3]));
+
 	string jsonStr(keystr);
 	auto key = myTpm.s_readKey(jsonStr);
 	vector<BYTE> toEncrypt = stringToByteVec(argv[2], strlen(argv[2]));
 	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key);
 	string encStr = ByteVecToString(encryptedVec);
-	s.sendString(0, encStr.size()+1, encStr.c_str());
+	s.sendString(0, encStr.size() + 1, encStr.c_str());
 	s.stop();
 
 
 
-	
+
 	/*
 	Client c(LOCALHOST, DEFAULT_PORTNUM);
 	if (!c.Start()) {
@@ -90,7 +88,7 @@ int main(int argc, char ** argv) {
 	outputToStream(os, ciphertext);
 
 	int trash;
-  
+
 	SendFile(&trash, ENCFILE, mySock);
   s.close_connections();
   */
@@ -98,4 +96,3 @@ int main(int argc, char ** argv) {
 
 	return 0;
 }
-
