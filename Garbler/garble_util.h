@@ -31,7 +31,7 @@ bit random_bit();
 wire_value * hash(wire_value * ka, wire_value * kb, int gate_number);
 // For the final one.
 wire_value * hash(wire_value * ke, char * str, int gate_number);
-wire_value * new_wire(int bitwidth);
+//wire_value * new_wire(int bitwidth);
 
 //Read frigate circuit and parse into structure
 void read_frigate_circuit(char * filename, Circuit * circuit);
@@ -45,6 +45,7 @@ typedef struct {
   char * TPM_pubkey;
 } PlayerInfo;
 
+//TODO: numbering
 typedef enum gate_type {
   GATE_XOR,
   GATE_AND,
@@ -66,12 +67,13 @@ typedef struct {
 
   // garbled label for the NIOT, at least for root nodes (before the nested encryption and such)
   // Only used when wire is a gate, and when gate is not XOR
-  bit garbled_label_00;
-  bit garbled_label_01;
-  bit garbled_label_10;
-  bit garbled_label_11;
+  // corresponds to 00, 01, 10, 11
+  bit garbled_labels[4];
 
   bool is_root;
+  bit output_garble_info[2];
+  bit output_e0;
+  bit output_e1;
 
   // If this is a leaf node, player has useful information.
   bool is_leaf;

@@ -3,11 +3,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "garble_util.h"
+// http://www.cs.toronto.edu/~vlad/papers/XOR_ICALP08.pdf
 
 using namespace std;
 
 // Called by server.  Expects the structure of the circuit but not values relevant to garbling.
-void get_garbled_circuit(Circuit * c, PlayerInfo ** players) {
+void get_garbled_circuit(Circuit * c) {
   //Get randomness from player info
   wire_value * R = random_wire(c->security);
   for (Wire * i = c->input_wires[0]; i != NULL; i++) {
@@ -38,21 +39,42 @@ void get_garbled_circuit(Circuit * c, PlayerInfo ** players) {
       w->k0 = random_wire(c->security);
       w->k1 = xor_wire(i->k0, R);
 
+      //TODO find a way to do this as a loop
       //va=0, vb=0
       bit out = eval_gate(w->gate_type, 0, 0);
       wire_value * w_out = wire2garbling(w, out);
       wire * e00 = xor_wire(w_out, hash(a->k0, b->k0, w->gate_number));
-      //TODO do similarly for other wires, and find a way to do this as a loop
+      int index = 2 * bit_to_int(a->p0) + bit_to_int(b->p0);
+      w->garbled_labels[index] = e00;
       //va=0, vb=1
+      bit out = eval_gate(w->gate_type, 0, 1);
+      wire_value * w_out = wire2garbling(w, out);
+      wire * e01 = xor_wire(w_out, hash(a->k0, b->k1, w->gate_number));
+      int index = 2 * bit_to_int(a->p0) + bit_to_int(b->p1);
+      w->garbled_labels[index] = e01;
       //va=1, vb=0
+      bit out = eval_gate(w->gate_type, 1, 0);
+      wire_value * w_out = wire2garbling(w, out);
+      wire * e10 = xor_wire(w_out, hash(a->k1, b->k0, w->gate_number));
+      int index = 2 * bit_to_int(a->p1) + bit_to_int(b->p0);
+      w->garbled_labels[index] = e10;
       //va=1, vb=1
+      bit out = eval_gate(w->gate_type, 1, 1);
+      wire_value * w_out = wire2garbling(w, out);
+      wire * e11 = xor_wire(w_out, hash(a->k1, b->k1, w->gate_number));
+      int index = 2 * bit_to_int(a->p1) + bit_to_int(b->p1);
+      w->garbled_labels[index] = e11;
     }
   }
-  for (Wire * i = c->output_wires[0]; i != NULL; i++) {
-    //TODO: create garbled output table
+
+  // create garbled output tables
+  for (Wire * w = c->output_wires[0]; w != NULL; w++) {
+    //maybe should be a bit, not an int?
+    wire * e0 = xor_bit(0, hash(w->k0, "out", w->gate_number));
+    wire * e1 = xor_bit(1, hash(w->k1, "out", w->gate_number));
+    w->output_garble_info[bit_to_int(w->p0)] = e0;
+    w->output_garble_info[bit_to_int(w->p1)] = e1;
   }
-  //TODO: do nested encryption of labels with finite use keys
-  //   -- probably should abstract into another function.
 }
 
 // the garbling is just the concatenation of w->kb and w->pb for b=which
