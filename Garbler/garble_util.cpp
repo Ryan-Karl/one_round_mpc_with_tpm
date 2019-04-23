@@ -12,10 +12,10 @@ void get_garbled_circuit(Circuit * c) {
   //Get randomness from player info
   wire_value * R = random_wire(c->security);
   for (Wire * i = c->input_wires[0]; i != NULL; i++) {
-    i->p0 = random_bit();
-    i->p1 = xor_bit(i->p0, constbit_1);
-    i->k0 = random_wire(c->security);
-    i->k1 = xor_wire(i->k0, R);
+    i->p[0] = random_bit();
+    i->p[1] = xor_bit(i->p[0], constbit_1);
+    i->k[0] = random_wire(c->security);
+    i->k[1] = xor_wire(i->k[0], R);
   }
   queue<Wire *> t_ordering;
   //TODO: get topological ordering
@@ -24,27 +24,28 @@ void get_garbled_circuit(Circuit * c) {
     if (w->is_gate && w->gate_type == GATE_XOR) {
       Wire * a = w->left_child;
       Wire * b = w->right_child;
-      w->p0 = xor_bit(a->p0, b->p0);
+      w->p[0] = xor_bit(a->p[0], b->p[0]);
       // This would work with xor_bit(a->p1,b->p1), as well as xor_bit(a->p0, b->p0),
       // it will always be the same value.
-      w->p1 = xor_bit(constbit_1, w->p0);
-      w->k0 = xor_wire(a->k0, b->k0);
-      w->k1 = xor_wire(w->k0, R);
+      w->p[1] = xor_bit(constbit_1, w->p[0]);
+      w->k[0] = xor_wire(a->k[0], b->k[0]);
+      w->k[1] = xor_wire(w->k[0], R);
     } else if (w->is_gate) {
       Wire * a = w->left_child;
       Wire * b = w->right_child;
 
-      w->p0 = random_bit();
-      w->p1 = xor_bit(i->p0, constbit_1);
-      w->k0 = random_wire(c->security);
-      w->k1 = xor_wire(i->k0, R);
+      w->p[0] = random_bit();
+      w->p[1] = xor_bit(i->p[0], constbit_1);
+      w->k[0] = random_wire(c->security);
+      w->k[1] = xor_wire(i->k[0], R);
 
+      for (int i_p=0;i_p<=
       //TODO find a way to do this as a loop
       //va=0, vb=0
       bit out = eval_gate(w->gate_type, 0, 0);
       wire_value * w_out = wire2garbling(w, out);
-      wire * e00 = xor_wire(w_out, hash(a->k0, b->k0, w->gate_number));
-      int index = 2 * bit_to_int(a->p0) + bit_to_int(b->p0);
+      wire * e00 = xor_wire(w_out, hash(a->k[0], b->k[0], w->gate_number));
+      int index = 2 * bit_to_int(a->p[0]) + bit_to_int(b->p[0]);
       w->garbled_labels[index] = e00;
       //va=0, vb=1
       bit out = eval_gate(w->gate_type, 0, 1);

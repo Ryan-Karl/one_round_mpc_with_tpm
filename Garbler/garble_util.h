@@ -46,12 +46,10 @@ typedef enum gate_type {
 } gate_type;
 
 typedef struct {
-  //p - permutation bit
-  bit p0;
-  //k - key bits
-  wire_value * k0;
-  bit p1;
-  wire_value * k1;
+  //p - permutation bit - p_0, p_1 correspond to p[0], p[1]
+  bit p[2];
+  //k - key bits - k_0, k_1 correspond to k[0], k[1]
+  wire_value * k[2];
 
   int gate_number;
 
