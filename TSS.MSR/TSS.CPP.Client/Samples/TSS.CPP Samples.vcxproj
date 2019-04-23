@@ -100,8 +100,10 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>tss.cpp.lib;wsock32.lib;kernel32.lib;user32.lib;%(AdditionalDependencies);libeay32.lib;mpir.lib;mpirxx.lib;</AdditionalDependencies>
+      <AdditionalDependencies>tss.cpp.lib;wsock32.lib;kernel32.lib;user32.lib;%(AdditionalDependencies);libeay32.lib;mpir.lib;mpirxx.lib;Ws2_32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);C:\Program Files (x86)\OpenSSL-Win32\lib;C:\DevSoft\mpir\msvc\vs15\lib_mpir_gc\Win32\Debug;C:\DevSoft\mpir\msvc\vs15\lib_mpir_cxx\Win32\Debug;</AdditionalLibraryDirectories>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
@@ -175,18 +177,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\ClientTest\ClientTest\pch.h" />
-    <ClInclude Include="..\..\..\SecretSharingPort\SecretSharingPort\ShamirSecret.h" />
-    <ClInclude Include="..\..\..\TPMWrapper\utilities.h" />
-    <ClInclude Include="Client.h" />
-    <ClInclude Include="NetworkCommon.h" />
-    <ClInclude Include="Networking.h" />
-    <ClInclude Include="Server.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="TPMWrapper.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\..\ClientTest\ClientTest\pch.cpp" />
     <ClCompile Include="ClientTest.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -195,6 +185,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\TSS.CPP.Server\Samples\networkutils.h" />
+    <ClInclude Include="..\..\TSS.CPP.Server\Samples\ShamirSecret.h" />
+    <ClInclude Include="..\..\TSS.CPP.Server\Samples\TPMWrapper.h" />
+    <ClInclude Include="..\..\TSS.CPP.Server\Samples\utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

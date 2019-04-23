@@ -6,7 +6,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "stdafx.h"
+
 //#include "Samples.h"
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -17,22 +17,33 @@
 #include <stdarg.h>
 #include <cstdio>
 #include <iostream>
-#include <modes.h>
-#include <aes.h>
-//#include "ShamirSecret.h"
+//#include <modes.h>
+//#include <aes.h>
+#include "ShamirSecret.h"
 #include <vector>
 #include <iterator>
 #include <cassert>
 #include <fstream>
 #include "utilities.h"
+
+
+
+#ifdef WIN32
+#include "stdafx.h"
+#include "../Src/Tpm2.h"
 #include <mpir.h>
 #include <mpirxx.h>
+#elif defined(__linux__)
+#include "../tpm_src/Tpm2.h"
+#include <gmp.h>
+#include <gmpxx.h>
+#endif
 
 using namespace TpmCpp;
 
 class TPMWrapper {
 public:
-	TPMWrapper(int port = 2321);
+	TPMWrapper(unsigned int port = 2321);
 	~TPMWrapper();
 	Tpm2 & GetTpm() {
 		return tpm;
@@ -40,15 +51,17 @@ public:
 
 	void RunTests();
 
-	void TPMWrapper::SetCol(UINT16 col);
+	void SetCol(unsigned int col);
 
 	//Server functions
-	CreatePrimaryResponse TPMWrapper::s_readKeyFromFile(const std::string & filename);
-	std::vector<BYTE> TPMWrapper::s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey);
+	CreatePrimaryResponse s_readKeyFromFile(const std::string & filename);
+	CreatePrimaryResponse s_readKey(const std::string & keystring);
+	std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey);
 
 	//Client functions
 	void c_createAndStoreKey();
 	bool c_writeKeyToFile(const std::string & filename);
+	std::string c_writeKey();
 	std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit);
 
 protected:
@@ -60,7 +73,7 @@ protected:
 
 
 
-	vector<BYTE> NullVec;
+	std::vector<BYTE> NullVec;
 	_TPMCPP Tpm2 tpm;
 	_TPMCPP TpmTcpDevice *device;
 
@@ -88,9 +101,10 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
 */
 
 
-void TPMWrapper::SetCol(UINT16 col)
+void TPMWrapper::SetCol(unsigned int c)
 {
-#ifdef _WIN32
+#ifdef WIN32
+	UINT16 col = c;
 	UINT16 fColor;
 
 	switch (col) {
@@ -113,7 +127,7 @@ void TPMWrapper::SetCol(UINT16 col)
 
 void TPMWrapper::RunTests() {}
 
-TPMWrapper::TPMWrapper(int port)
+TPMWrapper::TPMWrapper(unsigned int port)
 {
 	//RunSamples();
 
@@ -186,7 +200,7 @@ void TPMWrapper::c_createAndStoreKey()
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
 	// Create the key
-	storagePrimary = tpm.CreatePrimary(
+	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
 		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
 		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
 		storagePrimaryTemplate,
@@ -243,6 +257,11 @@ bool TPMWrapper::c_writeKeyToFile(const std::string & filename)
 	return true;
 }
 
+//Overwrites its input
+std::string TPMWrapper::c_writeKey(){
+	return storagePrimary.Serialize(SerializationType::JSON);
+}
+
 std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
 {
 
@@ -288,22 +307,23 @@ CreatePrimaryResponse TPMWrapper::s_readKeyFromFile(const std::string & filename
 	//Assumes the key is all stored on a single line of the file
 	std::string rsa_key;
 	std::ifstream infile(filename);
-	if (!infile.good()) {
-		std::cerr << "Bad filestream: " << filename << std::endl;
-		exit(1);
-	}
 	std::getline(infile, rsa_key);
 	infile.close();
 
 	CreatePrimaryResponse reconstitutedKey;
 	reconstitutedKey.Deserialize(SerializationType::JSON, rsa_key);
 
-	TPM_HANDLE& keyHandle1 = reconstitutedKey.handle;
+	//TPM_HANDLE& keyHandle1 = reconstitutedKey.handle;
 
 	//cout << "New RSA primary key" << endl << reconstitutedKey.outPublic.ToString() << endl;	
 	//May need to return a different type
 	return reconstitutedKey;
+}
 
+CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring){
+	CreatePrimaryResponse reconstitutedKey;
+	reconstitutedKey.Deserialize(SerializationType::JSON, keystring);
+	return reconstitutedKey;
 }
 
 

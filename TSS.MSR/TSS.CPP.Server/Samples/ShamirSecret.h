@@ -25,8 +25,6 @@
 #include <gmp.h>
 #include <gmpxx.h>
 #elif defined(WIN32)
-#undef min
-#undef max
 #include <mpir.h>
 #include <mpirxx.h>
 #else

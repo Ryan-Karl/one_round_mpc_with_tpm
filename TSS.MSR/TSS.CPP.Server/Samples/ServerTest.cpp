@@ -1,35 +1,58 @@
-// ServerTest.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+//g++ ServerTest.cpp -o server ../tpm_src/*.o  -lgmp -lssl -lcrypto -g
 
 #define NOMINMAX
 
 //#include "pch.h"
 #include <iostream>
-#include "NetworkCommon.h"
-#include "Networking.h"
+//#include "../includes/NetworkUtils.h"
+//#include "../includes/utilities.h"
+//#include "../includes/TPMWrapper.h"
+#include "NetworkUtils.h"
 #include "utilities.h"
 #include "TPMWrapper.h"
 
+
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <string.h>
 
 #define BASEFILE "basefile.txt"
 #define ENCFILE "encfile.txt"
 #define KEYFILE "keyfile.txt"
 #define NUMPARTIES_DEFAULT 1
-#define DEFAULT_TPM_PORT 2321
+#define SERVER_TPM_PORT 2321
 
 using namespace std;
 
-
+//First arg is port, second is a string to encrypt, third is the TPM port
 int main(int argc, char ** argv) {
 	
-	if (argc < 2) {
-		cout << "ERROR: no port given" << endl;
+	if (argc < 4) {
+		cout << "First arg is port, second is a string to encrypt, third is the TPM port" << endl;
 		return 0;
 	}
-	
 
+	TPMWrapper myTpm(atoi(argv[3]));
+	Server s(atoi(argv[1]));
+	s.init();
+	s.accept_connections(1);
+	char * keystr;
+	unsigned int strLen;
+	s.recvString(0, strLen, (char **)&keystr);
+	
+	string jsonStr(keystr);
+	auto key = myTpm.s_readKey(jsonStr);
+	vector<BYTE> toEncrypt = stringToByteVec(argv[2], strlen(argv[2]));
+	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key);
+	string encStr = ByteVecToString(encryptedVec);
+	s.sendString(0, encStr.size()+1, encStr.c_str());
+	s.stop();
+
+
+
+	
+	/*
 	Client c(LOCALHOST, DEFAULT_PORTNUM);
 	if (!c.Start()) {
 		cout << "Error starting client" << endl;
@@ -72,7 +95,9 @@ int main(int argc, char ** argv) {
   
 	SendFile(&trash, ENCFILE, mySock);
   s.close_connections();
+  */
 
 
 	return 0;
 }
+
