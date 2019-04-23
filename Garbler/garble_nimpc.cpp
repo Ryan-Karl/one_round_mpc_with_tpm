@@ -1,3 +1,4 @@
+#include "encryption_util.h"
 #include "garble_util.h"
 
 // Does nested encryption of input labels to prevent residual function attack.
