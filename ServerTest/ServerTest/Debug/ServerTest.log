@@ -1,7 +1,7 @@
 ﻿  ServerTest.cpp
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\servertest\servertest.cpp(4): warning C4603: 'NOMINMAX': macro is not defined or definition is different after precompiled header use
-  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\servertest\servertest.cpp(4): note: Add macro to precompiled header instead of defining here
-  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\servertest\servertest.cpp(6): note: use of precompiled header
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\servertest\servertest.cpp(3): warning C4603: 'NOMINMAX': macro is not defined or definition is different after precompiled header use
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\servertest\servertest.cpp(3): note: Add macro to precompiled header instead of defining here
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\servertest\servertest.cpp(5): note: use of precompiled header
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\includes\networkutils.h(51): warning C4018: '<': signed/unsigned mismatch
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\includes\networkutils.h(63): warning C4018: '<': signed/unsigned mismatch
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\servertest\includes\networkutils.h(182): error C3861: 'closeSocket': identifier not found

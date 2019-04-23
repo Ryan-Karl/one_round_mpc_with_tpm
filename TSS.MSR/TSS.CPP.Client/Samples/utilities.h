@@ -2,7 +2,7 @@
 #define UTILITIES_H
 
 
-#include "stdafx.h"
+//#include "stdafx.h"
 //#include "Samples.h"
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -13,15 +13,23 @@
 #include <stdarg.h>
 #include <cstdio>
 #include <iostream>
-#include <modes.h>
-#include <aes.h>
+#include <sstream>
+//#include <modes.h>
+//#include <aes.h>
 //#include "ShamirSecret.h"
 #include <vector>
 #include <iterator>
 #include <cassert>
 #include <fstream>
+
+#ifdef WIN32
 #include <mpir.h>
 #include <mpirxx.h>
+#elif defined(__linux__)
+#include <gmp.h>
+#include <gmpxx.h>
+typedef unsigned char BYTE;
+#endif
 
 
 std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
@@ -61,12 +69,36 @@ std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr){
 	return ret;
 }
 
-
+/*
 std::string ByteVecToString(const std::vector<BYTE> & v) {
 	std::string str = "";
 	for (const auto & c : v) {
 		str += c;
 	}
+	return str;
+}
+*/
+
+std::vector<BYTE> stringToByteVec(const char * str, unsigned int strlen){
+	std::vector<BYTE> v;
+	v.reserve(strlen);
+	for(unsigned int i = 0; i < strlen; i++){
+		v.push_back(str[i]);
+	}
+	return v;
+}
+
+std::vector<BYTE> stringToByteVec(const std::string & s){
+	std::vector<BYTE> v;
+	v.reserve(s.size());
+	for(unsigned int i = 0; i < s.size(); i++){
+		v.push_back(s[i]);
+	}
+	return v;
+}
+
+std::string ByteVecToString(const std::vector<BYTE> & v) {
+	std::string str(v.begin(), v.end());
 	return str;
 }
 

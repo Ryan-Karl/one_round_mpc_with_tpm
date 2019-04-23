@@ -100,7 +100,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>tss.cpp.lib;wsock32.lib;kernel32.lib;user32.lib;%(AdditionalDependencies);libeay32.lib;mpir.lib;mpirxx.lib;</AdditionalDependencies>
+      <AdditionalDependencies>tss.cpp.lib;wsock32.lib;kernel32.lib;user32.lib;%(AdditionalDependencies);libeay32.lib;mpir.lib;mpirxx.lib;Ws2_32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);C:\Program Files (x86)\OpenSSL-Win32\lib;C:\DevSoft\mpir\msvc\vs15\lib_mpir_gc\Win32\Debug;C:\DevSoft\mpir\msvc\vs15\lib_mpir_cxx\Win32\Debug;</AdditionalLibraryDirectories>
     </Link>
     <ProjectReference>
@@ -175,17 +175,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\SecretSharingPort\SecretSharingPort\ShamirSecret.h" />
-    <ClInclude Include="Client.h" />
-    <ClInclude Include="NetworkCommon.h" />
-    <ClInclude Include="Networking.h" />
-    <ClInclude Include="Server.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="TPMWrapper.h" />
-    <ClInclude Include="utilities.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="ServerTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -193,6 +182,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\includes\NetworkUtils.h" />
+    <ClInclude Include="..\..\..\includes\ShamirSecret.h" />
+    <ClInclude Include="..\..\..\includes\TPMWrapper.h" />
+    <ClInclude Include="..\..\..\includes\utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

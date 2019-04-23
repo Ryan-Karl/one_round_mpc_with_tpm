@@ -26,13 +26,15 @@
 #include <fstream>
 #include "utilities.h"
 
-#include "../tpm_src/Tpm2.h"
+
 
 #ifdef WIN32
 #include "stdafx.h"
+#include "../Src/Tpm2.h"
 #include <mpir.h>
 #include <mpirxx.h>
 #elif defined(__linux__)
+#include "../tpm_src/Tpm2.h"
 #include <gmp.h>
 #include <gmpxx.h>
 #endif
@@ -198,7 +200,7 @@ void TPMWrapper::c_createAndStoreKey()
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
 	// Create the key
-	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
+	storagePrimary = tpm.CreatePrimary(
 		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
 		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
 		storagePrimaryTemplate,
