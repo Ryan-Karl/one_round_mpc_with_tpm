@@ -82,16 +82,3 @@ wire_value * wire2garbling(Wire * w, bit * which) {
   int size = w->size + 1;
   wire_value * ret = new wire_value(size);
 }
-
-int eval_garbled_circuit(Circuit * c, PlayerInfo * player) {
-/*
-[INCOMPLETE] pseudocode
-compute
-  if wire's connected to a gate root:
-    if root is an XOR:
-      label0 = assign_masks(left) xor assign_masks(right)
-      label1 = label0 xor GETRAND
-    if root is an AND:
-  //Get
-*/
-}

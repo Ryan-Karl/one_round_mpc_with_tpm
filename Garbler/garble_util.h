@@ -17,8 +17,7 @@ typedef bool bit;
 const bit constbit_1 = true;
 const bit constbit_0 = false;
 
-void get_garbled_circuit(Circuit * c, PlayerInfo ** players);
-int eval_garbled_circuit(Circuit * c, PlayerInfo * player);
+void get_garbled_circuit(Circuit * c);
 
 wire_value * xor_wire(wire_value * w1, wire_value * w2);
 // xor_bit can of course be done without this concisely but just in case representation changes it will be nice to be able to abstract away
@@ -35,15 +34,6 @@ wire_value * hash(wire_value * ke, char * str, int gate_number);
 
 //Read frigate circuit and parse into structure
 void read_frigate_circuit(char * filename, Circuit * circuit);
-
-typedef struct {
-  // Shared in setup
-  char * randomness_file;
-  char * host;
-  char * port;
-  //Should this be a bytevec?
-  char * TPM_pubkey;
-} PlayerInfo;
 
 //TODO: numbering
 typedef enum gate_type {
@@ -74,10 +64,6 @@ typedef struct {
   bit output_garble_info[2];
   bit output_e0;
   bit output_e1;
-
-  // If this is a leaf node, player has useful information.
-  bool is_leaf;
-  PlayerInfo * player;
 
   // If this wire is the output of a gate, this section has useful information.
   bool is_gate;
