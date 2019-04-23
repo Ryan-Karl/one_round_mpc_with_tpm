@@ -56,13 +56,13 @@ public:
 	//Server functions
 	CreatePrimaryResponse s_readKeyFromFile(const std::string & filename);
 	CreatePrimaryResponse s_readKey(const std::string & keystring);
-	std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey);
+	std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey, const std::vector<BYTE> & pad);
 
 	//Client functions
 	void c_createAndStoreKey();
 	bool c_writeKeyToFile(const std::string & filename);
 	std::string c_writeKey();
-	std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit);
+	std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit, const std::vector<BYTE> & pad);
 
 protected:
 
@@ -200,7 +200,7 @@ void TPMWrapper::c_createAndStoreKey()
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
 	// Create the key
-	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
+	storagePrimary = tpm.CreatePrimary(
 		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
 		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
 		storagePrimaryTemplate,
@@ -258,11 +258,11 @@ bool TPMWrapper::c_writeKeyToFile(const std::string & filename)
 }
 
 //Overwrites its input
-std::string TPMWrapper::c_writeKey(){
+std::string TPMWrapper::c_writeKey() {
 	return storagePrimary.Serialize(SerializationType::JSON);
 }
 
-std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
+std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit, const std::vector<BYTE> & pad)
 {
 
 
@@ -281,7 +281,7 @@ std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext
 	//for (int j = 0; j < 5; j++) {
 	tpm.NV_Increment(nvHandle, nvHandle);
 
-	plaintext = tpm.RSA_Decrypt(keyHandle, ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	plaintext = tpm.RSA_Decrypt(keyHandle, ciphertext, TPMS_NULL_ASYM_SCHEME(), pad);
 	//cout << "Decrypted plaintext: " << plaintext << endl << endl;
 
 	// And make sure that it's good
@@ -320,17 +320,17 @@ CreatePrimaryResponse TPMWrapper::s_readKeyFromFile(const std::string & filename
 	return reconstitutedKey;
 }
 
-CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring){
+CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring) {
 	CreatePrimaryResponse reconstitutedKey;
 	reconstitutedKey.Deserialize(SerializationType::JSON, keystring);
 	return reconstitutedKey;
 }
 
 
-std::vector<BYTE> TPMWrapper::s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey)
+std::vector<BYTE> TPMWrapper::s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey, const std::vector<BYTE> & pad)
 {
 
-	ByteVec ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, NullVec);
+	ByteVec ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, pad);
 	//cout << "Encrypted ciphertext: " << ciphertext << endl;
 
 	return ciphertext;

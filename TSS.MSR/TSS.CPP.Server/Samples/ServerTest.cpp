@@ -35,18 +35,36 @@ int main(int argc, char ** argv) {
 
 	TPMWrapper myTpm(atoi(argv[3]));
 	Server s(atoi(argv[1]));
-	s.init();
-	s.accept_connections(1);
+	if (s.init() || s.accept_connections(1)) {
+		cout << "Failed server startup";
+		return 1;
+	}
+	else {
+		cout << "Server started" << endl;
+	}
 	char * keystr;
 	unsigned int strLen;
-	s.recvString(0, strLen, (char **)&keystr);
+	if (s.recvString(0, strLen, (char **)&keystr)) {
+		cout << "Error getting key string" << endl;
+	}
+	else {
+		cout << "Server received key string" << endl;
+	}
+	
 	
 	string jsonStr(keystr);
+	cout << "Key string size: " << jsonStr.size() << endl;
 	auto key = myTpm.s_readKey(jsonStr);
+	vector<BYTE> pad = { 1,2,3,4,5 };
 	vector<BYTE> toEncrypt = stringToByteVec(argv[2], strlen(argv[2]));
-	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key);
+	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key, pad);
 	string encStr = ByteVecToString(encryptedVec);
-	s.sendString(0, encStr.size()+1, encStr.c_str());
+	if (s.sendString(0, encStr.size() + 1, encStr.c_str())) {
+		cout << "Error sending encrypted string" << endl;
+	}
+	else {
+		cout << "Sent encrypted string" << endl;
+	}
 	s.stop();
 
 
