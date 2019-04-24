@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <string>
+#include <sstream>
 
 #ifdef WIN32
 #include <mpir.h>
@@ -72,6 +73,43 @@ mpz_class decrypt(const mpz_class & ciphertext, private_key & priv){
   mpz_class dec;
   mpz_powm(dec.get_mpz_t(), ciphertext.get_mpz_t(), priv.d.get_mpz_t(), priv.pk.n.get_mpz_t());
   return dec;
+}
+
+//Note this only works with the toString method's result - not with the JSON!
+public_key key_from_TPM_string(const std::string & s){
+  public_key pk;
+  std::string scrap;
+  std::istringstream is(s);
+  bool alreadySeenKeyBits = false;
+  //Get key bits
+  while(is >> scrap){
+    if(scrap == "keyBits"){
+      //Skip the first instance of "keyBits"
+      if(!alreadySeenKeyBits){
+        alreadySeenKeyBits = true;
+        continue;
+      }
+      else{
+        //Skip '='
+        is >> scrap;
+        unsigned int keyBits;
+        is >> std::hex;
+        is >> keyBits;
+        pk.n = keyBits;
+      }
+    }
+  }
+  //Skip over the next 4 tokens
+  for(unsigned int i = 0; i < 4; i++){
+    is >> scrap;
+  }
+//Now get the exponent
+  is >> std::hex;
+  unsigned int exponent;
+  is >> exponent;
+  pk.e = exponent;
+
+  return pk;
 }
 
 
