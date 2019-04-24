@@ -49,7 +49,16 @@ int main(int argc, char ** argv) {
 	
 	
 
-	c.sendString(keystring.size()+1, keystring.c_str());
+	if(!c.sendString(keystring.size()+1, keystring.c_str())){
+    cout << "Client sent key:" << endl;
+  }
+  else{
+    cout << "ERROR in client sending key" << endl;
+    return 1;
+  }
+
+  cout << keystring << endl;
+  cout << "Key size: " << keystring.size() << endl;
 
 	char * encStr;
 	unsigned int encLen;

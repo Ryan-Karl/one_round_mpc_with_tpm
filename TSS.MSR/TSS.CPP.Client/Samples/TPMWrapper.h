@@ -43,11 +43,14 @@ using namespace TpmCpp;
 
 class TPMWrapper {
 public:
-	TPMWrapper(unsigned int port = 2321);
+	TPMWrapper();
 	~TPMWrapper();
 	Tpm2 & GetTpm() {
 		return tpm;
 	}
+
+  bool init(unsigned int port = 2321);
+  bool stop();
 
 	void RunTests();
 
@@ -72,6 +75,7 @@ protected:
 	//void TPMWrapper::Callback1();
 
 
+  bool initialized;
 
 	std::vector<BYTE> NullVec;
 	_TPMCPP Tpm2 tpm;
@@ -100,36 +104,8 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
 }
 */
 
-
-void TPMWrapper::SetCol(unsigned int c)
-{
-#ifdef WIN32
-	UINT16 col = c;
-	UINT16 fColor;
-
-	switch (col) {
-	case 0:
-		fColor = FOREGROUND_GREEN;
-		break;
-
-	case 1:
-		fColor = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED;
-		break;
-
-	default:;
-	};
-
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), fColor);
-#endif
-
-	return;
-}
-
-void TPMWrapper::RunTests() {}
-
-TPMWrapper::TPMWrapper(unsigned int port)
-{
-	//RunSamples();
+bool init(unsigned int port){
+  //RunSamples();
 
 	device = new TpmTcpDevice("127.0.0.1", port);
 
@@ -161,19 +137,68 @@ TPMWrapper::TPMWrapper(unsigned int port)
 	// Startup the TPM
 	tpm.Startup(TPM_SU::CLEAR);
 
-	return;
+	return initialized = true;
 }
 
-TPMWrapper::~TPMWrapper() {
-	// A clean shutdown results in fewer lockout errors.
-	tpm.Shutdown(TPM_SU::CLEAR);
-	device->PowerOff();
 
+
+  bool stop(){
+    // A clean shutdown results in fewer lockout errors.
+
+    if(initialized){
+      tpm.Shutdown(TPM_SU::CLEAR);
+	    device->PowerOff();
+
+      // REVISIT 
+	    delete device;
+      device = nullptr;
+    }
+
+  return true;
+	  
 	// The following routine finalizes and prints the function stats.
 	//Callback2();
 
 	// REVISIT 
 	// delete device;
+  }
+
+
+
+void TPMWrapper::SetCol(unsigned int c)
+{
+#ifdef WIN32
+	UINT16 col = c;
+	UINT16 fColor;
+
+	switch (col) {
+	case 0:
+		fColor = FOREGROUND_GREEN;
+		break;
+
+	case 1:
+		fColor = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED;
+		break;
+
+	default:;
+	};
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), fColor);
+#endif
+
+	return;
+}
+
+void TPMWrapper::RunTests() {}
+
+TPMWrapper::TPMWrapper()
+{
+	initialized = false;
+  device = nullptr;
+}
+
+TPMWrapper::~TPMWrapper() {
+	stop();
 }
 /*
 void TPMWrapper::Callback1() {
@@ -264,6 +289,10 @@ std::string TPMWrapper::c_writeKey(){
 
 std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
 {
+
+  if(!initialized){
+    throw std::logic_error("Wrapper not properly initialized");
+  }
 
 
 	ByteVec plaintext;

@@ -25,15 +25,17 @@
 
 using namespace std;
 
-//First arg is port, second is a string to encrypt, third is the TPM port
+//First arg is port, second is a string to encrypt
 int main(int argc, char ** argv) {
 	
-	if (argc < 4) {
-		cout << "First arg is port, second is a string to encrypt, third is the TPM port" << endl;
+	if (argc < 3) {
+		cout << "First arg is port, second is a string to encrypt" << endl;
 		return 0;
 	}
 
-	TPMWrapper myTpm(atoi(argv[3]));
+	TPMWrapper myTpm();
+  //Should not need to call init to start TPM connection
+  //myTpm.init(atoi(argv[3]));
 	Server s(atoi(argv[1]));
 	if (s.init() || s.accept_connections(1)) {
 		cout << "Failed server startup";
@@ -48,11 +50,13 @@ int main(int argc, char ** argv) {
 		cout << "Error getting key string" << endl;
 	}
 	else {
-		cout << "Server received key string" << endl;
+		cout << "Server received key string:" << endl;
+    
 	}
 	
 	
 	string jsonStr(keystr);
+  cout << jsonStr << endl;
 	cout << "Key string size: " << jsonStr.size() << endl;
 	auto key = myTpm.s_readKey(jsonStr);
 	vector<BYTE> pad = { 1,2,3,4,5 };
