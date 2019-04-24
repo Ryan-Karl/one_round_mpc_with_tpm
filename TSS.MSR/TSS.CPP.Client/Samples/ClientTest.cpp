@@ -33,7 +33,8 @@ int main(int argc, char ** argv) {
 	}
 	
 
-	TPMWrapper myTPM(atoi(argv[2]));
+	TPMWrapper myTPM;
+  myTPM.init(atoi(argv[2]));
 	myTPM.c_createAndStoreKey();
 	string keystring = myTPM.c_writeKey();
 
