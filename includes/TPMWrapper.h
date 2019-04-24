@@ -75,7 +75,7 @@ protected:
 	//void TPMWrapper::Callback1();
 
 
-  bool initialized;
+	bool initialized;
 
 	std::vector<BYTE> NullVec;
 	_TPMCPP Tpm2 tpm;
@@ -104,7 +104,7 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
 }
 */
 
-bool init(unsigned int port){
+bool TPMWrapper::init(unsigned int port){
   //RunSamples();
 
 	device = new TpmTcpDevice("127.0.0.1", port);
@@ -142,7 +142,7 @@ bool init(unsigned int port){
 
 
 
-  bool stop(){
+  bool TPMWrapper::stop(){
     // A clean shutdown results in fewer lockout errors.
 
     if(initialized){
