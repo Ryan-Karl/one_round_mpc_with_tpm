@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
 		return 0;
 	}
 
-	TPMWrapper myTpm();
+	
   //Should not need to call init to start TPM connection
   //myTpm.init(atoi(argv[3]));
 	Server s(atoi(argv[1]));
@@ -56,12 +56,16 @@ int main(int argc, char ** argv) {
 	
 	
 	string jsonStr(keystr);
-  cout << jsonStr << endl;
-	cout << "Key string size: " << jsonStr.size() << endl;
+    cout << jsonStr << endl;
+	cout << "Key string size: " << std::dec << jsonStr.size() << endl;
+	TPMWrapper myTpm;
+	myTpm.init(30000);
+
 	auto key = myTpm.s_readKey(jsonStr);
 	vector<BYTE> pad = { 1,2,3,4,5 };
 	vector<BYTE> toEncrypt = stringToByteVec(argv[2], strlen(argv[2]));
-	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key, pad);
+	cout << "toEncrypt: " << ByteVecToString(toEncrypt) << endl;
+	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key);
 	string encStr = ByteVecToString(encryptedVec);
 	if (s.sendString(0, encStr.size() + 1, encStr.c_str())) {
 		cout << "Error sending encrypted string" << endl;

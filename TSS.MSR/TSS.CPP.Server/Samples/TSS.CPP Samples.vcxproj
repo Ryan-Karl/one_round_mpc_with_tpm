@@ -186,8 +186,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\includes\NetworkUtils.h" />
     <ClInclude Include="..\..\..\includes\ShamirSecret.h" />
-    <ClInclude Include="..\..\..\includes\TPMWrapper.h" />
     <ClInclude Include="..\..\..\includes\utilities.h" />
+    <ClInclude Include="TPMWrapper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

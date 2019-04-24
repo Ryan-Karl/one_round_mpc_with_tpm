@@ -125,8 +125,8 @@ Samples::~Samples()
 void Samples::RunAllSamples()
 {
 	_check
-	MPC_TPM();
-	//SoftwareKeys();
+	//MPC_TPM();
+	SoftwareKeys();
 	_check;
 
 	//Callback2();
@@ -3346,107 +3346,76 @@ void Samples::SoftwareKeys()
 {
 	Announce("SoftwareKeys");
 
-	// This sample illustrates various forms of import of externally created keys, 
-	// and export of a TPM key to TSS.c++ where it can be used for cryptography.
+		// This sample illustrates various forms of import of externally created keys, 
+		// and export of a TPM key to TSS.c++ where it can be used for cryptography.
 
-	// First make a software key, and show how it can be imported into the TPM and used.
-	TPMT_PUBLIC templ(TPM_ALG_ID::SHA1,
-		TPMA_OBJECT::sign | TPMA_OBJECT::userWithAuth,
-		NullVec,  // No policy
-		TPMS_RSA_PARMS(
-			TPMT_SYM_DEF_OBJECT::NullObject(),
-			TPMS_SCHEME_RSASSA(TPM_ALG_ID::SHA1), 1024, 65537),
-		TPM2B_PUBLIC_KEY_RSA(NullVec));
+		// First make a software key, and show how it can be imported into the TPM and used.
 
-	TSS_KEY k;
-	k.publicPart = templ;
-	k.CreateKey();
+		// We will make a key in the "null hierarchy".
+		TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
+			TPMA_OBJECT::decrypt |
+			TPMA_OBJECT::sensitiveDataOrigin |
+			TPMA_OBJECT::userWithAuth,
+			NullVec,
+			TPMS_RSA_PARMS(
+				TPMT_SYM_DEF_OBJECT::NullObject(),
+				TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+			TPM2B_PUBLIC_KEY_RSA(NullVec));
 
-	TPMT_SENSITIVE s(NullVec, NullVec, TPM2B_PRIVATE_KEY_RSA(k.privatePart));
-	TPM_HANDLE h2 = tpm.LoadExternal(s, k.publicPart, TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL));
-
-	ByteVec toSign = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "hello").digest;
-	SignResponse sig = tpm.Sign(h2, toSign, TPMS_NULL_SIG_SCHEME(), TPMT_TK_HASHCHECK::NullTicket());
-
-	bool swValidatedSig = k.publicPart.ValidateSignature(toSign, *sig.signature);
-
-	if (swValidatedSig) {
-		cout << "External key imported into the TPM works for signing" << endl;
-	}
-
-	_ASSERT(swValidatedSig);
-
-	// Next make an exportable key in the TPM and export it to a SW-key
-
-	auto primHandle = MakeStoragePrimary();
-
-	// Make a duplicatable signing key as a child. Note that duplication *requires* a policy session.
-	PolicyTree p(PolicyCommandCode(TPM_CC::Duplicate, ""));
-	TPMT_HA policyDigest = p.GetPolicyDigest(TPM_ALG_ID::SHA1);
-
-	// Change the attributes since we want the TPM to make the sensitve area
-	templ.objectAttributes = TPMA_OBJECT::sign | TPMA_OBJECT::userWithAuth | TPMA_OBJECT::sensitiveDataOrigin;
-	templ.authPolicy = policyDigest.digest;
-	CreateResponse keyBlob = tpm.Create(primHandle,
-		TPMS_SENSITIVE_CREATE(),
-		templ,
+	// Create the key
+	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
+		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
+		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
+		storagePrimaryTemplate,
 		NullVec,
-		TPMS_PCR_SELECTION::NullSelectionArray());
+		vector<TPMS_PCR_SELECTION>());
 
-	TPM_HANDLE h = tpm.Load(primHandle, keyBlob.outPrivate, keyBlob.outPublic);
+	TPM_HANDLE& keyHandle = storagePrimary.handle;
 
-	// Duplicate. Note we need a policy session.
-	AUTH_SESSION session = tpm.StartAuthSession(TPM_SE::POLICY, TPM_ALG_ID::SHA1);
-	p.Execute(tpm, session);
-	DuplicateResponse dup = tpm._Sessions(session).Duplicate(h,
-		TPM_HANDLE::NullHandle(),
-		NullVec,
-		TPMT_SYM_DEF_OBJECT::NullObject());
-	tpm.FlushContext(session);
+	cout << "New RSA primary key" << endl << storagePrimary.outPublic.ToString() << endl;
 
-	// Import the key into a TSS_KEY. The privvate key is in a an encoded TPM2B_SENSITIVE.
-	TPM2B_SENSITIVE sens;
-	sens.FromBuf(dup.duplicate.buffer);
+	ByteVec secret_Array{ 1, 2, 3, 4, 5, 6, 0 };
 
-	// And the sensitive area is an RSA key in this case
-	TPM2B_PRIVATE_KEY_RSA *rsaPriv = dynamic_cast<TPM2B_PRIVATE_KEY_RSA *>(sens.sensitiveArea.sensitive);
+	ByteVec enc_Array;
+	ByteVec dec_Array;
+	//ByteVec pad{ 1, 2, 3, 4, 5, 6, 0 };
 
-	// Put this in a TSS.C++ defined structure for convenience
-	TSS_KEY swKey(keyBlob.outPublic, rsaPriv->buffer);
 
-	// Now show that we can sign with the exported SW-key and validate the
-	// signature with the pubkey in the TPM.
-	TPMS_NULL_SIG_SCHEME nullScheme;
-	SignResponse swSig2 = swKey.Sign(toSign, nullScheme);
-	auto sigResponse = tpm.VerifySignature(h, toSign, *swSig2.signature);
+	enc_Array = storagePrimary.outPublic.Encrypt(secret_Array, NullVec);
+	cout << "My           ciphertext: " << enc_Array << endl;
+	dec_Array = tpm.RSA_Decrypt(keyHandle, enc_Array, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << "My           secret: " << secret_Array << endl;
+	cout << "My decrypted secret: " << dec_Array << endl << endl;
 
-	// Sign with the TPM key
-	sig = tpm.Sign(h2, toSign, TPMS_NULL_SIG_SCHEME(), TPMT_TK_HASHCHECK::NullTicket());
 
-	// And validate with the SW-key (this only uses the public key, of course).
-	swValidatedSig = k.publicPart.ValidateSignature(toSign, *sig.signature);
+	// Next a full key (pub + prov)
+	string keyContainer = storagePrimary.Serialize(SerializationType::JSON);
 
-	if (swValidatedSig) {
-		cout << "Key created in the TPM and then exported can sign (as expected)" << endl;
-	}
+	//************************************
+	tpm.FlushContext(storagePrimary.handle);
 
-	_ASSERT(swValidatedSig);
 
-	// Now sign with the duplicate key and check that we can validate the
-	// sig with the public key still in the TPM.
-	auto swSig = k.Sign(toSign, TPMS_NULL_SIG_SCHEME());
+	CreatePrimaryResponse reconstitutedKey;
+	reconstitutedKey.Deserialize(SerializationType::JSON, keyContainer);
 
-	// Check the SW generated sig is validated with the SW verifier
-	bool sigOk = k.publicPart.ValidateSignature(toSign, *swSig.signature);
 
-	_ASSERT(sigOk);
+	//TPM_HANDLE& keyHandle1 = reconstitutedKey.handle;
 
-	// And finally check that the key still in the TPM can validate the duplicated key sig
-	auto sigVerify = tpm.VerifySignature(h2, toSign, *swSig.signature);
 
-	tpm.FlushContext(h);
-	tpm.FlushContext(primHandle);
-	tpm.FlushContext(h2);
+
+	//	TSS_KEY k;
+	//	k.publicPart = reconstitutedPub;
+	//	k.CreateKey();
+
+
+		//TPMT_SENSITIVE s(NullVec, NullVec, TPM2B_PRIVATE_KEY_RSA(k.privatePart));
+		//TPM_HANDLE h2 = tpm.LoadExternal(s, k.publicPart, TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL));
+
+	cout << "New RSA primary key" << endl << reconstitutedKey.outPublic.ToString() << endl;
+
+
+	enc_Array = reconstitutedKey.outPublic.Encrypt(secret_Array, NullVec);
+	cout << "My           ciphertext: " << enc_Array << endl;
 
 	return;
 }

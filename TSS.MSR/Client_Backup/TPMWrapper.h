@@ -43,11 +43,14 @@ using namespace TpmCpp;
 
 class TPMWrapper {
 public:
-	TPMWrapper(unsigned int port = 2321);
+	TPMWrapper();
 	~TPMWrapper();
 	Tpm2 & GetTpm() {
 		return tpm;
 	}
+
+	bool init(unsigned int port = 2321);
+	bool stop();
 
 	void RunTests();
 
@@ -56,13 +59,13 @@ public:
 	//Server functions
 	CreatePrimaryResponse s_readKeyFromFile(const std::string & filename);
 	CreatePrimaryResponse s_readKey(const std::string & keystring);
-	std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey, const std::vector<BYTE> & pad);
+	std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey);
 
 	//Client functions
 	void c_createAndStoreKey();
 	bool c_writeKeyToFile(const std::string & filename);
 	std::string c_writeKey();
-	std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit, const std::vector<BYTE> & pad);
+	std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit);
 
 protected:
 
@@ -72,6 +75,7 @@ protected:
 	//void TPMWrapper::Callback1();
 
 
+	bool initialized;
 
 	std::vector<BYTE> NullVec;
 	_TPMCPP Tpm2 tpm;
@@ -100,35 +104,7 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
 }
 */
 
-
-void TPMWrapper::SetCol(unsigned int c)
-{
-#ifdef WIN32
-	UINT16 col = c;
-	UINT16 fColor;
-
-	switch (col) {
-	case 0:
-		fColor = FOREGROUND_GREEN;
-		break;
-
-	case 1:
-		fColor = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED;
-		break;
-
-	default:;
-	};
-
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), fColor);
-#endif
-
-	return;
-}
-
-void TPMWrapper::RunTests() {}
-
-TPMWrapper::TPMWrapper(unsigned int port)
-{
+bool TPMWrapper::init(unsigned int port) {
 	//RunSamples();
 
 	device = new TpmTcpDevice("127.0.0.1", port);
@@ -161,19 +137,68 @@ TPMWrapper::TPMWrapper(unsigned int port)
 	// Startup the TPM
 	tpm.Startup(TPM_SU::CLEAR);
 
-	return;
+	return initialized = true;
 }
 
-TPMWrapper::~TPMWrapper() {
+
+
+bool TPMWrapper::stop() {
 	// A clean shutdown results in fewer lockout errors.
-	tpm.Shutdown(TPM_SU::CLEAR);
-	device->PowerOff();
+
+	if (initialized) {
+		tpm.Shutdown(TPM_SU::CLEAR);
+		device->PowerOff();
+
+		// REVISIT 
+		delete device;
+		device = nullptr;
+	}
+
+	return true;
 
 	// The following routine finalizes and prints the function stats.
 	//Callback2();
 
 	// REVISIT 
 	// delete device;
+}
+
+
+
+void TPMWrapper::SetCol(unsigned int c)
+{
+#ifdef WIN32
+	UINT16 col = c;
+	UINT16 fColor;
+
+	switch (col) {
+	case 0:
+		fColor = FOREGROUND_GREEN;
+		break;
+
+	case 1:
+		fColor = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED;
+		break;
+
+	default:;
+	};
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), fColor);
+#endif
+
+	return;
+}
+
+void TPMWrapper::RunTests() {}
+
+TPMWrapper::TPMWrapper()
+{
+	initialized = false;
+	device = nullptr;
+}
+
+TPMWrapper::~TPMWrapper() {
+	stop();
 }
 /*
 void TPMWrapper::Callback1() {
@@ -258,12 +283,16 @@ bool TPMWrapper::c_writeKeyToFile(const std::string & filename)
 }
 
 //Overwrites its input
-std::string TPMWrapper::c_writeKey(){
+std::string TPMWrapper::c_writeKey() {
 	return storagePrimary.Serialize(SerializationType::JSON);
 }
 
-std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit, const std::vector<BYTE> & pad)
+std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
 {
+
+	if (!initialized) {
+		throw std::logic_error("Wrapper not properly initialized");
+	}
 
 
 	ByteVec plaintext;
@@ -281,7 +310,7 @@ std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext
 	//for (int j = 0; j < 5; j++) {
 	tpm.NV_Increment(nvHandle, nvHandle);
 
-	plaintext = tpm.RSA_Decrypt(keyHandle, ciphertext, TPMS_NULL_ASYM_SCHEME(), pad);
+	plaintext = tpm.RSA_Decrypt(keyHandle, ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
 	//cout << "Decrypted plaintext: " << plaintext << endl << endl;
 
 	// And make sure that it's good
@@ -320,19 +349,20 @@ CreatePrimaryResponse TPMWrapper::s_readKeyFromFile(const std::string & filename
 	return reconstitutedKey;
 }
 
-CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring){
+CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring) {
 	CreatePrimaryResponse reconstitutedKey;
 	reconstitutedKey.Deserialize(SerializationType::JSON, keystring);
 	return reconstitutedKey;
 }
 
 
-std::vector<BYTE> TPMWrapper::s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey, const std::vector<BYTE> & pad)
+std::vector<BYTE> TPMWrapper::s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey)
 {
 
-	ByteVec ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, pad);
+	//ByteVec ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, NullVec);
 	//cout << "Encrypted ciphertext: " << ciphertext << endl;
-
+	tpm.FlushContext(reconstitutedKey.handle);
+	auto ciphertext = tpm.RSA_Encrypt(reconstitutedKey.handle, plaintext, TPMS_NULL_ASYM_SCHEME(), NullVec);
 	return ciphertext;
 }
 
