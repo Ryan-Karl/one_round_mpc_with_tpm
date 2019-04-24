@@ -185,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\includes\NetworkUtils.h" />
+    <ClInclude Include="..\..\..\includes\RSA.h" />
     <ClInclude Include="..\..\..\includes\ShamirSecret.h" />
     <ClInclude Include="..\..\..\includes\utilities.h" />
     <ClInclude Include="TPMWrapper.h" />

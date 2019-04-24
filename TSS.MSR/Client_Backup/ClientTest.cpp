@@ -59,8 +59,8 @@ int main(int argc, char ** argv) {
 		return 1;
 	}
 
-	cout << std::dec << keystring << endl;
-	cout << "Key size: " << keystring.size() << endl;
+	//cout << std::dec << keystring << endl;
+	//cout << "Key size: " << keystring.size() << endl;
 
 	char * encStr;
 	unsigned int encLen;

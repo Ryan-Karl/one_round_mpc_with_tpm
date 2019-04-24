@@ -1,0 +1,38 @@
+Got connection
+================================================================================
+          MPC_TPM
+================================================================================
+New RSA primary key
+class TPMT_PUBLIC
+{
+    TPM_ALG_ID type = RSA (0x1)
+    TPM_ALG_ID nameAlg = SHA1 (0x4)
+    TPMA_OBJECT objectAttributes = sensitiveDataOrigin |
+                                    userWithAuth |
+                                    decrypt
+                                    (0x20060)
+    UINT16 authPolicySize = 0x00 (0)
+    BYTE[] authPolicy = []
+    TPMU_PUBLIC_PARMS parameters = class TPMS_RSA_PARMS
+    {
+        TPMT_SYM_DEF_OBJECT symmetric = class TPMT_SYM_DEF_OBJECT
+        {
+            TPM_ALG_ID algorithm = _NULL (0x10)
+            UINT16 keyBits = 0xcdcd (52685)
+            TPM_ALG_ID mode = ? (0xcdcd)
+        }
+        TPM_ALG_ID schemeScheme = OAEP (0x17)
+        TPMU_ASYM_SCHEME scheme = class TPMS_ENC_SCHEME_OAEP
+        {
+            TPM_ALG_ID hashAlg = SHA1 (0x4)
+        }
+        UINT16 keyBits = 0x800 (2048)
+        UINT32 exponent = 0x10001 (65537)
+    }
+    TPMU_PUBLIC_ID unique = class TPM2B_PUBLIC_KEY_RSA
+    {
+        UINT16 size = 0x100 (256)
+        BYTE[] buffer = [b271bf5e 08013463 97327306 52f44db8 7837ddb4 e5cd3ff7 1fd1bd74 3b52bbfd 656f31d4 7b711807 ea834e50 911975d5 6199db6b 0364c266 03ac8637 ad5f5828 a88d5f54 2e0c1903 0a4f935d a7f7dfc7 a4504f47 334468ee 5c79d16b b14bf161 10662056 8f6af190 565dba90 ab455b81 4ddc9584 8b3ceba6 6a137ae1 758d9544 a2d5eedc 22107ffb ff8b0e7d 4db27db3 fdc47059 8f7fdbb0 783ae24d cc6bf8b4 60d5fa0e bd272f83 826cd0f5 c61b8048 61102220 a5d39a70 cd4668dc 7b57bec4 80cbcbd0 a9febcd2 2e572938 e9dcc874 8a30ba49 b4055874 b8b60ca8 c4fa09be 23e060ec 0f8d9b0a fac9a710 7bb775ae 8d2d7872 ebfd02e7 1bfa8657 7063a60b]
+    }
+}
+Client sent key:

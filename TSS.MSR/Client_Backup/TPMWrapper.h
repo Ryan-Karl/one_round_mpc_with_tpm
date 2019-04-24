@@ -233,8 +233,9 @@ void TPMWrapper::c_createAndStoreKey()
 		vector<TPMS_PCR_SELECTION>());
 
 	cout << "New RSA primary key" << endl << storagePrimary.outPublic.ToString() << endl;
-	cout << "Name of new key:" << endl;
-	cout << " Returned by TPM " << storagePrimary.name << endl;
+	//cout << "New RSA primary key" << endl << storagePrimary.outPublic.ToString() << endl;
+	//cout << "Name of new key:" << endl;
+	//cout << " Returned by TPM " << storagePrimary.name << endl;
 
 
 
