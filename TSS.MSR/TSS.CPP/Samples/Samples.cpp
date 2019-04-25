@@ -40,6 +40,24 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 void handleErrors(void);
 
 
+std::vector<BYTE> stringToByteVec(const char * str, unsigned int strlen) {
+	std::vector<BYTE> v;
+	v.reserve(strlen);
+	for (unsigned int i = 0; i < strlen; i++) {
+		v.push_back(str[i]);
+	}
+	return v;
+}
+
+std::vector<BYTE> stringToByteVec(const std::string & s) {
+	std::vector<BYTE> v;
+	v.reserve(s.size());
+	for (unsigned int i = 0; i < s.size(); i++) {
+		v.push_back(s[i]);
+	}
+	return v;
+}
+
 std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
 	std::string line;
 	std::vector<std::vector<BYTE> > ret;
@@ -3346,77 +3364,36 @@ void Samples::SoftwareKeys()
 {
 	Announce("SoftwareKeys");
 
-		// This sample illustrates various forms of import of externally created keys, 
-		// and export of a TPM key to TSS.c++ where it can be used for cryptography.
-
-		// First make a software key, and show how it can be imported into the TPM and used.
-
-		// We will make a key in the "null hierarchy".
-		TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
-			TPMA_OBJECT::decrypt |
-			TPMA_OBJECT::sensitiveDataOrigin |
-			TPMA_OBJECT::userWithAuth,
-			NullVec,
-			TPMS_RSA_PARMS(
-				TPMT_SYM_DEF_OBJECT::NullObject(),
-				TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
-			TPM2B_PUBLIC_KEY_RSA(NullVec));
+	// We will make a key in the "null hierarchy".
+	TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
+		TPMA_OBJECT::decrypt |
+		TPMA_OBJECT::sensitiveDataOrigin |
+		TPMA_OBJECT::userWithAuth,
+		NullVec,
+		TPMS_RSA_PARMS(
+			TPMT_SYM_DEF_OBJECT::NullObject(),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
 	// Create the key
-	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
-		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
-		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
-		storagePrimaryTemplate,
-		NullVec,
-		vector<TPMS_PCR_SELECTION>());
+	TSS_KEY k;
+	k.publicPart = storagePrimaryTemplate;
+	k.CreateKey();
 
-	TPM_HANDLE& keyHandle = storagePrimary.handle;
+	//TPM_HANDLE& keyHandle = storagePrimary.handle;
 
-	cout << "New RSA primary key" << endl << storagePrimary.outPublic.ToString() << endl;
-
-	ByteVec secret_Array{ 1, 2, 3, 4, 5, 6, 0 };
-
-	ByteVec enc_Array;
-	ByteVec dec_Array;
-	//ByteVec pad{ 1, 2, 3, 4, 5, 6, 0 };
-
-
-	enc_Array = storagePrimary.outPublic.Encrypt(secret_Array, NullVec);
-	cout << "My           ciphertext: " << enc_Array << endl;
-	dec_Array = tpm.RSA_Decrypt(keyHandle, enc_Array, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	cout << "My           secret: " << secret_Array << endl;
-	cout << "My decrypted secret: " << dec_Array << endl << endl;
-
-
-	// Next a full key (pub + prov)
-	string keyContainer = storagePrimary.Serialize(SerializationType::JSON);
-
-	//************************************
-	tpm.FlushContext(storagePrimary.handle);
-
-
-	CreatePrimaryResponse reconstitutedKey;
-	reconstitutedKey.Deserialize(SerializationType::JSON, keyContainer);
-
-
-	//TPM_HANDLE& keyHandle1 = reconstitutedKey.handle;
+	TPMT_SENSITIVE s(NullVec, NullVec, TPM2B_PRIVATE_KEY_RSA(k.privatePart));
+	TPM_HANDLE h2 = tpm.LoadExternal(s, k.publicPart, TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL));
 
 
 
-	//	TSS_KEY k;
-	//	k.publicPart = reconstitutedPub;
-	//	k.CreateKey();
+	// Encrypt with the TPM key
+	char * teststr = "Notre Dame";
+	ByteVec testvec = stringToByteVec(teststr, 10);
+	ByteVec encTest = tpm.RSA_Encrypt(h2, testvec, TPMS_NULL_ASYM_SCHEME(), NullVec);  //(h2, toSign, TPMS_NULL_SIG_SCHEME(), TPMT_TK_HASHCHECK::NullTicket());
 
-
-		//TPMT_SENSITIVE s(NullVec, NullVec, TPM2B_PRIVATE_KEY_RSA(k.privatePart));
-		//TPM_HANDLE h2 = tpm.LoadExternal(s, k.publicPart, TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL));
-
-	cout << "New RSA primary key" << endl << reconstitutedKey.outPublic.ToString() << endl;
-
-
-	enc_Array = reconstitutedKey.outPublic.Encrypt(secret_Array, NullVec);
-	cout << "My           ciphertext: " << enc_Array << endl;
-
+	ByteVec decTest = tpm.RSA_Decrypt(h2, encTest, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	cout << ByteVecToString(decTest) << endl;
 	return;
 }
 

@@ -48,10 +48,11 @@ int main(int argc, char ** argv) {
 
 	myTPM.init(atoi(argv[2]));
 	auto key = myTPM.c_createAndStoreKey();
-	string keystring = myTPM.c_writeKey();
+	//string keystring = myTPM.c_writeKey();
+	auto keyvec = key.outPublic.ToBuf();
 
 
-	if (!c.sendString(keystring.size() + 1, keystring.c_str())) {
+	if (!c.sendBuffer(keyvec.size(), keyvec.data())) {
 		cout << "Client sent key:" << endl;
 	}
 	else {
@@ -75,7 +76,7 @@ int main(int argc, char ** argv) {
 	auto tpm = myTPM.GetTpm();
 	vector<BYTE> NullVec;
 	vector<BYTE> clientEncrypted = tpm.RSA_Encrypt(key.handle, nd, TPMS_NULL_ASYM_SCHEME(), NullVec); //myTPM.s_RSA_encrypt(nd, key);
-	vector<BYTE> decVec = myTPM.c_RSA_decrypt(clientEncrypted, 10);
+	vector<BYTE> decVec = myTPM.c_RSA_decrypt(encVec, 10);
 	//assert(originalDecrypted == decVec);
 	string decrypted = ByteVecToString(decVec);
 

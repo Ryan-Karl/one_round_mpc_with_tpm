@@ -45,15 +45,19 @@ int main(int argc, char ** argv) {
 	else {
 		cout << "Server started" << endl;
 	}
+	
 	char * keystr;
 	unsigned int strLen;
+	
+	
 	if (s.recvString(0, strLen, (char **)&keystr)) {
 		cout << "Error getting key string" << endl;
 	}
 	else {
 		cout << "Server received key string:" << endl;
-    
 	}
+
+	vector<BYTE> keyvec = stringToByteVec(keystr, strLen);
 	
 	
 	string jsonStr(keystr); 
@@ -62,8 +66,19 @@ int main(int argc, char ** argv) {
 	
 	TPMWrapper myTpm;
 	myTpm.init(30000);
-	auto key = myTpm.s_readKey(jsonStr);
+	auto key = myTpm.s_readKey(keyvec);
 	cout << key.outPublic.ToString() << endl;
+	std::ofstream jsonout("jsonout.txt");
+	std::ofstream reconstout("reconstout.txt");
+	/*
+	if (jsonStr != key.outPublic.Serialize(SerializationType::JSON)) {
+		jsonout << jsonStr;
+		jsonout.close();
+		reconstout << key.outPublic.Serialize(SerializationType::JSON);
+		reconstout.close();
+	}
+	*/
+	assert(keyvec == key.outPublic.ToBuf());
 	
 	/*
 	public_key key = key_from_TPM_string(jsonStr);
@@ -82,7 +97,9 @@ int main(int argc, char ** argv) {
 	
 	//cout << "toEncrypt: " << ByteVecToString(toEncrypt) << endl;
 	vector<BYTE> toEncryptByteVec = stringToByteVec(argv[2], strlen(argv[2]));
-	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncryptByteVec, key);
+	auto tpm = myTpm.GetTpm();
+	vector<BYTE> NullVec;
+	vector<BYTE> encryptedVec = tpm.RSA_Encrypt(key.handle, toEncryptByteVec, TPMS_NULL_ASYM_SCHEME(), NullVec);
 	string encStr = ByteVecToString(encryptedVec);
 	
 
