@@ -61,7 +61,7 @@ int main(int argc, char ** argv) {
 	//cout << "Key string size: " << std::dec << jsonStr.size() << endl;
 	
 	TPMWrapper myTpm;
-	//myTpm.init(30000);
+	myTpm.init(30000);
 	auto key = myTpm.s_readKey(jsonStr);
 	cout << key.outPublic.ToString() << endl;
 	

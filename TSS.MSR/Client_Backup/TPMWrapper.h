@@ -62,7 +62,7 @@ public:
 	std::vector<BYTE> s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey);
 
 	//Client functions
-	void c_createAndStoreKey();
+	CreatePrimaryResponse c_createAndStoreKey();
 	bool c_writeKeyToFile(const std::string & filename);
 	std::string c_writeKey();
 	std::vector<BYTE> c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit);
@@ -209,7 +209,7 @@ void TPMWrapper::Callback1() {
 }
 */
 
-void TPMWrapper::c_createAndStoreKey()
+CreatePrimaryResponse TPMWrapper::c_createAndStoreKey()
 {
 	Announce("MPC_TPM");
 
@@ -221,7 +221,7 @@ void TPMWrapper::c_createAndStoreKey()
 		NullVec,
 		TPMS_RSA_PARMS(
 			TPMT_SYM_DEF_OBJECT::NullObject(),
-			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 1024, 65537),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
 	// Create the key
@@ -266,6 +266,8 @@ void TPMWrapper::c_createAndStoreKey()
 
 	// Should not be able to read before the first increment
 	tpm._ExpectError(TPM_RC::NV_UNINITIALIZED).NV_Read(nvHandle, nvHandle, 8, 0);
+
+	return storagePrimary;
 
 }
 
@@ -352,7 +354,28 @@ CreatePrimaryResponse TPMWrapper::s_readKeyFromFile(const std::string & filename
 }
 
 CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring) {
-	CreatePrimaryResponse reconstitutedKey;
+	
+	// We will make a key in the "null hierarchy".
+	TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
+		TPMA_OBJECT::decrypt |
+		TPMA_OBJECT::sensitiveDataOrigin |
+		TPMA_OBJECT::userWithAuth,
+		NullVec,
+		TPMS_RSA_PARMS(
+			TPMT_SYM_DEF_OBJECT::NullObject(),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+		TPM2B_PUBLIC_KEY_RSA(NullVec));
+
+	// Create the key
+	//CreatePrimaryResponse storagePrimary
+	CreatePrimaryResponse reconstitutedKey = tpm.CreatePrimary(
+		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
+		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
+		storagePrimaryTemplate,
+		NullVec,
+		vector<TPMS_PCR_SELECTION>());
+	
+	//CreatePrimaryResponse reconstitutedKey;
 	reconstitutedKey.Deserialize(SerializationType::JSON, keystring);
 	return reconstitutedKey;
 }

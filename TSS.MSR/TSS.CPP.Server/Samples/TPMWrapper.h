@@ -352,7 +352,25 @@ CreatePrimaryResponse TPMWrapper::s_readKeyFromFile(const std::string & filename
 }
 
 CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring) {
-	CreatePrimaryResponse reconstitutedKey;
+	
+	// We will make a key in the "null hierarchy".
+	TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
+		TPMA_OBJECT::decrypt |
+		TPMA_OBJECT::sensitiveDataOrigin |
+		TPMA_OBJECT::userWithAuth,
+		NullVec,
+		TPMS_RSA_PARMS(
+			TPMT_SYM_DEF_OBJECT::NullObject(),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+		TPM2B_PUBLIC_KEY_RSA(NullVec));
+	
+	CreatePrimaryResponse reconstitutedKey = tpm.CreatePrimary(
+		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
+		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
+		storagePrimaryTemplate,
+		NullVec,
+		vector<TPMS_PCR_SELECTION>());
+
 	reconstitutedKey.Deserialize(SerializationType::JSON, keystring);
 	return reconstitutedKey;
 }

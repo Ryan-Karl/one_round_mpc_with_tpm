@@ -47,7 +47,7 @@ int main(int argc, char ** argv) {
 	}
 
 	myTPM.init(atoi(argv[2]));
-	myTPM.c_createAndStoreKey();
+	auto key = myTPM.c_createAndStoreKey();
 	string keystring = myTPM.c_writeKey();
 
 
@@ -69,11 +69,17 @@ int main(int argc, char ** argv) {
 	c.recvBuffer((void **) &encStr, encLen);
 	//Now decrypt the recieved string
 	vector<BYTE> encVec = stringToByteVec(encStr, encLen);
-	vector<BYTE> originalDecrypted = myTPM.c_RSA_decrypt(encVec, 10);
-	vector<BYTE> decVec = myTPM.c_RSA_decrypt(encVec, 10);
-	assert(originalDecrypted == decVec);
+	char * msgStr = "Notre Dame";
+	vector<BYTE> nd = stringToByteVec(msgStr, 10);
+	//auto key = myTPM.s_readKey(keystring);
+	auto tpm = myTPM.GetTpm();
+	vector<BYTE> NullVec;
+	vector<BYTE> clientEncrypted = tpm.RSA_Encrypt(key.handle, nd, TPMS_NULL_ASYM_SCHEME(), NullVec); //myTPM.s_RSA_encrypt(nd, key);
+	vector<BYTE> decVec = myTPM.c_RSA_decrypt(clientEncrypted, 10);
+	//assert(originalDecrypted == decVec);
 	string decrypted = ByteVecToString(decVec);
 
+	
 	cout << decrypted << endl;
 
 

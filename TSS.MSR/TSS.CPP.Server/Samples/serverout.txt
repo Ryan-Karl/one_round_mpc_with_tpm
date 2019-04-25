@@ -23,13 +23,13 @@ class TPMT_PUBLIC
         {
             TPM_ALG_ID hashAlg = SHA1 (0x4)
         }
-        UINT16 keyBits = 0x400 (1024)
+        UINT16 keyBits = 0x800 (2048)
         UINT32 exponent = 0x10001 (65537)
     }
     TPMU_PUBLIC_ID unique = class TPM2B_PUBLIC_KEY_RSA
     {
-        UINT16 size = 0x80 (128)
-        BYTE[] buffer = [ae6c858a 9f9d33f1 2ced386a 58c2c774 5a42923b c78ea9d9 df0bcfa9 7f15d4c6 c81fc353 afb7e31d 663d2147 d9f99d1b 53d10a2a def78933 ccaf4f74 87fabc3b fc7f5e56 3a0484bc a5424b57 92342911 1f5236dd e0fe5136 a4406bd7 5c3d865b 790be0de acdb7c97 20db8dc3 41d7f2cb f0bdbb43 5f27b464 d13087b9 96c27775]
+        UINT16 size = 0x100 (256)
+        BYTE[] buffer = [ac5e3192 8a4bf64e 08448790 b8c32092 0263f0a9 4795540d 3d747857 13ae0e26 915cf87c 210531aa ff927e60 303c5872 dbff6849 dfe83eda 9120cc54 a7c9e5fa 5b81dcb1 4dfde52a c5fb1fb5 fd43ad5a 4c8c0d52 57ed76c4 075e6e18 efde7e44 d3042c4e e9ae426e 0e07732c ce39dc97 4f6218ff 6dcebac4 925b3644 51c1f8b3 6682ed80 463c01c9 c999caac 68038a4d 4c83babe 8ee1f4ce 44d98e82 666f3425 15bc30a9 18032e6c 718a83fe fee4c136 025bfd03 473e2680 95fae402 b67d7776 99069933 323e7e9a 2c1d4da7 0809c032 5689116e 9dcd6736 8421df1f e0fd3609 3b3dce12 b42c9d31 bce48971 b2a6a054 6f645b71 ce3f8852 28adcd8e 421fd065]
     }
 }
 Sent encrypted string
