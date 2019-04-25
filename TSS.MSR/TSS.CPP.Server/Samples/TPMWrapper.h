@@ -24,6 +24,7 @@
 #include <iterator>
 #include <cassert>
 #include <fstream>
+#include <utility>
 #include "utilities.h"
 #include "RSA.h"
 
@@ -41,6 +42,7 @@
 #endif
 
 using namespace TpmCpp;
+using std::pair;
 
 class TPMWrapper {
 public:
@@ -71,8 +73,22 @@ public:
 
 protected:
 
+	TPM_HANDLE& genPrimaryKey();
+
+	AUTH_SESSION c_startSession(PolicyTree & p);
+	PolicyTree c_createDuplicatePolicy();
+	TPM_HANDLE c_createChildKey(TPM_HANDLE & keyHandle, PolicyTree & p);
+	auto TPMWrapper::c_duplicateKey(TPM_HANDLE & childKeyHandle, AUTH_SESSION & session);
+
+
+	void s_importKey(const ByteVec & childBuf, const ByteVec & duplicateBuf, TPM_HANDLE & keyHandle);
+
 	void Announce(const char *testName);
 	void RecoverFromLockout();
+
+
+	
+
 	//TPM_HANDLE MakeStoragePrimary();
 	//void TPMWrapper::Callback1();
 
@@ -211,10 +227,19 @@ void TPMWrapper::Callback1() {
 }
 */
 
-void TPMWrapper::c_createAndStoreKey()
-{
-	Announce("MPC_TPM");
+PolicyTree TPMWrapper::c_createDuplicatePolicy() {
+	//Just client creates session
+	PolicyTree p(PolicyCommandCode(TPM_CC::Duplicate, ""));
+	return p;
+	/*
+	TPMT_HA policyDigest = p.GetPolicyDigest(TPM_ALG_ID::SHA1);
+	return policyDigest;
+	*/
+	//end
+}
 
+TPM_HANDLE& TPMWrapper::genPrimaryKey() {
+	//Client and Server do this to create primary key
 	TPMT_PUBLIC storagePrimaryTemplate(TPM_ALG_ID::SHA1,
 		TPMA_OBJECT::decrypt |
 		TPMA_OBJECT::sensitiveDataOrigin |
@@ -225,7 +250,7 @@ void TPMWrapper::c_createAndStoreKey()
 			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
-	CreatePrimaryResponse storagePrimary = tpm.CreatePrimary(
+	storagePrimary = tpm.CreatePrimary(
 		TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL),
 		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
 		storagePrimaryTemplate,
@@ -233,11 +258,15 @@ void TPMWrapper::c_createAndStoreKey()
 		vector<TPMS_PCR_SELECTION>());
 
 	TPM_HANDLE& keyHandle = storagePrimary.handle;
-	auto storagePrimaryPublic = tpm.ReadPublic(keyHandle);
+	return keyHandle;
+	//auto storagePrimaryPublic = tpm.ReadPublic(keyHandle);
+	//return storagePrimaryPublic;
+	//End
+}
 
-	PolicyTree p(PolicyCommandCode(TPM_CC::Duplicate, ""));
+TPM_HANDLE TPMWrapper::c_createChildKey(TPM_HANDLE & keyHandle, PolicyTree & p) {
 	TPMT_HA policyDigest = p.GetPolicyDigest(TPM_ALG_ID::SHA1);
-
+	//CLient creates child key
 	TPMT_PUBLIC templ(TPM_ALG_ID::SHA1,
 		TPMA_OBJECT::decrypt |
 		TPMA_OBJECT::sensitiveDataOrigin |
@@ -253,68 +282,62 @@ void TPMWrapper::c_createAndStoreKey()
 		TPMS_SENSITIVE_CREATE(NullVec, NullVec),
 		templ,
 		NullVec, vector<TPMS_PCR_SELECTION>());
-	// Load the key
-	TPM_HANDLE childKeyHandle = tpm.Load(keyHandle, childKey.outPrivate, childKey.outPublic);
 
-	// Start and then execute the session
+	TPM_HANDLE childKeyHandle = tpm.Load(keyHandle, childKey.outPrivate, childKey.outPublic);
+	return childKeyHandle;
+	//End
+}
+
+AUTH_SESSION TPMWrapper::c_startSession(PolicyTree & p) {
+	// Start and then execute the session Client only
 	AUTH_SESSION session = tpm.StartAuthSession(TPM_SE::POLICY, TPM_ALG_ID::SHA1);
 	p.Execute(tpm, session);
+	return session;
+	//End
+}
 
-	// Keys can be duplicated in plaintext or with a symmetric wrapper, or with a symmetric
-	// wrapper and encrypted to a loaded public key. The simplest: export (duplicate) it
-	// specifying no encryption.
+auto TPMWrapper::c_duplicateKey(TPM_HANDLE & childKeyHandle, AUTH_SESSION & session) {
+	//CLient duplicates key
 	auto duplicatedKey = tpm._Sessions(session).Duplicate(childKeyHandle,
 		TPM_HANDLE::NullHandle(),
 		NullVec,
 		TPMT_SYM_DEF_OBJECT::NullObject());
 
 	cout << "Duplicated private key:" << duplicatedKey.ToString(false);
+	return duplicatedKey;
+	//end
+}
+
+void TPMWrapper::s_importKey(const ByteVec & childBuf, const ByteVec & duplicateBuf, TPM_HANDLE & keyHandle) {
+	//Get keys from buffers
 
 
-
-
-
-
-
-
-
-	// Now try to import it (to the same parent)
+	// Server imports client duplicate key
 	auto importedPrivate = tpm.Import(keyHandle,
 		NullVec,
 		childKey.outPublic,
 		duplicatedKey.duplicate,
 		NullVec,
 		TPMT_SYM_DEF_OBJECT::NullObject());
+	//end
 
-	// And now show that we can load and and use the imported blob
-	TPM_HANDLE importedSigningKey = tpm.Load(storagePrimaryHandle,
+	// server import client key internally
+	TPM_HANDLE importedSigningKey = tpm.Load(keyHandle,
 		importedPrivate,
-		newSigningKey.outPublic);
+		duplicatedKey.outPublic);
+	/*TPM_HANDLE importedSigningKey = tpm.Load(storagePrimaryHandle,
+		importedPrivate,
+		newSigningKey.outPublic);*/
+}
+
+void TPMWrapper::c_createAndStoreKey()
+{
+	
+	
+	//Encrypt and Decrypt mostly the same
+	//plaintext = tpm.RSA_Decrypt(keyHandle, ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
 
 	
-	//Encrypt and Decrypt
-
-	cout << "Signature with imported key: " << signature.ToString(false) << endl;
-
-
-	/*
-	TSS_KEY importableKey;
-	importableKey.publicPart = swKeyDef;
-	importableKey.CreateKey();
-	ByteVec swKeyAuthValue{ 4, 5, 4, 5 };
-	*/
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	/*
@@ -455,6 +478,7 @@ CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring) {
 	//reconstitutedKey.Deserialize(SerializationType::JSON, keystring);
 	assert(reconstitutedKey.Deserialize(SerializationType::JSON, keystring));
 	return reconstitutedKey;
+	*/
 }
 
 CreatePrimaryResponse TPMWrapper::s_readKey(const std::vector<BYTE> & keyvec) {
