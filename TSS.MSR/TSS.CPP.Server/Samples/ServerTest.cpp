@@ -16,6 +16,7 @@
 #include <fstream>
 #include <string>
 #include <string.h>
+#include <cassert>
 
 #define BASEFILE "basefile.txt"
 #define ENCFILE "encfile.txt"
@@ -55,24 +56,44 @@ int main(int argc, char ** argv) {
 	}
 	
 	
-	string jsonStr(keystr);
-    cout << jsonStr << endl;
-	cout << "Key string size: " << std::dec << jsonStr.size() << endl;
+	string jsonStr(keystr); 
+    //cout << jsonStr << endl;
+	//cout << "Key string size: " << std::dec << jsonStr.size() << endl;
+	
 	TPMWrapper myTpm;
-	myTpm.init(30000);
-
+	//myTpm.init(30000);
 	auto key = myTpm.s_readKey(jsonStr);
+	cout << key.outPublic.ToString() << endl;
+	
+	/*
+	public_key key = key_from_TPM_string(jsonStr);
 	vector<BYTE> pad = { 1,2,3,4,5 };
-	vector<BYTE> toEncrypt = stringToByteVec(argv[2], strlen(argv[2]));
-	cout << "toEncrypt: " << ByteVecToString(toEncrypt) << endl;
-	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncrypt, key);
+	char * toSend = argv[2];
+	unsigned int sendLength = strlen(argv[2]);
+	vector<BYTE> toEncryptByteVec = stringToByteVec(toSend, sendLength);
+	mpz_class toEncryptMPZ = ByteVecToMPZ(toEncryptByteVec);
+	cout << "toEncryptMPZ: " << toEncryptMPZ << endl;
+	cout << "Modulus: " << key.n;
+	cout << "Exponent: " << key.e;
+	mpz_class ciphertext = encrypt(toEncryptMPZ, key);
+	assert(ciphertext != 0);
+	vector<BYTE> enc_bytevec = mpz_to_vector(ciphertext);
+	*/
+	
+	//cout << "toEncrypt: " << ByteVecToString(toEncrypt) << endl;
+	vector<BYTE> toEncryptByteVec = stringToByteVec(argv[2], strlen(argv[2]));
+	vector<BYTE> encryptedVec = myTpm.s_RSA_encrypt(toEncryptByteVec, key);
 	string encStr = ByteVecToString(encryptedVec);
-	if (s.sendString(0, encStr.size() + 1, encStr.c_str())) {
+	
+
+	
+	if (s.sendString(0, encStr.size()+1, encStr.c_str())) {
 		cout << "Error sending encrypted string" << endl;
 	}
 	else {
 		cout << "Sent encrypted string" << endl;
 	}
+	
 	s.stop();
 
 

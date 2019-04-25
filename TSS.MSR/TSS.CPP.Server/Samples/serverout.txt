@@ -1,8 +1,5 @@
-Got connection
-================================================================================
-          MPC_TPM
-================================================================================
-New RSA primary key
+Server started
+Server received key string:
 class TPMT_PUBLIC
 {
     TPM_ALG_ID type = RSA (0x1)
@@ -35,4 +32,4 @@ class TPMT_PUBLIC
         BYTE[] buffer = [ae6c858a 9f9d33f1 2ced386a 58c2c774 5a42923b c78ea9d9 df0bcfa9 7f15d4c6 c81fc353 afb7e31d 663d2147 d9f99d1b 53d10a2a def78933 ccaf4f74 87fabc3b fc7f5e56 3a0484bc a5424b57 92342911 1f5236dd e0fe5136 a4406bd7 5c3d865b 790be0de acdb7c97 20db8dc3 41d7f2cb f0bdbb43 5f27b464 d13087b9 96c27775]
     }
 }
-Client sent key:
+Sent encrypted string

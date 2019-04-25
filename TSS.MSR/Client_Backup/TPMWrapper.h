@@ -221,7 +221,7 @@ void TPMWrapper::c_createAndStoreKey()
 		NullVec,
 		TPMS_RSA_PARMS(
 			TPMT_SYM_DEF_OBJECT::NullObject(),
-			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 1024, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
 	// Create the key
@@ -286,6 +286,7 @@ bool TPMWrapper::c_writeKeyToFile(const std::string & filename)
 //Overwrites its input
 std::string TPMWrapper::c_writeKey() {
 	return storagePrimary.Serialize(SerializationType::JSON);
+	//return storagePrimary.outPublic.ToString();
 }
 
 std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)

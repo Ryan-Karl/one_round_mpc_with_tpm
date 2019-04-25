@@ -25,6 +25,7 @@
 #include <cassert>
 #include <fstream>
 #include "utilities.h"
+#include "RSA.h"
 
 
 
@@ -284,7 +285,8 @@ bool TPMWrapper::c_writeKeyToFile(const std::string & filename)
 
 //Overwrites its input
 std::string TPMWrapper::c_writeKey() {
-	return storagePrimary.Serialize(SerializationType::JSON);
+	//return storagePrimary.Serialize(SerializationType::JSON);
+	return storagePrimary.outPublic.ToString();
 }
 
 std::vector<BYTE> TPMWrapper::c_RSA_decrypt(const std::vector<BYTE> & ciphertext, uint16_t key_limit)
@@ -359,10 +361,10 @@ CreatePrimaryResponse TPMWrapper::s_readKey(const std::string & keystring) {
 std::vector<BYTE> TPMWrapper::s_RSA_encrypt(const std::vector<BYTE> & plaintext, CreatePrimaryResponse & reconstitutedKey)
 {
 
-	//ByteVec ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, NullVec);
+	ByteVec ciphertext = reconstitutedKey.outPublic.Encrypt(plaintext, NullVec);
 	//cout << "Encrypted ciphertext: " << ciphertext << endl;
 
-	auto ciphertext = tpm.RSA_Encrypt(reconstitutedKey.handle, plaintext, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	//auto ciphertext = tpm.RSA_Encrypt(reconstitutedKey.handle, plaintext, TPMS_NULL_ASYM_SCHEME(), NullVec);
 	return ciphertext;
 }
 

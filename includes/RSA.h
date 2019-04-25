@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string>
 #include <sstream>
+#include <cassert>
 
 #ifdef WIN32
 #include <mpir.h>
@@ -66,6 +67,8 @@ void gen_keys(private_key & priv, unsigned int num_bits){
 mpz_class encrypt(const mpz_class & plaintext, public_key & pk){
   mpz_class enc;
   mpz_powm(enc.get_mpz_t(), plaintext.get_mpz_t(), pk.e.get_mpz_t(), pk.n.get_mpz_t());
+  assert(enc != 0);
+  assert(plaintext != 0);
   return enc;
 }
 

@@ -64,10 +64,14 @@ int main(int argc, char ** argv) {
 
 	char * encStr;
 	unsigned int encLen;
-	c.recvString(encLen, &encStr);
+
+
+	c.recvBuffer((void **) &encStr, encLen);
 	//Now decrypt the recieved string
 	vector<BYTE> encVec = stringToByteVec(encStr, encLen);
+	vector<BYTE> originalDecrypted = myTPM.c_RSA_decrypt(encVec, 10);
 	vector<BYTE> decVec = myTPM.c_RSA_decrypt(encVec, 10);
+	assert(originalDecrypted == decVec);
 	string decrypted = ByteVecToString(decVec);
 
 	cout << decrypted << endl;

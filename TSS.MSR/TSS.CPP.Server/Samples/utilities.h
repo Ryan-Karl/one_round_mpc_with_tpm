@@ -124,6 +124,8 @@ std::vector<BYTE> mpz_to_vector(const mpz_t x) {
 }
 
 inline std::vector<BYTE> mpz_to_vector(mpz_class & x) {
+	std::cout << x << std::endl;
+	assert(x != 0);
 	return mpz_to_vector(x.get_mpz_t());
 }
 
