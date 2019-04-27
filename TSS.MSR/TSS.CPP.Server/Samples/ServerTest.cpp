@@ -45,66 +45,28 @@ int main(int argc, char ** argv) {
 	else {
 		cout << "Server started" << endl;
 	}
-	
-	char * keystr;
+	//Get key from client
+	char * keyStr;
 	unsigned int strLen;
-	
-	
-	if (s.recvString(0, strLen, (char **)&keystr)) {
-		cout << "Error getting key string" << endl;
+
+	if (s.recvString(0, strLen, (char **)&keyStr)) {
+		cout << "Error getting keyStr" << endl;
 	}
 	else {
-		cout << "Server received key string:" << endl;
+		cout << "Server received keyStr" << endl;
 	}
-
-	vector<BYTE> keyvec = stringToByteVec(keystr, strLen);
-	
-	
-	string jsonStr(keystr); 
-    //cout << jsonStr << endl;
-	//cout << "Key string size: " << std::dec << jsonStr.size() << endl;
+	vector<BYTE> keyVec = stringToByteVec(keyStr, strLen);
 	
 	TPMWrapper myTpm;
-	myTpm.init(30000);
-	auto key = myTpm.s_readKey(keyvec);
-	cout << key.outPublic.ToString() << endl;
-	std::ofstream jsonout("jsonout.txt");
-	std::ofstream reconstout("reconstout.txt");
-	/*
-	if (jsonStr != key.outPublic.Serialize(SerializationType::JSON)) {
-		jsonout << jsonStr;
-		jsonout.close();
-		reconstout << key.outPublic.Serialize(SerializationType::JSON);
-		reconstout.close();
-	}
-	*/
-	assert(keyvec == key.outPublic.ToBuf());
+	//myTpm.init(30000); //Unneeded for server (hopefully)
+	TSS_KEY swKey = myTpm.s_importKey(keyVec);
+	char * nd = "Notre Dame";
+	std::vector<BYTE> ndVec = stringToByteVec(nd, 10);
+	//Encrypt string
+	std::vector<BYTE> encVec = myTpm.s_RSA_encrypt(swKey, ndVec);
+	//string encStr = ByteVecToString(encVec);
 	
-	/*
-	public_key key = key_from_TPM_string(jsonStr);
-	vector<BYTE> pad = { 1,2,3,4,5 };
-	char * toSend = argv[2];
-	unsigned int sendLength = strlen(argv[2]);
-	vector<BYTE> toEncryptByteVec = stringToByteVec(toSend, sendLength);
-	mpz_class toEncryptMPZ = ByteVecToMPZ(toEncryptByteVec);
-	cout << "toEncryptMPZ: " << toEncryptMPZ << endl;
-	cout << "Modulus: " << key.n;
-	cout << "Exponent: " << key.e;
-	mpz_class ciphertext = encrypt(toEncryptMPZ, key);
-	assert(ciphertext != 0);
-	vector<BYTE> enc_bytevec = mpz_to_vector(ciphertext);
-	*/
-	
-	//cout << "toEncrypt: " << ByteVecToString(toEncrypt) << endl;
-	vector<BYTE> toEncryptByteVec = stringToByteVec(argv[2], strlen(argv[2]));
-	auto tpm = myTpm.GetTpm();
-	vector<BYTE> NullVec;
-	vector<BYTE> encryptedVec = tpm.RSA_Encrypt(key.handle, toEncryptByteVec, TPMS_NULL_ASYM_SCHEME(), NullVec);
-	string encStr = ByteVecToString(encryptedVec);
-	
-
-	
-	if (s.sendString(0, encStr.size()+1, encStr.c_str())) {
+	if (s.sendBuffer(0, encVec.size(), encVec.data())) {
 		cout << "Error sending encrypted string" << endl;
 	}
 	else {
@@ -112,54 +74,6 @@ int main(int argc, char ** argv) {
 	}
 	
 	s.stop();
-
-
-
-	
-	/*
-	Client c(LOCALHOST, DEFAULT_PORTNUM);
-	if (!c.Start()) {
-		cout << "Error starting client" << endl;
-		return 1;
-	}
-	//Accept plaintext, then the key
-	vector<string> filenames;
-	filenames.push_back(BASEFILE);
-	filenames.push_back(KEYFILE);
-	SOCKET mySock = c.getSocket();
-	RecvDelimitedFiles(filenames, mySock);
-  cout << "Received files" << endl;
-  c.Stop();
-  //Start server immediately
-  Server s(DEFAULT_PORTNUM);
-  if (s.init()) {
-	  cout << "ERROR: server init" << endl;
-  }
-  else { cout << "Started server" << endl; }
-  if (s.accept_connections(NUMPARTIES_DEFAULT)) {
-	  cout << "ERROR: accept" << endl;
-  }
-  else { cout << "Accepted connection" << endl; }
-
-	//Read in and decrypt file
-	TPMWrapper myTPM(argc >= 2? atoi(argv[1]) : DEFAULT_TPM_PORT);
-	auto key = myTPM.s_readKeyFromFile(KEYFILE);
-	ifstream bfs(BASEFILE);
-	auto tmp = vectorsFromHexFile(bfs);
-	auto plaintext = flatten(tmp);
-
-	//Read key from file
-	auto ciphertext = myTPM.s_RSA_encrypt(plaintext, key);
-
-	//Write out and send file
-	ofstream os(ENCFILE);
-	outputToStream(os, ciphertext);
-
-	int trash;
-  
-	SendFile(&trash, ENCFILE, mySock);
-  s.close_connections();
-  */
 
 
 	return 0;

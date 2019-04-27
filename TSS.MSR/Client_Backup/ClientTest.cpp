@@ -34,9 +34,10 @@ int main(int argc, char ** argv) {
 
 
 	TPMWrapper myTPM;
-	
-
-
+	myTPM.init(atoi(argv[2]));
+	//Get keys
+	auto keyPair = myTPM.c_genKeys();
+	//Send software key to server
 	Client c(atoi(argv[1]), (argc >= 4 ? argv[3] : LOCALHOST));
 	if (!c.init()) {
 		cout << "Got connection" << endl;
@@ -45,81 +46,25 @@ int main(int argc, char ** argv) {
 		cout << "Connection failed!" << endl;
 		return 1;
 	}
-
-	myTPM.init(atoi(argv[2]));
-	auto key = myTPM.c_createAndStoreKey();
-	//string keystring = myTPM.c_writeKey();
-	auto keyvec = key.outPublic.ToBuf();
-
-
-	if (!c.sendBuffer(keyvec.size(), keyvec.data())) {
-		cout << "Client sent key:" << endl;
+	std::vector<BYTE> keyVec = keyPair.first.ToBuf();
+	if (!c.sendBuffer(keyVec.size(), keyVec.data())) {
+		cout << "Client sent key vector" << endl;
 	}
 	else {
-		cout << "ERROR in client sending key" << endl;
+		cout << "ERROR in client sending key vector" << endl;
 		return 1;
 	}
-
-	//cout << std::dec << keystring << endl;
-	//cout << "Key size: " << keystring.size() << endl;
-
+	
+	//Receive the encrypted message back from the server
 	char * encStr;
 	unsigned int encLen;
-
-
 	c.recvBuffer((void **) &encStr, encLen);
 	//Now decrypt the recieved string
 	vector<BYTE> encVec = stringToByteVec(encStr, encLen);
-	char * msgStr = "Notre Dame";
-	vector<BYTE> nd = stringToByteVec(msgStr, 10);
-	//auto key = myTPM.s_readKey(keystring);
-	auto tpm = myTPM.GetTpm();
-	vector<BYTE> NullVec;
-	vector<BYTE> clientEncrypted = tpm.RSA_Encrypt(key.handle, nd, TPMS_NULL_ASYM_SCHEME(), NullVec); //myTPM.s_RSA_encrypt(nd, key);
-	vector<BYTE> decVec = myTPM.c_RSA_decrypt(encVec, 10);
-	//assert(originalDecrypted == decVec);
+	vector<BYTE> decVec = myTPM.c_RSA_decrypt(keyPair.second, encVec);
 	string decrypted = ByteVecToString(decVec);
-
 	
-	cout << decrypted << endl;
-
-
-	/*
-	Server s(DEFAULT_PORTNUM);
-	if (s.init()) {
-		cout << "ERROR: init" << endl;
-	}
-	if(s.accept_connections(NUMPARTIES_DEFAULT)) {
-		cout << "ERROR: accept" << endl;
-	}
-	vector<string> filenames;
-	//First send the file to encrypt, then the key file
-	filenames.push_back(argv[1]);
-	filenames.push_back(KEYFILE);
-	//Send files to garbler
-	s.broadcast_files(filenames);
-  s.close_connections();
-
-	cout << "Finished broadcast" << endl;
-	//Get encrypted file
-	ofstream file_out(ENCFILE);
-  Client c(LOCALHOST, DEFAULT_PORTNUM);
-  c.Start();
-  SOCKET serversock = c.getSocket();
-	RecvFile(file_out, serversock);
-  c.Stop();
-  */
-
-  //Read file into memory and decrypt it
-  /*
-  ifstream enc_instream(ENCFILE);
-  auto tmp = vectorsFromHexFile(enc_instream);
-  auto ciphertext = flatten(tmp);
-  auto decrypted = myTPM.c_RSA_decrypt(ciphertext, 10);
-  ofstream dec_out(DECFILE);
-  outputToStream(dec_out, decrypted);
-  */
-  //Verify that the input file and DECFILE are identical
+	cout << "Client decrypted message: " << decrypted << endl;
 
 	return 0;
 }

@@ -143,8 +143,9 @@ Samples::~Samples()
 void Samples::RunAllSamples()
 {
 	_check
-	//MPC_TPM();
-	SoftwareKeys();
+		//MPC_TPM();
+		//SoftwareKeys();
+		ImportDuplicate();
 	_check;
 
 	//Callback2();
@@ -1654,7 +1655,7 @@ void Samples::ChildKeys()
 		NullVec,                   // No policy
 		TPMS_RSA_PARMS(            // Key-parms
 			// How child keys should be protected
-			TPMT_SYM_DEF_OBJECT(TPM_ALG_ID::AES, 128, TPM_ALG_ID::CFB),
+			TPMT_SYM_DEF_OBJECT(TPM_ALG_ID::AES, 256, TPM_ALG_ID::CFB),
 			TPMS_NULL_ASYM_SCHEME(), 2048, 65537),
 		TPM2B_PUBLIC_KEY_RSA(NullVec));
 
