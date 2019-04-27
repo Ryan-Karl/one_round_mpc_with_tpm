@@ -54,8 +54,8 @@ void get_garbled_circuit(Circuit * c) {
   // create garbled output tables
   for (Wire * w = c->output_wires[0]; w != NULL; w++) {
     //maybe should be a bit, not an int?
-    wire * e0 = xor_bit(0, hash(w->k[0], "out", w->gate_number));
-    wire * e1 = xor_bit(1, hash(w->k[1], "out", w->gate_number));
+    wire * e0 = xor_bit(constbit_0, hash(w->k[0], "out", w->gate_number));
+    wire * e1 = xor_bit(constbit_1, hash(w->k[1], "out", w->gate_number));
     w->output_garble_info[bit_to_int(w->p[0])] = e0;
     w->output_garble_info[bit_to_int(w->p[1])] = e1;
   }
@@ -63,6 +63,12 @@ void get_garbled_circuit(Circuit * c) {
 
 // the garbling is just the concatenation of w->kb and w->pb for b=which
 wire_value * wire2garbling(Wire * w, bit * which) {
-  int size = w->size + 1;
+  wire * k = w->k[bit_to_int(which)]
+  int size = k->size + 1;
   wire_value * ret = new wire_value(size);
+  for (int i = 0; i < size - 1; i++) {
+    ret->set(i, k->get(i));
+  }
+  ret->set(size-1, w->p[bit_to_int(which)]->get(i));
+  return ret;
 }
