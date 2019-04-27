@@ -53,8 +53,8 @@ public:
 	std::pair<TSS_KEY, TPM_HANDLE> c_genKeys(); 
 	std::vector<BYTE> c_RSA_decrypt(TPM_HANDLE & handle, const std::vector<BYTE> & ciphertext);
 
-	TSS_KEY s_importKey(const std::vector<BYTE> & keyVec);
-	std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message);
+	static TSS_KEY s_importKey(const std::vector<BYTE> & keyVec);
+	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message);
 	   	
 protected:
 
@@ -63,7 +63,8 @@ protected:
 
 	bool initialized;
 
-	std::vector<BYTE> NullVec;
+	static std::vector<BYTE> NullVec;
+
 	_TPMCPP Tpm2 tpm;
 	_TPMCPP TpmTcpDevice *device;
 

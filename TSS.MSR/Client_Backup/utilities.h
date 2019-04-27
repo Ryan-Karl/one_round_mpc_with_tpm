@@ -21,6 +21,7 @@
 #include <iterator>
 #include <cassert>
 #include <fstream>
+#include <limits.h>
 
 #ifdef WIN32
 #include <mpir.h>
@@ -135,6 +136,32 @@ std::vector<BYTE> intToByteVec(int x) {
 	ret.push_back((x >> 8) & 0xFF);
 	ret.push_back(x & 0xFF);
 	return ret;
+}
+
+int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, std::vector<BYTE> & second) {
+	if (v.size() < 5) {
+		throw std::logic_error("Vector to split not long enough!");
+		return 1;
+	}
+	unsigned int len = v[0] |
+		(v[1] << CHAR_WIDTH) |
+		(v[2] << (2*CHAR_WIDTH)) |
+		(v[3] << (2*CHAR_WIDTH));
+	first.clear();
+	first.resize(len);
+	second.clear();
+	second.resize(v.size() - len - sizeof(unsigned int));
+	unsigned int i;
+	for (i = sizeof(unsigned int); i < v.size(); i++) {
+		if (i < sizeof(unsigned int) + len) {
+			first[i] = v[i];
+		}
+		else {
+			second[i] = v[i];
+		}
+		
+	}
+	return 0;
 }
 
 
