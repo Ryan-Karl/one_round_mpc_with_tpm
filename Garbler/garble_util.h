@@ -6,8 +6,9 @@ class wire_value {
   public:
   char * bits;
   int len;
-  set(int i);
-  unset(int i);
+  void set(int i, bool b);
+  void set(int i, bit b);
+  bit get(int i);
 };
 
 wire_value::wire_value(int size);
