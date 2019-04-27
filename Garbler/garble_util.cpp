@@ -53,7 +53,6 @@ void get_garbled_circuit(Circuit * c) {
 
   // create garbled output tables
   for (Wire * w = c->output_wires[0]; w != NULL; w++) {
-    //maybe should be a bit, not an int?
     wire * e0 = xor_bit(constbit_0, hash(w->k[0], "out", w->gate_number));
     wire * e1 = xor_bit(constbit_1, hash(w->k[1], "out", w->gate_number));
     w->output_garble_info[bit_to_int(w->p[0])] = e0;
