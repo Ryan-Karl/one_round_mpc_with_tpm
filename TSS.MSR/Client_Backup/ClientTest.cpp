@@ -12,6 +12,7 @@
 //#include "../includes/NetworkUtils.h"
 //#include "../includes/utilities.h"
 
+#include "ShamirSecret.h"
 #include "NetworkUtils.h"
 #include "utilities.h"
 #include "TPMWrapper.h"
@@ -29,21 +30,19 @@ int main(int argc, char ** argv) {
 
 
 	if (argc < 3) {
-		cout << "ERROR: provide a server and TPM port" << endl;
+		std::cout << "ERROR: provide a server and TPM port" << endl;
 		return 0;
 	}
 	//INITIALIZE
 	//1. Get key pair
 	TPMWrapper myTPM;
 	myTPM.init(atoi(argv[2]));
-	//Get keys
+	//TODO Ryan find out how to force limited usage
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
 	//Initialize these two parts
 	std::vector<std::pair<char *, unsigned int> > parties;
 	unsigned int my_party;
-	//std::vector<std::vector<BYTE> > keyByteVec;
-	//keyByteVec.resize(parties.size());
 	std::vector<TSS_KEY> keyVec;
 	std::vector<BYTE> keyVec = keyPair.first.ToBuf();
 	std::vector<std::thread> sendThreadVec;
@@ -120,35 +119,79 @@ int main(int argc, char ** argv) {
 		splitIntermediate(intermediate_ciphertexts[o], labels[o], keyShares[o]);
 	}
 	//2b. Combine secret shares
+	//Assume secrets are in a concatenated vector
+	//First part is x-coord, second is y-coord
+	mpz_class prime;
+	unsigned int num_shares, minimum;
+	ShamirSecret shamir(prime, num_shares, minimum);
+	std::vector<std::pair<mpz_class, mpz_class> > shares;
+	for (unsigned int p = 0; p < keyShares.size(); p++) {
+		std::vector<BYTE> xVec, yVec;
+		splitIntermediate(keyShares[p], xVec, yVec);
+		shares.push_back(std::pair<mpz_class, mpz_class>(
+			ByteVecToMPZ(xVec), ByteVecToMPZ(yVec)));
+	}
+	mpz_class recombined_secret = shamir.getSecret(shares);
+	//2c. Get AES key from recombined secret
+	ByteVec recombinedVec = mpz_to_vector(recombined_secret);
+	unsigned int aes_keylen = recombinedVec.size();
+	unsigned char * key = new unsigned char[aes_keylen];
+	memcpy(key, recombinedVec.data(), aes_keylen);	
 
+	//3. Use AES to decrypt labels based on choices
+	//TODO finish once we have a function to convert ByteVec<->label
+	std::vector<bool> decryptedLabels(choices.size());
+	//Change me later!
+	std::vector<int> wires;
+	
+
+	//ONLINE
+	//1. Broadcast (and receive) labels
+	//Each party serves the number of parties - their number
+	//Each party is a client to their number
+	//Clients receive first, then send
+	//Servers send first, then receive
+	//Start client threads first
+	//TODO how to get my port? CLI arg?
+	unsigned int myPort;
+	std::vector<BYTE> upload;
+	std::vector<std::vector<BYTE> > downloads(parties.size());
+	std::vector<std::thread> client_threads(my_party);
+	for (unsigned int u = 0; u < my_party; u++) {
+		client_threads[u] = std::thread(&client_connect,
+			my_party, parties[u].first, parties[u].second, downloads[u], upload);
+	}
+	Server s(myPort);
+	s.init();
+	std::thread server_thread(&server_connect, parties.size() - my_party, my_party,
+		downloads, upload);
+	for (auto & x : client_threads) {
+		x.join();
+	}
+	server_thread.join();
+
+	//EVALUATE
+	//1. Feed each label into the circuit, detect corruption
 	
 
 
 
-
-
-
-
-
-
-
-
-
 	//Send software key to server
+	/*
 	Client c(atoi(argv[1]), (argc >= 4 ? argv[3] : LOCALHOST));
 	if (!c.init()) {
-		cout << "Got connection" << endl;
+		std::cout << "Got connection" << endl;
 	}
 	else {
-		cout << "Connection failed!" << endl;
+		std::cout << "Connection failed!" << endl;
 		return 1;
 	}
 	std::vector<BYTE> keyVec = keyPair.first.ToBuf();
 	if (!c.sendBuffer(keyVec.size(), keyVec.data())) {
-		cout << "Client sent key vector" << endl;
+		std::cout << "Client sent key vector" << endl;
 	}
 	else {
-		cout << "ERROR in client sending key vector" << endl;
+		std::cout << "ERROR in client sending key vector" << endl;
 		return 1;
 	}
 	
@@ -162,8 +205,87 @@ int main(int argc, char ** argv) {
 	string decrypted = ByteVecToString(decVec);
 	
 	cout << "Client decrypted message: " << decrypted << endl;
+	*/
 
 	return 0;
+}
+
+bool amIClient(unsigned int me, unsigned int them) {
+	return me < them;
+}
+
+//Clients receive first, then send
+void client_connect(unsigned int me, char * hostname, unsigned int port,
+	std::vector<std::vector<BYTE> > & download, const std::vector<BYTE> & upload) {
+	Client c(port, hostname);
+	if (c.init()) {
+		cerr << "ERROR initializing client: " << hostname << ' ' << port << endl;
+		throw new std::exception("ERROR initializing client");
+	}
+	//Receive
+	//First, receive which party the message is from
+	unsigned int * them;
+	unsigned int partyLen;
+	if (c.recvBuffer((void **) &them, partyLen) || partyLen != sizeof(them)) {
+		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
+		throw new std::exception("ERROR receiving");
+	}
+	//Next, get the actual data
+	char * recvData;
+	unsigned int dataLen;
+	if (c.recvString(dataLen, &recvData)) {
+		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
+		throw new std::exception("ERROR receiving");
+	}
+	download[*them] = stringToByteVec(recvData, dataLen);
+	//Send
+	//First, send which party I am
+	if (c.sendBuffer(sizeof(me), (void *)&me)) {
+		cerr << "ERROR sending: " << hostname << ' ' << port << endl;
+		throw new std::exception("ERROR sending");
+	}
+	//Next, send my data
+	if (c.sendBuffer(upload.size(), (void *)upload.data())) {
+		cerr << "ERROR sending: " << hostname << ' ' << port << endl;
+		throw new std::exception("ERROR sending");
+	}
+	c.stop();
+}
+
+//Servers send first, then receive
+//Assumes server has been created and initialized
+void server_connect(Server & s, unsigned int num_cons, unsigned int me,
+	std::vector<std::vector<BYTE> > & downloads,
+	const std::vector<BYTE> & upload) {
+	s.accept_connections(num_cons);
+	for (unsigned int i = 0; i < num_cons; i++) {
+		//First, send which party I am
+		if (s.sendBuffer(i, sizeof(me), (void *)&me)) {
+			cerr << "ERROR sending: " << i << endl;
+			throw new std::exception("ERROR sending");
+		}
+		//Next, send my data
+		if (s.sendBuffer(i, upload.size(), (void *)upload.data())) {
+			cerr << "ERROR sending: " << i;
+			throw new std::exception("ERROR sending");
+		}
+		//Receive
+		//First, receive which party the message is from
+		unsigned int * them;
+		unsigned int partyLen;
+		if (s.recvBuffer(i, (void **)&them, partyLen) || partyLen != sizeof(them)) {
+			cerr << "ERROR : receiving" << endl;
+			throw new std::exception("ERROR receiving");
+		}
+		//Next, get the actual data
+		char * recvData;
+		unsigned int dataLen;
+		if (s.recvString(i, dataLen, &recvData)) {
+			cerr << "ERROR : receiving" << endl;
+			throw new std::exception("ERROR receiving");
+		}
+		downloads[*them] = stringToByteVec(recvData, dataLen);
+	}
 }
 
 void recv_message(char * hostname, unsigned int port, std::vector<BYTE> & message) {

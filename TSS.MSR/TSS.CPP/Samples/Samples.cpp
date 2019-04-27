@@ -383,23 +383,6 @@ void Samples::MPC_TPM()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		//Define placeholder wire labels (assume three wires for test)
 		unsigned char * wire_0_0 = (unsigned char *)"WIRE_LABEL_0_0";
 		unsigned char * wire_0_1 = (unsigned char *)"WIRE_LABEL_0_1";
