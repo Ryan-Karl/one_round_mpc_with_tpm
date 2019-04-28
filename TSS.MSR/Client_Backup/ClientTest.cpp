@@ -72,13 +72,16 @@ int main(int argc, char ** argv) {
 		if (i == my_party) {
 			continue;
 		}
-		//For each key: get party number, then key
-		unsigned int * partyNum;
 		unsigned int msgSize;
+		//For each key: get party number, then key
+		//Don't get party number, just send keys in party order
+		/*
+		unsigned int * partyNum;		
 		if (c.recvBuffer((void **)&partyNum, msgSize) || msgSize != sizeof(unsigned int)) {
 			cerr << "ERROR getting party number" << endl;
 			throw std::exception("ERROR getting party number");
 		}
+		*/
 		char * recBuf;
 		if (c.recvBuffer((void **)&recBuf, msgSize)) {
 			cerr << "ERROR getting key" << i << endl;
@@ -86,7 +89,7 @@ int main(int argc, char ** argv) {
 		}
 		std::vector<BYTE> keyByteVec = stringToByteVec(recBuf, msgSize);
 		other_keys[i] = myTPM.s_importKey(keyByteVec);
-		delete partyNum;
+		//delete partyNum;
 		delete recBuf;
 	}
 	//TODO Now accept garbled circuit
@@ -118,7 +121,7 @@ int main(int argc, char ** argv) {
 
 	//PREPROCESS
 	//1. Decrypt
-	std::vector<bool> choices;
+	std::vector<bool> choices; //TODO take this in
 	std::vector<std::vector<BYTE> > intermediate_ciphertexts;
 	intermediate_ciphertexts.resize(choices.size());
 	assert(choices.size() == num_wires);
@@ -128,6 +131,7 @@ int main(int argc, char ** argv) {
 			(!choices[k]) ? encLabels[k].first : encLabels[k].second);
 	}
 	//2. Extract symmetric key (and ciphertext)
+	//Ciphertext is first, key share is second
 	std::vector<std::vector<BYTE> > labels(intermediate_ciphertexts.size());
 	std::vector<std::vector<BYTE> > keyShares(intermediate_ciphertexts.size());
 	for (unsigned int o = 0; o < intermediate_ciphertexts.size(); o++) {
@@ -170,7 +174,7 @@ int main(int argc, char ** argv) {
 	//Start client threads first
 	//TODO how to get my port? CLI arg?
 	unsigned int myPort = 0; //TODO change - get my server port
-	std::vector<BYTE> upload;
+	std::vector<BYTE> upload; //TODO get this - my labels
 	std::vector<std::vector<BYTE> > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
 	for (unsigned int u = 0; u < my_party; u++) {

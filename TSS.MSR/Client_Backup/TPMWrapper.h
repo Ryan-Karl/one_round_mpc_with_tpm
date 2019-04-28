@@ -40,7 +40,7 @@ using namespace TpmCpp;
 class TPMWrapper {
 public:
 
-	
+
 
 
 	TPMWrapper();
@@ -54,14 +54,15 @@ public:
 
 	void SetCol(unsigned int col);
 
-	std::pair<TSS_KEY, TPM_HANDLE> c_genKeys(); 
+	std::pair<TSS_KEY, TPM_HANDLE> c_genKeys();
 	std::vector<BYTE> c_RSA_decrypt(TPM_HANDLE & handle, const std::vector<BYTE> & ciphertext);
 
 	static TSS_KEY s_importKey(const std::vector<BYTE> & keyVec);
-	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message);\
+	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message); \
 
-	
-	   	
+		std::vector<BYTE> getRandBits(unsigned int numbits);
+
+
 protected:
 
 	void Announce(const char *testName);
@@ -69,7 +70,7 @@ protected:
 
 	bool initialized;
 
-	
+
 
 	_TPMCPP Tpm2 tpm;
 	_TPMCPP TpmTcpDevice *device;
@@ -81,6 +82,10 @@ protected:
 	//Monotonic counter memory
 	TPM_HANDLE nvHandle;
 };
+
+std::vector<BYTE> TPMWrapper::getRandBits(unsigned int numbits) {
+	return tpm._GetRandLocal(numbits);
+}
 
 std::pair<TSS_KEY, TPM_HANDLE> TPMWrapper::c_genKeys() {
 	if (!initialized) {
