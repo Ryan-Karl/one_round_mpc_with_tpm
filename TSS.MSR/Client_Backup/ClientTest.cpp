@@ -29,11 +29,41 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 	std::vector<std::vector<BYTE> > & downloads,
 	const std::vector<BYTE> & upload);
 
-void client_connect(unsigned int me, char * hostname, unsigned int port,
+void client_connect(unsigned int me, const std::string & hostname, unsigned int port,
 	std::vector<std::vector<BYTE> > & downloads, const std::vector<BYTE> & upload);
+
+std::vector<bool> parse_choicefile(char * filename);
+
+int parse_netfile(char * filename, char ** server_hostname, unsigned int & server_port,
+	std::vector<std::pair<std::string, unsigned int> > & parties);
 
 //First arg is server port, second is TPM port, third is the host
 int main(int argc, char ** argv) {
+	//Vars to be initialized
+	unsigned int my_party = 0; 
+	unsigned int myPort = 0;
+	char * server_hostname = "127.0.0.1"; //TODO change - only to get it to compile
+	unsigned int server_port = 0; //TODO change
+	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
+	std::vector<bool> choices; //TODO take this in
+	//Parse arguments
+	unsigned int num_required_args = 4;
+	for (int argx = 0; argx < argc; argx++) {
+		if (!strcmp(argv[argx], "--party")) {
+			my_party = atoi(argv[++argx]);
+			continue;
+		}
+		if (!strcmp(argv[argx], "--port")) {
+			myPort = atoi(argv[++argx]);
+			continue;
+		}
+		if (!strcmp(argv[argx], "--partyinfo")) {
+			parse_netfile(argv[++argx], &server_hostname, server_port, parties);
+		}
+		if (!strcmp(argv[argx], "--choices")) {
+			choices = parse_choicefile(argv[++argx]);
+		}
+	}
 
 
 	if (argc < 3) {
@@ -48,15 +78,13 @@ int main(int argc, char ** argv) {
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
 	//Initialize these two parts
-	std::vector<std::pair<char *, unsigned int> > parties;
-	unsigned int my_party = 0; //TODO initialize
+	
 	std::vector<BYTE> myKeyVec = keyPair.first.ToBuf();
 	std::vector<std::vector<BYTE> > keyVec;
 	std::vector<TSS_KEY> other_keys(parties.size());
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
-	char * server_hostname = "127.0.0.1"; //TODO change - only to get it to compile
-	unsigned int server_port = 0; //TODO change
+	
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
 	if (c.init()) {
@@ -121,7 +149,6 @@ int main(int argc, char ** argv) {
 
 	//PREPROCESS
 	//1. Decrypt
-	std::vector<bool> choices; //TODO take this in
 	std::vector<std::vector<BYTE> > intermediate_ciphertexts;
 	intermediate_ciphertexts.resize(choices.size());
 	assert(choices.size() == num_wires);
@@ -173,7 +200,7 @@ int main(int argc, char ** argv) {
 	//Servers send first, then receive
 	//Start client threads first
 	//TODO how to get my port? CLI arg?
-	unsigned int myPort = 0; //TODO change - get my server port
+	
 	std::vector<BYTE> upload; //TODO get this - my labels
 	std::vector<std::vector<BYTE> > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
@@ -183,12 +210,21 @@ int main(int argc, char ** argv) {
 	}
 	Server s(myPort);
 	s.init();
-	std::thread server_thread(&server_connect, s, parties.size() - my_party, my_party,
-		downloads, upload);
-	for (auto & x : client_threads) {
-		x.join();
+	if (parties.size() - 1 == my_party) {
+		for (auto & x : client_threads) {
+			x.join();
+		}
 	}
-	server_thread.join();
+	else {
+		std::thread server_thread(&server_connect, s,
+			parties.size() - my_party, my_party,
+			downloads, upload);
+		for (auto & x : client_threads) {
+			x.join();
+		}
+		server_thread.join();
+	}
+	
 
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
@@ -230,14 +266,68 @@ int main(int argc, char ** argv) {
 	return 0;
 }
 
+//First line of file has number of PARTIES
+//Following lines contain: partynum (-1 if garbler) hostname portnum
+int parse_netfile(char * filename, char ** server_hostname, unsigned int & server_port,
+	std::vector<std::pair<std::string, unsigned int> > & parties) {
+	unsigned int num_parties;
+	std::ifstream ifs(filename);
+	if (!ifs.good()) {
+		cerr << "ERROR reading from netfile " << filename << endl;
+		return -1;
+	}
+	ifs >> num_parties;
+	parties.clear();
+	parties.resize(num_parties);
+	std::string hostname;
+	unsigned int port;
+	int partynum;
+	unsigned int parties_seen = 0;
+	bool saw_server = false;
+	while (ifs >> partynum >> hostname >> port) {
+		if (partynum < 0) {
+			*server_hostname = new char[hostname.size() + 1];
+			memcpy(*server_hostname, hostname.c_str(), hostname.size()+1);
+			server_port = port;
+			saw_server = true;
+		}
+		else {
+			parties[partynum] = std::pair<std::string, unsigned int>(hostname, port);
+			parties_seen++;
+		}
+	}
+	if (!saw_server) {
+		cerr << "ERROR no server in file" << endl;
+		return 1;
+	}
+	if (parties_seen != num_parties) {
+		cerr << "ERROR  number of parties does not match" << endl;
+	}
+	return 0;
+}
+
+std::vector<bool> parse_choicefile(char * filename) {
+	std::ifstream ifs(filename);
+	if (!ifs.good()) {
+		cerr << "ERROR reading file " << filename << endl;
+		return std::vector<bool>();
+	}
+	int b;
+	vector<bool> ret;
+	while (ifs >> b) {
+		ret.push_back(b > 0);
+	}
+	return ret;
+}
+
 bool amIClient(unsigned int me, unsigned int them) {
 	return me < them;
 }
 
 //Clients receive first, then send
-void client_connect(unsigned int me, char * hostname, unsigned int port,
+void client_connect(unsigned int me, const std::string & hostname, unsigned int port,
 	std::vector<std::vector<BYTE> > & downloads, const std::vector<BYTE> & upload) {
-	Client c(port, hostname);
+	Client c(port, hostname.c_str());
 	if (c.init()) {
 		cerr << "ERROR initializing client: " << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR initializing client");
