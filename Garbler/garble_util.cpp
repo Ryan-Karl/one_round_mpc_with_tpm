@@ -67,6 +67,10 @@ bool eval_gate(gate_type g, bool x, bool y) {
   return ((gate_type & offset) != 0);
 }
 
+int p_to_index(bool p1, bool p0) {
+  return (int)(p1 << 1) + (int)p0;
+}
+
 void eval_garbled_circuit(ClientCircuit * c) {
   //TODO convert base labels from kp to k, p
   queue<Wire *> t_ordering;
