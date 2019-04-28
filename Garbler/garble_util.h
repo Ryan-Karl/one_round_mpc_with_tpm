@@ -30,8 +30,10 @@ wire_value * hash(wire_value * ka, wire_value * kb, int gate_number);
 bool hash(wire_value * ke, char * str, int gate_number);
 //wire_value * new_wire(int bitwidth);
 
-//Read frigate circuit and parse into structure
+//Read frigate circuit and parse into structure -- called by server
 void read_frigate_circuit(char * filename, Circuit * circuit);
+//Called by client -- also fills player info struct
+void read_frigate_circuit(char * filename, Circuit * circuit, int player_i, PlayerInfo * player);
 
 typedef unsigned char gate_type;
 // 11, 10, 01, 00   for xy
