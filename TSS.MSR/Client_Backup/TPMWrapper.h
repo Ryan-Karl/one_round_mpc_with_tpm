@@ -39,6 +39,10 @@ using namespace TpmCpp;
 
 class TPMWrapper {
 public:
+
+	
+
+
 	TPMWrapper();
 	~TPMWrapper();
 	Tpm2 & GetTpm() {
@@ -54,7 +58,9 @@ public:
 	std::vector<BYTE> c_RSA_decrypt(TPM_HANDLE & handle, const std::vector<BYTE> & ciphertext);
 
 	static TSS_KEY s_importKey(const std::vector<BYTE> & keyVec);
-	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message);
+	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message);\
+
+	
 	   	
 protected:
 
@@ -63,7 +69,7 @@ protected:
 
 	bool initialized;
 
-	static std::vector<BYTE> NullVec;
+	
 
 	_TPMCPP Tpm2 tpm;
 	_TPMCPP TpmTcpDevice *device;
@@ -80,22 +86,23 @@ std::pair<TSS_KEY, TPM_HANDLE> TPMWrapper::c_genKeys() {
 	if (!initialized) {
 		throw std::logic_error("c_genKeys called without a TPM connection!");
 	}
+	ByteVec WrapperNullVec;
 	//Create key template
 	TPMT_PUBLIC templ(TPM_ALG_ID::SHA1,
 		TPMA_OBJECT::decrypt |
 		TPMA_OBJECT::sensitiveDataOrigin |
 		TPMA_OBJECT::userWithAuth,
-		NullVec,  // No policy
+		WrapperNullVec,  // No policy
 		TPMS_RSA_PARMS(
 			TPMT_SYM_DEF_OBJECT::NullObject(),
 			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
-		TPM2B_PUBLIC_KEY_RSA(NullVec));
+		TPM2B_PUBLIC_KEY_RSA(WrapperNullVec));
 	//Create software key
 	TSS_KEY k;
 	k.publicPart = templ;
 	k.CreateKey();
 	//Load key into TPM and get back the handle
-	TPMT_SENSITIVE s(NullVec, NullVec, TPM2B_PRIVATE_KEY_RSA(k.privatePart));
+	TPMT_SENSITIVE s(WrapperNullVec, WrapperNullVec, TPM2B_PRIVATE_KEY_RSA(k.privatePart));
 	TPM_HANDLE h = tpm.LoadExternal(s, k.publicPart, TPM_HANDLE::FromReservedHandle(TPM_RH::_NULL));
 	return std::pair<TSS_KEY, TPM_HANDLE>(k, h);
 }
@@ -104,7 +111,8 @@ std::vector<BYTE> TPMWrapper::c_RSA_decrypt(TPM_HANDLE & handle, const std::vect
 	if (!initialized) {
 		throw std::logic_error("c_RSA_decrypt called without a TPM connection!");
 	}
-	return tpm.RSA_Decrypt(handle, ciphertext, TPMS_NULL_ASYM_SCHEME(), NullVec);
+	ByteVec WrapperNullVec;
+	return tpm.RSA_Decrypt(handle, ciphertext, TPMS_NULL_ASYM_SCHEME(), WrapperNullVec);
 }
 
 TSS_KEY TPMWrapper::s_importKey(const std::vector<BYTE> & keyVec) {
@@ -114,7 +122,8 @@ TSS_KEY TPMWrapper::s_importKey(const std::vector<BYTE> & keyVec) {
 }
 //Will fail if key is not properly initialized
 std::vector<BYTE> TPMWrapper::s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message) {
-	return key.publicPart.Encrypt(message, NullVec);
+	ByteVec WrapperNullVec;
+	return key.publicPart.Encrypt(message, WrapperNullVec);
 }
 
 bool TPMWrapper::init(unsigned int port) {

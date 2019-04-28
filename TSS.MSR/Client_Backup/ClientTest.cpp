@@ -25,6 +25,13 @@
 
 using namespace std;
 
+void server_connect(Server & s, unsigned int num_cons, unsigned int me,
+	std::vector<std::vector<BYTE> > & downloads,
+	const std::vector<BYTE> & upload);
+
+void client_connect(unsigned int me, char * hostname, unsigned int port,
+	std::vector<std::vector<BYTE> > & downloads, const std::vector<BYTE> & upload);
+
 //First arg is server port, second is TPM port, third is the host
 int main(int argc, char ** argv) {
 
@@ -42,15 +49,23 @@ int main(int argc, char ** argv) {
 	//2. Broadcast public key and receive public key
 	//Initialize these two parts
 	std::vector<std::pair<char *, unsigned int> > parties;
-	unsigned int my_party;
-	std::vector<TSS_KEY> keyVec;
-	std::vector<BYTE> keyVec = keyPair.first.ToBuf();
+	unsigned int my_party = 0; //TODO initialize
+	std::vector<BYTE> myKeyVec = keyPair.first.ToBuf();
+	std::vector<std::vector<BYTE> > keyVec;
+	std::vector<TSS_KEY> other_keys(parties.size());
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
-	char * server_hostname;
-	unsigned int server_port;
+	char * server_hostname = "127.0.0.1"; //TODO change - only to get it to compile
+	unsigned int server_port = 0; //TODO change
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
+	if (c.init()) {
+		cerr << "Failed initializing client for party " << my_party << endl;
+		return 1;
+	}
+	//Send the server our party number so they know who is who
+	c.sendBuffer(sizeof(my_party), &my_party);
+	//Now send the key vector
 	c.sendBuffer(keyVec.size(), keyVec.data());
 	for (unsigned int i = 0; i < parties.size(); i++) {
 		//Skip my party
@@ -70,14 +85,14 @@ int main(int argc, char ** argv) {
 			throw std::exception("ERROR getting key");
 		}
 		std::vector<BYTE> keyByteVec = stringToByteVec(recBuf, msgSize);
-		keyVec[i] = myTPM.s_importKey(keyByteVec);
+		other_keys[i] = myTPM.s_importKey(keyByteVec);
 		delete partyNum;
 		delete recBuf;
 	}
 	//TODO Now accept garbled circuit
 
 	//Now accept wire ciphertexts from garbler
-	unsigned int num_wires;
+	unsigned int num_wires = 0; //TODO change
 	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels;
 	//encLabels[i] has the label pair for wire i
 	encLabels.resize(num_wires);
@@ -107,7 +122,7 @@ int main(int argc, char ** argv) {
 	std::vector<std::vector<BYTE> > intermediate_ciphertexts;
 	intermediate_ciphertexts.resize(choices.size());
 	assert(choices.size() == num_wires);
-	for (unsigned int k; k < choices.size(); k++) {
+	for (unsigned int k = 0; k < choices.size(); k++) {
 		intermediate_ciphertexts[k] =
 			myTPM.c_RSA_decrypt(keyPair.second,
 			(!choices[k]) ? encLabels[k].first : encLabels[k].second);
@@ -122,7 +137,8 @@ int main(int argc, char ** argv) {
 	//Assume secrets are in a concatenated vector
 	//First part is x-coord, second is y-coord
 	mpz_class prime;
-	unsigned int num_shares, minimum;
+	unsigned int num_shares = 0;
+	unsigned int minimum = 0;
 	ShamirSecret shamir(prime, num_shares, minimum);
 	std::vector<std::pair<mpz_class, mpz_class> > shares;
 	for (unsigned int p = 0; p < keyShares.size(); p++) {
@@ -153,17 +169,17 @@ int main(int argc, char ** argv) {
 	//Servers send first, then receive
 	//Start client threads first
 	//TODO how to get my port? CLI arg?
-	unsigned int myPort;
+	unsigned int myPort = 0; //TODO change - get my server port
 	std::vector<BYTE> upload;
 	std::vector<std::vector<BYTE> > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
 	for (unsigned int u = 0; u < my_party; u++) {
 		client_threads[u] = std::thread(&client_connect,
-			my_party, parties[u].first, parties[u].second, downloads[u], upload);
+			my_party, parties[u].first, parties[u].second, downloads, upload);
 	}
 	Server s(myPort);
 	s.init();
-	std::thread server_thread(&server_connect, parties.size() - my_party, my_party,
+	std::thread server_thread(&server_connect, s, parties.size() - my_party, my_party,
 		downloads, upload);
 	for (auto & x : client_threads) {
 		x.join();
@@ -216,7 +232,7 @@ bool amIClient(unsigned int me, unsigned int them) {
 
 //Clients receive first, then send
 void client_connect(unsigned int me, char * hostname, unsigned int port,
-	std::vector<std::vector<BYTE> > & download, const std::vector<BYTE> & upload) {
+	std::vector<std::vector<BYTE> > & downloads, const std::vector<BYTE> & upload) {
 	Client c(port, hostname);
 	if (c.init()) {
 		cerr << "ERROR initializing client: " << hostname << ' ' << port << endl;
@@ -237,7 +253,7 @@ void client_connect(unsigned int me, char * hostname, unsigned int port,
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
-	download[*them] = stringToByteVec(recvData, dataLen);
+	downloads[*them] = stringToByteVec(recvData, dataLen);
 	//Send
 	//First, send which party I am
 	if (c.sendBuffer(sizeof(me), (void *)&me)) {

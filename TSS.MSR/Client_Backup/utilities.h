@@ -143,6 +143,9 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 		throw std::logic_error("Vector to split not long enough!");
 		return 1;
 	}
+#ifndef CHAR_WIDTH
+#define CHAR_WIDTH 8
+#endif
 	unsigned int len = v[0] |
 		(v[1] << CHAR_WIDTH) |
 		(v[2] << (2*CHAR_WIDTH)) |
