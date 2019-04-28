@@ -60,6 +60,39 @@ void get_garbled_circuit(Circuit * c) {
   }
 }
 
+void eval_garbled_circuit(ClientCircuit * c) {
+  //TODO convert base labels from kp to k, p
+  queue<Wire *> t_ordering;
+  //TODO: get topological ordering, probably use a function from before
+  while (!t_ordering.empty()) {
+    Wire * w = t_ordering.pop();
+    if (w->is_gate && w->gate_type == GATE_XOR) {
+      Wire * a = w->left_child;
+      Wire * b = w->right_child;
+      w->label_p = xor_bit(a->label_p, b->label_p);
+      w->label_k = xor_wire(a->label_k, b->label_k);
+    } else if (w->is_gate) {
+      Wire * a = w->left_child;
+      Wire * b = w->right_child;
+
+      w->p[0] = random_bit();
+      w->p[1] = xor_bit(i->p[0], constbit_1);
+      w->k[0] = random_wire(c->security);
+      w->k[1] = xor_wire(i->k[0], R);
+
+      for (int i_a=0;i_a<=1;i_a++) {
+        for (int i_b=0;i_b<=1;i_b++) {
+          bit out = eval_gate(w->gate_type, i_a, i_b);
+          wire_value * w_out = wire2garbling(w, out);
+          wire * e = xor_wire(w_out, hash(a->k[i_a], b->k[i_b], w->gate_number));
+          int index = 2 * bit_to_int(a->p[i_a]) + bit_to_int(b->p[i_b]);
+          w->garbled_labels[index] = e;
+        }
+      }
+    }
+  }
+}
+
 // the garbling is just the concatenation of w->kb and w->pb for b=which
 wire_value * wire2garbling(Wire * w, bit * which) {
   wire * k = w->k[bit_to_int(which)]

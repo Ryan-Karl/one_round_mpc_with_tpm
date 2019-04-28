@@ -8,6 +8,8 @@ class wire_value {
   int len;
   void set(int i, bool b);
   void set(int i, bit b);
+  vector<char> to_bytevec();
+  void xor_with(wire_value * w);
   bit get(int i);
 };
 
@@ -70,14 +72,17 @@ typedef struct {
   Wire * left_child;
   Wire * right_child;
 
-  // Will likely be used only during execution
-  wire_value value;
+  // Will likely be used only during execution, received from other players
+  wire_value * label_kp;
+  //Converted into these once received
+  wire_value * label_k;
+  wire_value * label_p;
 } Wire;
 
 typedef struct {
   // Null terminated array of pointers to output (resp. input) wires
-  Wire ** output_wires;
-  Wire ** input_wires;
+  vector<Wire *> output_wires;
+  vecotr<Wire *> input_wires;
   long n_gates;
   // Security parameter
   int security;
