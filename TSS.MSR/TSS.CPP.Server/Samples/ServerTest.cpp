@@ -30,17 +30,27 @@ using namespace std;
 
 //First arg is port, second is a string to encrypt
 int main(int argc, char ** argv) {
-	
-	if (argc < 3) {
-		cout << "First arg is port, second is a string to encrypt" << endl;
+	unsigned int num_required_args = 2;
+	if (argc < 2 * num_required_args) {
+		std::cout << "ERROR: provide all required arguments" << endl;
 		return 0;
+	}
+	char * circuitfile = "circuitfile.txt"; //TODO change
+	unsigned int num_parties = 0; //TODO change
+	unsigned int port = 0;
+	for (int argx = 0; argx < argc; argx++) {
+		if (!strcmp(argv[argx], "--port")) {
+			port = atoi(argv[++argx]);
+			continue;
+		}
+		if (!strcmp(argv[argx], "--circuit")) {
+			circuitfile = argv[++argx];
+		}
 	}
 
 	//INITIALIZE
 	//2. Receive public keys from parties
-	char * circuitfile = "circuitfile.txt"; //TODO change
-	unsigned int num_parties = 0; //TODO change
-	unsigned int port = 0;
+	
 	Server s(port);
 	if (s.init()) {
 		cerr << "ERROR initializing server" << endl;

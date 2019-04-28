@@ -37,8 +37,12 @@ std::vector<bool> parse_choicefile(char * filename);
 int parse_netfile(char * filename, char ** server_hostname, unsigned int & server_port,
 	std::vector<std::pair<std::string, unsigned int> > & parties);
 
-//First arg is server port, second is TPM port, third is the host
 int main(int argc, char ** argv) {
+	unsigned int num_required_args = 4;
+	if (argc < 2*num_required_args) {
+		std::cout << "ERROR: provide all required arguments" << endl;
+		return 0;
+	}
 	//Vars to be initialized
 	unsigned int my_party = 0; 
 	unsigned int myPort = 0;
@@ -47,7 +51,7 @@ int main(int argc, char ** argv) {
 	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
 	std::vector<bool> choices; //TODO take this in
 	//Parse arguments
-	unsigned int num_required_args = 4;
+	
 	for (int argx = 0; argx < argc; argx++) {
 		if (!strcmp(argv[argx], "--party")) {
 			my_party = atoi(argv[++argx]);
@@ -66,10 +70,7 @@ int main(int argc, char ** argv) {
 	}
 
 
-	if (argc < 3) {
-		std::cout << "ERROR: provide a server and TPM port" << endl;
-		return 0;
-	}
+	
 	//INITIALIZE
 	//1. Get key pair
 	TPMWrapper myTPM;
