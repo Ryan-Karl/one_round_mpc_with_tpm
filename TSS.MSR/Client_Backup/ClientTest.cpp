@@ -21,7 +21,8 @@
 #define ENCFILE "encfile.txt"
 #define DECFILE "decfile.txt"
 #define NUMPARTIES_DEFAULT 1
-#define CLIENT_TPM_PORT 30000
+#define CLIENT_TPM_PORT 2321
+#define DEFAULT_PROTOCOL_PORT 30000
 
 using namespace std;
 
@@ -38,7 +39,7 @@ int parse_netfile(char * filename, char ** server_hostname, unsigned int & serve
 	std::vector<std::pair<std::string, unsigned int> > & parties);
 
 int main(int argc, char ** argv) {
-	unsigned int num_required_args = 4;
+	unsigned int num_required_args = 3;
 	if (argc < 2*num_required_args) {
 		std::cout << "ERROR: provide all required arguments" << endl;
 		return 0;
@@ -51,10 +52,11 @@ int main(int argc, char ** argv) {
 	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
 	std::vector<bool> choices; //TODO take this in
 	//Parse arguments
-	
+	bool got_party = false;
 	for (int argx = 0; argx < argc; argx++) {
 		if (!strcmp(argv[argx], "--party")) {
 			my_party = atoi(argv[++argx]);
+			got_party = true;
 			continue;
 		}
 		if (!strcmp(argv[argx], "--port")) {
@@ -63,18 +65,29 @@ int main(int argc, char ** argv) {
 		}
 		if (!strcmp(argv[argx], "--partyinfo")) {
 			parse_netfile(argv[++argx], &server_hostname, server_port, parties);
+			continue;
 		}
 		if (!strcmp(argv[argx], "--choices")) {
 			choices = parse_choicefile(argv[++argx]);
+			continue;
 		}
 	}
+	//Set my port, if not set
+	if (!myPort) {
+		myPort = DEFAULT_PROTOCOL_PORT;
+	}
+	//Error checking for reading input
+	assert(parties.size());
+	assert(choices.size());
+	assert(server_port);
+	assert(got_party);
 
 
 	
 	//INITIALIZE
 	//1. Get key pair
 	TPMWrapper myTPM;
-	myTPM.init(atoi(argv[2]));
+	myTPM.init(CLIENT_TPM_PORT);
 	//TODO Ryan find out how to force limited usage
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
