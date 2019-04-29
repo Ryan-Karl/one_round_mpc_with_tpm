@@ -34,11 +34,11 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
 void handleErrors(void);
 
 void server_connect(Server & s, unsigned int num_cons, unsigned int me,
-	std::vector<std::vector<BYTE> > & downloads,
-	const std::vector<BYTE> & upload);
+	std::vector<std::vector<std::vector<BYTE> > > & downloads,
+	const std::vector<std::vector<BYTE> > & upload);
 
 void client_connect(unsigned int me, const std::string & hostname, unsigned int port,
-	std::vector<std::vector<BYTE> > & downloads, const std::vector<BYTE> & upload);
+	std::vector<std::vector<std::vector<BYTE> > > & downloads, const std::vector<std::vector<BYTE> > & upload);
 
 std::vector<bool> parse_choicefile(char * filename);
 
@@ -231,8 +231,8 @@ int main(int argc, char ** argv) {
 	//Start client threads first
 	//TODO how to get my port? CLI arg?
 	
-	std::vector<BYTE> upload; //TODO get this - my labels
-	std::vector<std::vector<BYTE> > downloads(parties.size());
+	std::vector<std::vector<BYTE> > upload; //TODO get this - my labels
+	std::vector<std::vector<std::vector<BYTE> > > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
 	for (unsigned int u = 0; u < my_party; u++) {
 		client_threads[u] = std::thread(&client_connect,
@@ -449,7 +449,7 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 			throw new std::exception("ERROR receiving");
 		}
 		//Next, get the actual data
-		char * recvData;
+		//char * recvData;
 		unsigned int dataLen;
 		unsigned int * numChoices;
 		//Get the number of choices they will send
@@ -469,7 +469,7 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 			downloads[*them][k] = stringToByteVec(buf, dataLen);
 			delete buf;
 		}
-		delete recvData;
+		//delete recvData;
 		delete numChoices;
 		delete them;
 	}
