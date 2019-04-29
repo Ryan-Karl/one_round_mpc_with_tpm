@@ -1,4 +1,5 @@
-﻿  ServerTest.cpp
+﻿  stdafx.cpp
+  ServerTest.cpp
 c:\devsoft\mpir\mpirxx.h(1610): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
 c:\devsoft\mpir\mpirxx.h(1611): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
 c:\devsoft\mpir\mpirxx.h(1677): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
@@ -48,4 +49,5 @@ c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from 'unsi
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(52): warning C4018: '<': signed/unsigned mismatch
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(64): warning C4018: '<': signed/unsigned mismatch
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\rsa.h(36): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\servertest.cpp(34): warning C4018: '<': signed/unsigned mismatch
   TSS.CPP Samples.vcxproj -> C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Server\Src\\Debug\TSS.CPP Samples.exe

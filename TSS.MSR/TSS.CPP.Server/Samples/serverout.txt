@@ -1,3 +1,1 @@
-Server started
-Server received keyStr
-Sent encrypted string
+ERROR: provide all required arguments

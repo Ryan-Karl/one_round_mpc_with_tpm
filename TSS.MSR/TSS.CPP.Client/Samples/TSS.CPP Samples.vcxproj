@@ -100,7 +100,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>tss.cpp.lib;wsock32.lib;kernel32.lib;user32.lib;%(AdditionalDependencies);libeay32.lib;mpir.lib;mpirxx.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>tss.cpp.lib;wsock32.lib;kernel32.lib;user32.lib;%(AdditionalDependencies);mpir.lib;mpirxx.lib;Ws2_32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);C:\Program Files (x86)\OpenSSL-Win32\lib;C:\DevSoft\mpir\msvc\vs15\lib_mpir_gc\Win32\Debug;C:\DevSoft\mpir\msvc\vs15\lib_mpir_cxx\Win32\Debug;</AdditionalLibraryDirectories>
     </Link>
     <ProjectReference>
