@@ -6,9 +6,9 @@
 #include <iostream>
 #include <map>
 #include <string>
-//#include <openssl/conf.h>
-//#include <openssl/evp.h>
-//#include <openssl/err.h>
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
