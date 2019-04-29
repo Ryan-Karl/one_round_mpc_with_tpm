@@ -72,7 +72,9 @@ int p_to_index(bool p1, bool p0) {
 }
 
 void eval_garbled_circuit(ClientCircuit * c) {
-  //TODO convert base labels from kp to k, p
+  for (auto w_it = c->input_wires.begin(); w_it<c->input_wires.end(); w++) {
+    garbling2wire(w->kp, w->k, &(w->p));
+  }
   queue<Wire *> t_ordering;
   //TODO: get topological ordering, probably use a function from before
   while (!t_ordering.empty()) {

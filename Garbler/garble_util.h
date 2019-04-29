@@ -70,11 +70,10 @@ typedef struct {
   wire_value * label_kp;
   //Converted into these once received
   wire_value * label_k;
-  wire_value * label_p;
+  bool label_p;
 } Wire;
 
 typedef struct {
-  // Null terminated array of pointers to output (resp. input) wires
   vector<Wire *> output_wires;
   vecotr<Wire *> input_wires;
   long n_gates;
