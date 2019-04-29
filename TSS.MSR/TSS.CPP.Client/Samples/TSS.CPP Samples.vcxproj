@@ -178,7 +178,6 @@
     <ClCompile Include="..\..\Client_Backup\ClientTest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\includes\RSA.h" />
     <ClInclude Include="..\..\Client_Backup\networkutils.h" />
     <ClInclude Include="..\..\Client_Backup\ShamirSecret.h" />
     <ClInclude Include="..\..\Client_Backup\TPMWrapper.h" />

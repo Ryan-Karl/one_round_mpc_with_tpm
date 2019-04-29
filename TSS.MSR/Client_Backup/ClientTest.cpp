@@ -26,6 +26,13 @@
 
 using namespace std;
 
+int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
+	unsigned char *iv, unsigned char *ciphertext);
+
+int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+	unsigned char *iv, unsigned char *plaintext);
+void handleErrors(void);
+
 void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 	std::vector<std::vector<BYTE> > & downloads,
 	const std::vector<BYTE> & upload);
@@ -138,7 +145,7 @@ int main(int argc, char ** argv) {
 
 	//Now accept wire ciphertexts from garbler
 	unsigned int num_wires = 0; //TODO change
-	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels;
+	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels; //TODO decrypt these
 	//encLabels[i] has the label pair for wire i
 	encLabels.resize(num_wires);
 	for (unsigned int j = 0; j < num_wires; j++) {
@@ -173,7 +180,7 @@ int main(int argc, char ** argv) {
 	}
 	//2. Extract symmetric key (and ciphertext)
 	//Ciphertext is first, key share is second
-	std::vector<std::vector<BYTE> > labels(intermediate_ciphertexts.size());
+	std::vector<std::vector<BYTE> > labels(intermediate_ciphertexts.size()); //Still encrypted
 	std::vector<std::vector<BYTE> > keyShares(intermediate_ciphertexts.size());
 	for (unsigned int o = 0; o < intermediate_ciphertexts.size(); o++) {
 		splitIntermediate(intermediate_ciphertexts[o], labels[o], keyShares[o]);
@@ -201,9 +208,18 @@ int main(int argc, char ** argv) {
 
 	//3. Use AES to decrypt labels based on choices
 	//TODO finish once we have a function to convert ByteVec<->label
-	std::vector<bool> decryptedLabels(choices.size());
+	std::vector<std::vector<BYTE> >
+		decryptedLabels(choices.size());
 	//Change me later!
-	std::vector<int> wires;
+	//std::vector<int> wires;
+#define AES_BUFFERSIZE 128
+	unsigned char iv[10];
+	memcpy(iv, "Notre Dame", 10);
+	for (unsigned int g = 0; g < decryptedLabels.size(); g++) {
+		unsigned char plaintext[AES_BUFFERSIZE];
+		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), key, iv, plaintext);
+		decryptedLabels[g] = stringToByteVec((char *) plaintext, plaintext_length);
+	}
 	
 
 	//ONLINE
@@ -220,7 +236,7 @@ int main(int argc, char ** argv) {
 	std::vector<std::thread> client_threads(my_party);
 	for (unsigned int u = 0; u < my_party; u++) {
 		client_threads[u] = std::thread(&client_connect,
-			my_party, parties[u].first, parties[u].second, downloads, upload);
+			my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
 	}
 	Server s(myPort);
 	s.init();
@@ -232,7 +248,7 @@ int main(int argc, char ** argv) {
 	else {
 		std::thread server_thread(&server_connect, s,
 			parties.size() - my_party, my_party,
-			downloads, upload);
+			downloads, decryptedLabels);
 		for (auto & x : client_threads) {
 			x.join();
 		}
@@ -340,7 +356,7 @@ bool amIClient(unsigned int me, unsigned int them) {
 
 //Clients receive first, then send
 void client_connect(unsigned int me, const std::string & hostname, unsigned int port,
-	std::vector<std::vector<BYTE> > & downloads, const std::vector<BYTE> & upload) {
+	std::vector<std::vector<std::vector<BYTE> > > & downloads, const std::vector<std::vector<BYTE> > & upload) {
 	Client c(port, hostname.c_str());
 	if (c.init()) {
 		cerr << "ERROR initializing client: " << hostname << ' ' << port << endl;
@@ -354,33 +370,55 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
-	//Next, get the actual data
-	char * recvData;
+	//Next, get how many choices they will send
+	
+	unsigned int * numChoices;
 	unsigned int dataLen;
-	if (c.recvString(dataLen, &recvData)) {
+	if (c.recvBuffer((void **) &numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
-	downloads[*them] = stringToByteVec(recvData, dataLen);
+	//Then, accept all their choices
+	downloads[*them].clear();
+	downloads[*them].resize(*numChoices);
+	for (unsigned int i = 0; i < *numChoices; i++) {
+		char * recvData;
+		if (c.recvBuffer((void **)&recvData, dataLen)) {
+			cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
+			throw new std::exception("ERROR receiving");
+		}
+		downloads[*them][i] = stringToByteVec(recvData, dataLen);
+		delete recvData;
+	}
+	delete numChoices;
 	//Send
 	//First, send which party I am
 	if (c.sendBuffer(sizeof(me), (void *)&me)) {
 		cerr << "ERROR sending: " << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR sending");
 	}
-	//Next, send my data
-	if (c.sendBuffer(upload.size(), (void *)upload.data())) {
+	//Next, send how many choices I am sending
+	unsigned int choices = upload.size();
+	if (c.sendBuffer(sizeof(unsigned int), (void *) &choices)) {
 		cerr << "ERROR sending: " << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR sending");
 	}
+	//Next, send my data
+	for (unsigned int j = 0; j < upload.size(); j++) {
+		if (c.sendBuffer(upload[j].size(), (void *)upload[j].data())) {
+			cerr << "ERROR sending: " << hostname << ' ' << port << endl;
+			throw new std::exception("ERROR sending");
+		}
+	}
+	
 	c.stop();
 }
 
 //Servers send first, then receive
 //Assumes server has been created and initialized
 void server_connect(Server & s, unsigned int num_cons, unsigned int me,
-	std::vector<std::vector<BYTE> > & downloads,
-	const std::vector<BYTE> & upload) {
+	std::vector<std::vector<std::vector<BYTE> > > & downloads,
+	const std::vector<std::vector<BYTE> > & upload) {
 	s.accept_connections(num_cons);
 	for (unsigned int i = 0; i < num_cons; i++) {
 		//First, send which party I am
@@ -389,9 +427,18 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 			throw new std::exception("ERROR sending");
 		}
 		//Next, send my data
-		if (s.sendBuffer(i, upload.size(), (void *)upload.data())) {
+		//First, send how many choices we're going to send
+		unsigned int numChoicesToSend = upload.size();
+		if (s.sendBuffer(i, sizeof(unsigned int), &numChoicesToSend)) {
 			cerr << "ERROR sending: " << i;
 			throw new std::exception("ERROR sending");
+		}
+		//Next, send each choice
+		for (unsigned int j = 0; j < upload.size(); j++) {
+			if (s.sendBuffer(i, upload[j].size(), (void *)upload[j].data())) {
+				cerr << "ERROR sending: " << i;
+				throw new std::exception("ERROR sending");
+			}
 		}
 		//Receive
 		//First, receive which party the message is from
@@ -404,11 +451,27 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 		//Next, get the actual data
 		char * recvData;
 		unsigned int dataLen;
-		if (s.recvString(i, dataLen, &recvData)) {
+		unsigned int * numChoices;
+		//Get the number of choices they will send
+		if (s.recvBuffer(i, (void **) &numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
 			cerr << "ERROR : receiving" << endl;
 			throw new std::exception("ERROR receiving");
 		}
-		downloads[*them] = stringToByteVec(recvData, dataLen);
+		downloads[*them].clear();
+		downloads[*them].resize(*numChoices);
+		//Receive all their choices
+		for (unsigned int k = 0; k < downloads[*them].size(); k++) {
+			char * buf;
+			if (s.recvString(i, dataLen, &buf)) {
+				cerr << "ERROR : receiving" << endl;
+				throw new std::exception("ERROR receiving");
+			}
+			downloads[*them][k] = stringToByteVec(buf, dataLen);
+			delete buf;
+		}
+		delete recvData;
+		delete numChoices;
+		delete them;
 	}
 }
 
@@ -442,4 +505,59 @@ void send_message(unsigned int num_connections, unsigned int port, const std::ve
 	}
 	s.stop();
 	return;
+}
+
+//AES encryption/decryption from TSS.MSR Samples.cpp
+int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
+	unsigned char *iv, unsigned char *ciphertext)
+{
+	EVP_CIPHER_CTX *ctx;
+	int len;
+	int ciphertext_len;
+	// Create and initialise the context
+	if (!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
+	// Initialise the encryption operation. IMPORTANT - ensure you use a key and IV size appropriate for your cipher. In this example we are using 256 bit AES (i.e. a 256 bit key). The IV size for *most* modes is the same as the block size. For AES this is 128 bits
+	if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+		handleErrors();
+	// Provide the message to be encrypted, and obtain the encrypted output. EVP_EncryptUpdate can be called multiple times if necessary
+	if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
+		handleErrors();
+	ciphertext_len = len;
+	// Finalise the encryption. Further ciphertext bytes may be written at this stage.
+	if (1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) handleErrors();
+	ciphertext_len += len;
+	// Clean up
+
+	EVP_CIPHER_CTX_free(ctx);
+	return ciphertext_len;
+}
+
+int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+	unsigned char *iv, unsigned char *plaintext)
+{
+	EVP_CIPHER_CTX *ctx;
+	int len;
+	int plaintext_len;
+	// Create and initialise the context
+	if (!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
+	// Initialise the decryption operation. IMPORTANT - ensure you use a key  and IV size appropriate for your cipher.
+
+	if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+		handleErrors();
+	// Provide the message to be decrypted, and obtain the plaintext output.
+	if (1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
+		handleErrors();
+	plaintext_len = len;
+	// Finalise the decryption. Further plaintext bytes may be written at this stage.
+	if (1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)) handleErrors();
+	plaintext_len += len;
+	// Clean up
+	EVP_CIPHER_CTX_free(ctx);
+	return plaintext_len;
+}
+
+void handleErrors(void)
+{
+	ERR_print_errors_fp(stderr);
+	abort();
 }

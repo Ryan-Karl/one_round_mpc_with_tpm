@@ -366,7 +366,7 @@ void Samples::MPC_TPM()
 		const char * key_str = ByteVecToString(key).c_str();
 		const char * iv_str = ByteVecToString(iv).c_str();
 
-		ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), (unsigned char *)key_str, (unsigned char *)iv_str,
+		ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), (unsigned char *)key_str, (unsigned char *)iv_str, 
 			ciphertext);
 
 		// Do something useful with the ciphertext here

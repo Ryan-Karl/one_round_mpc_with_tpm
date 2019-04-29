@@ -116,3 +116,16 @@ void garbling2wire(const wire_value *w, wire_value *k, bool *p) {
   }
   *p = w->get(size);
 }
+
+#ifndef CHAR_WIDTH
+#define CHAR_WIDTH 8
+#endif
+
+wire_value::wire_value(int size) {
+	bits = new char[size / CHAR_WIDTH];
+}
+
+wire_value::~wire_value() {
+	delete bits;
+	bits = nullptr;
+}
