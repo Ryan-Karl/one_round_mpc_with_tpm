@@ -21,7 +21,6 @@ class wire_value {
 int p_to_int(bool p1, bool p0);
 
 wire_value * xor_wire(wire_value * w1, wire_value * w2);
-// xor_bit can of course be done without this concisely but just in case representation changes it will be nice to be able to abstract away
 
 wire_value * random_wire(int width);
 bool random_bit();
