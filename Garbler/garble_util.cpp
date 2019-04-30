@@ -183,11 +183,22 @@ bool hash(wire_value * ke, char * str, int gate_number){
   for(unsigned int i = 0; i < sizeof(gate_number); i++){
     fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xF));
   }
-  char * hashout = new char[SHA256_DIGEST_LENGTH];
+  char hashout[SHA256_DIGEST_LENGTH];
   SHA256(fullbuf.data(), fullbuf.size(), hashout);
   return (hashout[0]) & 1;
 }
 
-
+wire_value * xor_wire(wire_value * w1, wire_value * w2){
+  int min_len = w1->len < w2->len ? w1->len : w2->len;
+  wire_value * wv = new wire_value(min_len);
+  int num_bytes = min_len/CHAR_WIDTH;
+  if(min_len % CHAR_WIDTH){
+    num_bytes++;  
+  }
+  for(int i = 0; i < num_bytes; i++){
+    wv->bits[i] = w1->bits[i] ^ w2->bits[i];
+  }
+  return wv;
+}
 
 
