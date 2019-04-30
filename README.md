@@ -15,3 +15,4 @@ May need to download .NET 4.6 framework.
 
 May need to right click Samples.cpp in Solution Explorer and set as StartUp Project.
 
+Dependcies are MPIR for C++, OpenSSL, and TSS.CPP. 
