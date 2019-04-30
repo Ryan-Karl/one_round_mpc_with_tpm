@@ -1,5 +1,6 @@
 #include <thread>
 #include <math.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "garble_util.h"
@@ -167,7 +168,7 @@ wire_value * hash(wire_value * ka, wire_value * kb, int gate_number){
   fullbuf.insert(fullbuf.end(), ka->bits, (ka->bits) + (ka->len/CHAR_WIDTH) + (ka->len % CHAR_WIDTH? 1 : 0));
   fullbuf.insert(fullbuf.end(), kb->bits, (kb->bits) + (kb->len/CHAR_WIDTH) + (kb->len % CHAR_WIDTH? 1 : 0));
   for(unsigned int i = 0; i < sizeof(gate_number); i++){
-    fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xF));
+    fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xFF));
   }
   wire_value * wv = new wire_value(SHA_OUTSIZE * CHAR_WIDTH);
   SHA1(fullbuf.data(), fullbuf.size(), wv->bits);
@@ -181,13 +182,25 @@ bool hash(wire_value * ke, char * str, int gate_number){
   fullbuf.insert(fullbuf.end(), ke.bits, (ke->bits) + (ke->len/CHAR_WIDTH) + (ke->len % CHAR_WIDTH? 1 : 0));
   fullbuf.insert(fullbuf.end(), str, strlen(str));
   for(unsigned int i = 0; i < sizeof(gate_number); i++){
-    fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xF));
+    fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xFF));
   }
   char * hashout = new char[SHA_OUTSIZE * CHAR_WIDTH];
   SHA1(fullbuf.data(), fullbuf.size(), hashout);
   return (hashout[0]) & 1;
 }
 
+wire_value * random_wire(int width){
+	//assert(width > 0);
+	wire_value * wv = new wire_value(width);
+	for(int i = 0; i < width/CHAR_WIDTH; i++){
+		wv[i] = rand() & 0xFF;
+	}	
+	return wv;
+}	
+
+bool random_bit(){
+	return rand() & 1;	
+}	
 
 
 
