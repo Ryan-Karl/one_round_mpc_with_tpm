@@ -124,7 +124,9 @@ void garbling2wire(const wire_value *w, wire_value *k, bool *p) {
 #endif
 
 wire_value::wire_value(int size) {
+  //assert(size > 0);
 	bits = new char[size / CHAR_WIDTH]();
+  len = size;
 }
 
 wire_value::~wire_value() {
@@ -142,7 +144,15 @@ void wire_value::set(int i, bool b){
 	}
 }
 
-bool get(int i){
+bool wire_value::get(int i){
 	//assert(i >= 0 && i < len);
 	return (bits[i/CHAR_WIDTH] >> (i % CHAR_WIDTH)) & 1;
 }
+
+std::vector<char> wire_value::to_bytevec(){
+  std::vector v;
+  v.reserve(len*CHAR_WIDTH);
+  v.assign(bits, bits + (len*CHAR_WIDTH));
+  return v;
+}
+
