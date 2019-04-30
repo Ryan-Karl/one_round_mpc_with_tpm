@@ -9,4 +9,7 @@ typedef struct {
   std::vector<Wire *> input_wires;
 } PlayerInfo;
 
+//Read frigate circuit and parse into structure -- called by server
+void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<PlayerInfo *> players, int security);
+
 #endif
