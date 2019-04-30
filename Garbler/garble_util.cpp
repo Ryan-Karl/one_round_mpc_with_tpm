@@ -19,8 +19,8 @@ void get_garbled_circuit(Circuit * c) {
     w->k[0] = random_wire(c->security);
     w->k[1] = xor_wire(w->k[0], R);
   }
-  queue<Wire *> t_ordering;
-  //TODO: get topological ordering
+  std::deque<Wire *> t_ordering;
+  top_sort(t_ordering, circuit);
   while (!t_ordering.empty()) {
     Wire * w = t_ordering.pop();
     if (w->is_gate && w->gate_type == GATE_XOR) {
@@ -76,8 +76,8 @@ void eval_garbled_circuit(ClientCircuit * c) {
   for (auto w_it = c->input_wires.begin(); w_it<c->input_wires.end(); w++) {
     garbling2wire(w->kp, w->k, &(w->p));
   }
-  queue<Wire *> t_ordering;
-  //TODO: get topological ordering, probably use a function from before
+  std::deque<Wire *> t_ordering;
+  top_sort(t_ordering, circuit);
   while (!t_ordering.empty()) {
     Wire * w = t_ordering.pop();
     if (w->is_gate && w->gate_type == GATE_XOR) {
@@ -159,8 +159,8 @@ std::vector<char> wire_value::to_bytevec(){
 
 #include <openssl/sha.h>
 
-//Output is 160 bits (20 bytes)
-#define SHA_OUTSIZE 20
+//Output of SHA1 is 160 bits (20 bytes)
+//#define SHA_OUTSIZE 20
 wire_value * hash(wire_value * ka, wire_value * kb, int gate_number){
   std::vector<char> fullbuf;
   unsigned int numbits = ka->len + kb->len + sizeof(gate_number)*CHAR_WIDTH;
@@ -170,8 +170,8 @@ wire_value * hash(wire_value * ka, wire_value * kb, int gate_number){
   for(unsigned int i = 0; i < sizeof(gate_number); i++){
     fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xFF));
   }
-  wire_value * wv = new wire_value(SHA_OUTSIZE * CHAR_WIDTH);
-  SHA1(fullbuf.data(), fullbuf.size(), wv->bits);
+  wire_value * wv = new wire_value(SHA256_DIGEST_LENGTH*CHAR_WIDTH);
+  SHA256(fullbuf.data(), fullbuf.size(), wv->bits);
   return wv;
 }
 
@@ -184,10 +184,11 @@ bool hash(wire_value * ke, char * str, int gate_number){
   for(unsigned int i = 0; i < sizeof(gate_number); i++){
     fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xFF));
   }
-  char * hashout = new char[SHA_OUTSIZE * CHAR_WIDTH];
-  SHA1(fullbuf.data(), fullbuf.size(), hashout);
+  char hashout[SHA256_DIGEST_LENGTH];
+  SHA256(fullbuf.data(), fullbuf.size(), hashout);
   return (hashout[0]) & 1;
 }
+
 
 wire_value * random_wire(int width){
 	//assert(width > 0);
@@ -201,6 +202,20 @@ wire_value * random_wire(int width){
 bool random_bit(){
 	return rand() & 1;	
 }	
+
+
+wire_value * xor_wire(wire_value * w1, wire_value * w2){
+  int min_len = w1->len < w2->len ? w1->len : w2->len;
+  wire_value * wv = new wire_value(min_len);
+  int num_bytes = min_len/CHAR_WIDTH;
+  if(min_len % CHAR_WIDTH){
+    num_bytes++;  
+  }
+  for(int i = 0; i < num_bytes; i++){
+    wv->bits[i] = w1->bits[i] ^ w2->bits[i];
+  }
+  return wv;
+}
 
 
 
