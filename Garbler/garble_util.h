@@ -2,6 +2,7 @@
 #define GARBLE_UTIL_H
 
 #include <vector>
+#include <deque>
 
 //Should be able to be used for a general width sequence of bits
 class wire_value {
@@ -16,8 +17,8 @@ class wire_value {
   ~wire_value();
 };
 
-int p_to_int(bool p1, bool p0);
 
+int p_to_int(bool p1, bool p0);
 
 wire_value * xor_wire(wire_value * w1, wire_value * w2);
 // xor_bit can of course be done without this concisely but just in case representation changes it will be nice to be able to abstract away
@@ -81,5 +82,6 @@ struct Circuit {
 void get_garbled_circuit(Circuit * c);
 //Read frigate circuit and parse into structure -- called by server
 void read_frigate_circuit(char * filename, Circuit * circuit);
+void top_sort(std::deque<Wire *> destination, const Circuit * circuit);
 
 #endif

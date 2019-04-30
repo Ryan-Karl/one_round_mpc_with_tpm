@@ -18,8 +18,8 @@ void get_garbled_circuit(Circuit * c) {
     w->k[0] = random_wire(c->security);
     w->k[1] = xor_wire(w->k[0], R);
   }
-  queue<Wire *> t_ordering;
-  //TODO: get topological ordering
+  std::deque<Wire *> t_ordering;
+  top_sort(t_ordering, circuit);
   while (!t_ordering.empty()) {
     Wire * w = t_ordering.pop();
     if (w->is_gate && w->gate_type == GATE_XOR) {
@@ -75,8 +75,8 @@ void eval_garbled_circuit(ClientCircuit * c) {
   for (auto w_it = c->input_wires.begin(); w_it<c->input_wires.end(); w++) {
     garbling2wire(w->kp, w->k, &(w->p));
   }
-  queue<Wire *> t_ordering;
-  //TODO: get topological ordering, probably use a function from before
+  std::deque<Wire *> t_ordering;
+  top_sort(t_ordering, circuit);
   while (!t_ordering.empty()) {
     Wire * w = t_ordering.pop();
     if (w->is_gate && w->gate_type == GATE_XOR) {
