@@ -156,3 +156,38 @@ std::vector<char> wire_value::to_bytevec(){
   return v;
 }
 
+#include <openssl/sha.h>
+
+//Output is 160 bits (20 bytes)
+#define SHA_OUTSIZE 20
+wire_value * hash(wire_value * ka, wire_value * kb, int gate_number){
+  std::vector<char> fullbuf;
+  unsigned int numbits = ka->len + kb->len + sizeof(gate_number)*CHAR_WIDTH;
+  fullbuf.reserve(numbits/CHAR_WIDTH);
+  fullbuf.insert(fullbuf.end(), ka->bits, (ka->bits) + (ka->len/CHAR_WIDTH) + (ka->len % CHAR_WIDTH? 1 : 0));
+  fullbuf.insert(fullbuf.end(), kb->bits, (kb->bits) + (kb->len/CHAR_WIDTH) + (kb->len % CHAR_WIDTH? 1 : 0));
+  for(unsigned int i = 0; i < sizeof(gate_number); i++){
+    fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xF));
+  }
+  wire_value * wv = new wire_value(SHA_OUTSIZE * CHAR_WIDTH);
+  SHA1(fullbuf.data(), fullbuf.size(), wv->bits);
+  return wv;
+}
+
+bool hash(wire_value * ke, char * str, int gate_number){
+  std::vector<char> fullbuf;
+  unsigned int numbits = ke->len + strlen(str) + sizeof(gate_number)*CHAR_WIDTH;
+  fullbuf.reserve(numbits/CHAR_WIDTH);
+  fullbuf.insert(fullbuf.end(), ke.bits, (ke->bits) + (ke->len/CHAR_WIDTH) + (ke->len % CHAR_WIDTH? 1 : 0));
+  fullbuf.insert(fullbuf.end(), str, strlen(str));
+  for(unsigned int i = 0; i < sizeof(gate_number); i++){
+    fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xF));
+  }
+  char * hashout = new char[SHA_OUTSIZE * CHAR_WIDTH];
+  SHA1(fullbuf.data(), fullbuf.size(), hashout);
+  return (hashout[0]) & 1;
+}
+
+
+
+
