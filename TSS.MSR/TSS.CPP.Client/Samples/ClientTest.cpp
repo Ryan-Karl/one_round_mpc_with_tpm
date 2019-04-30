@@ -7,6 +7,11 @@
 #include <vector>
 #include <string>
 #include <thread>
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <aes.h>
+#include <modes.h>
 
 //#include "../includes/TPMWrapper.h"
 //#include "../includes/NetworkUtils.h"

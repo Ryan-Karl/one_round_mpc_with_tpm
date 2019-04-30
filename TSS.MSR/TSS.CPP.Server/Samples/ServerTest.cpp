@@ -49,7 +49,7 @@ int main(int argc, char ** argv) {
 		std::cout << "ERROR: provide all required arguments" << endl;
 		return 0;
 	}
-	char * circuitfile = "circuitfile.txt"; //TODO change
+	char * circuitfile = nullptr; //TODO change
 	unsigned int num_parties = 0; //TODO change
 	unsigned int port = 0;
 	for (int argx = 0; argx < argc; argx++) {
@@ -59,8 +59,17 @@ int main(int argc, char ** argv) {
 		}
 		if (!strcmp(argv[argx], "--circuit")) {
 			circuitfile = argv[++argx];
+			continue;
+		}
+		if(!strcmp(argv[argx], "--parties")){
+			num_parties = atoi(argv[++argx]);
+			continue;
 		}
 	}
+	//Error checking
+	assert(circuitfile != nullptr);
+	assert(num_parties);
+	assert(port);
 
 	//INITIALIZE
 	//3. Compute a garbled circuit (and send it later)
@@ -175,58 +184,6 @@ int main(int argc, char ** argv) {
 	s.stop();
 	std::cout << "Garbler finished" << endl;
 	return 0;
-
-
-
-
-
-
-
-
-
-
-
-
-/*  //Should not need to call init to start TPM connection
-  //myTpm.init(atoi(argv[3]));
-	Server s(atoi(argv[1]));
-	if (s.init() || s.accept_connections(1)) {
-		cout << "Failed server startup";
-		return 1;
-	}
-	else {
-		cout << "Server started" << endl;
-	}
-	//Get key from client
-	char * keyStr;
-	unsigned int strLen;
-
-	if (s.recvString(0, strLen, (char **)&keyStr)) {
-		cout << "Error getting keyStr" << endl;
-	}
-	else {
-		cout << "Server received keyStr" << endl;
-	}
-	vector<BYTE> keyVec = stringToByteVec(keyStr, strLen);
-	
-	TPMWrapper myTpm;
-	//myTpm.init(30000); //Unneeded for server (hopefully)
-	TSS_KEY swKey = myTpm.s_importKey(keyVec);
-	char * nd = "Notre Dame";
-	std::vector<BYTE> ndVec = stringToByteVec(nd, 10);
-	//Encrypt string
-	std::vector<BYTE> encVec = myTpm.s_RSA_encrypt(swKey, ndVec);
-	//string encStr = ByteVecToString(encVec);
-	
-	if (s.sendBuffer(0, encVec.size(), encVec.data())) {
-		cout << "Error sending encrypted string" << endl;
-	}
-	else {
-		cout << "Sent encrypted string" << endl;
-	}
-	
-	s.stop();
-	*/
 
 }
 
