@@ -7,7 +7,6 @@ class wire_value {
   int len;
   void set(int i, bool b);
   vector<char> to_bytevec();
-  void xor_with(wire_value * w);
   bool get(int i);
 };
 
