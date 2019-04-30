@@ -124,10 +124,25 @@ void garbling2wire(const wire_value *w, wire_value *k, bool *p) {
 #endif
 
 wire_value::wire_value(int size) {
-	bits = new char[size / CHAR_WIDTH];
+	bits = new char[size / CHAR_WIDTH]();
 }
 
 wire_value::~wire_value() {
 	delete bits;
 	bits = nullptr;
+}
+
+void wire_value::set(int i, bool b){
+	//assert(i >= 0 && i < len);
+	if(b){
+		bits[i/CHAR_WIDTH] |= (1 << (i % CHAR_WIDTH));
+	}
+	else{
+		bits[i/CHAR_WIDTH] &= ~(1 << (i % CHAR_WIDTH));
+	}
+}
+
+bool get(int i){
+	//assert(i >= 0 && i < len);
+	return (bits[i/CHAR_WIDTH] >> (i % CHAR_WIDTH)) & 1;
 }
