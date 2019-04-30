@@ -124,6 +124,7 @@ void garbling2wire(const wire_value *w, wire_value *k, bool *p) {
 #endif
 
 wire_value::wire_value(int size) {
+	//TODO zero the memory
 	bits = new char[size / CHAR_WIDTH];
 }
 
