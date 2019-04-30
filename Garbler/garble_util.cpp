@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <iostream>
+#include <exception>
 #include "garble_util.h"
 // http://www.cs.toronto.edu/~vlad/papers/XOR_ICALP08.pdf
 
@@ -217,5 +219,44 @@ wire_value * xor_wire(wire_value * w1, wire_value * w2){
   return wv;
 }
 
+enum NodeMark{ TEMPORARY, PERMANENT };
 
+void visit(Wire * w,
+ std::unordered_map<Wire *, NodeMark> & nodemap,
+ unsigned int & num_not_permanent, std::deque<Wire *> & destination){
+	auto findwire = nodemap.find(w);
+	if(findwire != nodemap.end()){
+		NodeMark currmark = (*findwire).second;
+		if(currmark == PERMANENT){return;}
+		else{
+			std::cerr << "ERROR: not a DAG" << std::endl;
+			throw std::logic_error("ERROR: not a DAG");
+		}	
+	}
+	nodemap[w] = TEMPORARY;
+	//auto currnode = nodemap.find(w);
+	if(w.first->is_gate){
+		visit(w.first->left_child, nodemap, num_not_permanent);
+		visit(w.first->right_child, nodemap, num_not_permanent);
+	}
+	nodemap[w] = PERMANENT;
+	num_not_permanent--;
+	destination.push_front(w);
+}	
+
+void top_sort(std::deque<Wire *> & destination, const Circuit * circuit){
+	unsigned int num_not_permanent = (unsigned int) circuit->n_wires;
+	//Construct list of nodes
+	std::deque<Wire *> nodelist;
+	nodelist.reserve(circuit->output_wires.size() + circuit->input_wires.size());
+	nodelist.insert(nodelist.end(), circuit->output_wires.begin(), circuit->output_wires.end());
+	nodelist.insert(nodelist.end(), circuit->input_wires.begin(), circuit->input_wires.end());
+	std::unordered_map<Wire *, NodeMark> nodemap;
+	nodemap.reserve(num_not_permanent);
+	while(num_not_permanent && nodelist.size()){
+		Wire * nextwire = nodelist.back();
+		nodelist.pop_back();
+		visit(nextwire, nodemap, num_not_permanent, destination);
+	}	
+}	
 

@@ -81,6 +81,6 @@ struct Circuit {
 void get_garbled_circuit(Circuit * c);
 //Read frigate circuit and parse into structure -- called by server
 void read_frigate_circuit(char * filename, Circuit * circuit);
-void top_sort(std::deque<Wire *> destination, const Circuit * circuit);
+void top_sort(std::deque<Wire *> & destination, const Circuit * circuit);
 
 #endif
