@@ -33,9 +33,10 @@ bool hash(wire_value * ke, char * str, int gate_number);
 
 typedef unsigned char gate_type;
 // 11, 10, 01, 00   for xy
-//  0   1   1   0 = 0x6 for XOR(x,y)
-//  1   0   0   0 = 0x8 for AND(x,y)
-//  1   1   0   0 = 0xc for GETX(x,y)
+//  0   1   1   0 = 6 = 0x6 for XOR(x,y)
+//  1   0   0   0 = 8 = 0x8 for AND(x,y)
+//  1   1   0   0 = 12 = 0xc for GETX(x,y)
+//  1   1   1   0 = 14 = 0xe for OR(x, y)
 const gate_type GATE_XOR = 0x6;
 bool eval_gate(gate_type g, bool x, bool y);
 
@@ -47,9 +48,7 @@ struct Wire {
 
   int gate_number;
 
-  // garbled label for the NIOT, at least for root nodes (before the nested encryption and such)
-  // Only used when wire is a gate, and when gate is not XOR
-  // corresponds to 00, 01, 10, 11
+  // garbled label for the NIOT, at least for root nodes (before the nested encryption and such) // Only used when wire is a gate, and when gate is not XOR // corresponds to 00, 01, 10, 11
   bool garbled_labels[4];
 
   bool is_root;
@@ -72,15 +71,15 @@ struct Wire {
 struct Circuit {
   std::vector<Wire *> output_wires;
   std::vector<Wire *> input_wires;
-  long n_gates;
+  // number of wires -- will be more than the number of gates
+  long n_wires;
   // Security parameter
   int security;
 };
 
 //Garble circuit
 void get_garbled_circuit(Circuit * c);
-//Read frigate circuit and parse into structure -- called by server
-void read_frigate_circuit(char * filename, Circuit * circuit);
 void top_sort(std::deque<Wire *> & destination, const Circuit * circuit);
+
 
 #endif
