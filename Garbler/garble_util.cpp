@@ -24,7 +24,7 @@ void get_garbled_circuit(Circuit * c) {
   std::deque<Wire *> t_ordering;
   top_sort(t_ordering, circuit);
   while (!t_ordering.empty()) {
-    Wire * w = t_ordering.pop();
+    Wire * w = t_ordering.pop_back();
     if (w->is_gate && w->gate_type == GATE_XOR) {
       Wire * a = w->left_child;
       Wire * b = w->right_child;
@@ -81,7 +81,7 @@ void eval_garbled_circuit(ClientCircuit * c) {
   std::deque<Wire *> t_ordering;
   top_sort(t_ordering, circuit);
   while (!t_ordering.empty()) {
-    Wire * w = t_ordering.pop();
+    Wire * w = t_ordering.pop_back();
     if (w->is_gate && w->gate_type == GATE_XOR) {
       Wire * a = w->left_child;
       Wire * b = w->right_child;
