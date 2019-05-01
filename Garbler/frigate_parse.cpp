@@ -19,7 +19,7 @@ void expand_add(std::vector<Wire*> *wires, int index, Wire * w) {
   (*wires)[index] = w;
 }
 
-void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<PlayerInfo *> players, int security) {
+void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<PlayerInfo *> * players, int security) {
   circuit->security = security;
   //associates number to Wire
   std::vector<Wire *> wires;
@@ -40,7 +40,7 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
     w->is_gate = false;
     expand_add(&wires, wire_i, w);
     circuit->input_wires.push_back(w);
-    players[player]->input_wires.push_back(w);
+    (*players)[player]->input_wires.push_back(w);
     max_player = std::max(max_player, player);
     n_wires += 1;
   }
