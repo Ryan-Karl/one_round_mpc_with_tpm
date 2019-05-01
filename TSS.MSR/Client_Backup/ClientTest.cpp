@@ -59,10 +59,10 @@ int main(int argc, char ** argv) {
 	//Vars to be initialized
 	unsigned int my_party = 0; 
 	unsigned int myPort = 0;
-	char * server_hostname = "127.0.0.1"; //TODO change - only to get it to compile
-	unsigned int server_port = 0; //TODO change
+	char * server_hostname = "127.0.0.1"; 
+	unsigned int server_port = 0;
 	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
-	std::vector<bool> choices; //TODO take this in
+	std::vector<bool> choices; 
 	//Parse arguments
 	bool got_party = false;
 	for (int argx = 0; argx < argc; argx++) {
@@ -100,7 +100,7 @@ int main(int argc, char ** argv) {
 	//1. Get key pair
 	TPMWrapper myTPM;
 	myTPM.init(CLIENT_TPM_PORT);
-	//TODO Ryan find out how to force limited usage
+	//TODO (later) Ryan find out how to force limited usage
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
 	//Initialize these two parts
@@ -149,7 +149,7 @@ int main(int argc, char ** argv) {
 	//TODO Now accept garbled circuit
 
 	//Now accept wire ciphertexts from garbler
-	unsigned int num_wires = 0; //TODO change
+	unsigned int num_wires = 0; //TODO change - get the total number of wires
 	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels; //TODO decrypt these
 	//encLabels[i] has the label pair for wire i
 	encLabels.resize(num_wires);
@@ -234,7 +234,6 @@ int main(int argc, char ** argv) {
 	//Clients receive first, then send
 	//Servers send first, then receive
 	//Start client threads first
-	//TODO how to get my port? CLI arg?
 	
 	std::vector<std::vector<BYTE> > upload; //TODO get this - my labels
 	std::vector<std::vector<std::vector<BYTE> > > downloads(parties.size());
