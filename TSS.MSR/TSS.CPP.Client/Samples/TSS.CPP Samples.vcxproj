@@ -175,13 +175,16 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Client_Backup\ClientTest.cpp" />
+    <ClCompile Include="ClientTest.cpp" />
+    <ClCompile Include="frigate_parse.cpp" />
+    <ClCompile Include="garble_util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Client_Backup\networkutils.h" />
     <ClInclude Include="..\..\Client_Backup\ShamirSecret.h" />
     <ClInclude Include="..\..\Client_Backup\TPMWrapper.h" />
-    <ClInclude Include="..\..\Client_Backup\utilities.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

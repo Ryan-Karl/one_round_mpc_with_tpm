@@ -153,7 +153,7 @@ std::vector<BYTE> concatenate(const std::vector<BYTE> & v1, const std::vector<BY
 	std::vector<BYTE> v(sizeof(unsigned int));
 	v.reserve(sizeof(unsigned int) + len + v2.size());
 	for (unsigned int i = 0; i < sizeof(unsigned int); i++) {
-		v[i] = (len >> (i*CHAR_WIDTH)) & 0xF;
+		v[i] = (len >> (i*CHAR_WIDTH)) & 0xFF;
 	}
 	v.insert(v.end(), v1.begin(), v1.end());
 	v.insert(v.end(), v2.begin(), v2.end());

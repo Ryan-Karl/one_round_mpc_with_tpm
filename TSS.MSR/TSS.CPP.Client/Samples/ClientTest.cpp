@@ -21,6 +21,8 @@
 #include "NetworkUtils.h"
 #include "utilities.h"
 #include "TPMWrapper.h"
+#include "player.h"
+#include "garble_util.h"
 
 #define KEYFILE "keyfile.txt"
 #define ENCFILE "encfile.txt"
@@ -52,20 +54,25 @@ int parse_netfile(char * filename, char ** server_hostname, unsigned int & serve
 
 int main(int argc, char ** argv) {
 	unsigned int num_required_args = 3;
-	if (argc < 2*num_required_args) {
+	if (argc < 2 * num_required_args) {
 		std::cout << "ERROR: provide all required arguments" << endl;
 		return 0;
 	}
 	//Vars to be initialized
-	unsigned int my_party = 0; 
+	unsigned int my_party = 0;
 	unsigned int myPort = 0;
-	char * server_hostname = "127.0.0.1"; //TODO change - only to get it to compile
-	unsigned int server_port = 0; //TODO change
+	char * server_hostname = "127.0.0.1";
+	unsigned int server_port = 0;
 	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
-	std::vector<bool> choices; //TODO take this in
+	std::vector<bool> choices;
+	char * circuit_filename = "placeholder.txt";
 	//Parse arguments
 	bool got_party = false;
 	for (int argx = 0; argx < argc; argx++) {
+		if (!strcmp(argv[argx], "--circuit")) {
+			circuit_filename = argv[++argx];
+			continue;
+		}
 		if (!strcmp(argv[argx], "--party")) {
 			my_party = atoi(argv[++argx]);
 			got_party = true;
@@ -95,22 +102,22 @@ int main(int argc, char ** argv) {
 	assert(got_party);
 
 
-	
+
 	//INITIALIZE
 	//1. Get key pair
 	TPMWrapper myTPM;
 	myTPM.init(CLIENT_TPM_PORT);
-	//TODO Ryan find out how to force limited usage
+	//TODO (later) Ryan find out how to force limited usage
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
 	//Initialize these two parts
-	
+
 	std::vector<BYTE> myKeyVec = keyPair.first.ToBuf();
 	std::vector<std::vector<BYTE> > keyVec;
 	std::vector<TSS_KEY> other_keys(parties.size());
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
-	
+
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
 	if (c.init()) {
@@ -130,7 +137,7 @@ int main(int argc, char ** argv) {
 		//For each key: get party number, then key
 		//Don't get party number, just send keys in party order
 		/*
-		unsigned int * partyNum;		
+		unsigned int * partyNum;
 		if (c.recvBuffer((void **)&partyNum, msgSize) || msgSize != sizeof(unsigned int)) {
 			cerr << "ERROR getting party number" << endl;
 			throw std::exception("ERROR getting party number");
@@ -147,9 +154,22 @@ int main(int argc, char ** argv) {
 		delete recBuf;
 	}
 	//TODO Now accept garbled circuit
+	char * circuitBuf;
+	unsigned int circuitBufLen;
+	if (c.recvBuffer((void **)&circuitBuf, circuitBufLen)) {
+		cerr << "ERROR receiving circuit" << endl;
+		throw std::exception("ERROR receiving circuit");
+	}
+	Circuit * circ = new Circuit;
+	std::vector<PlayerInfo *> playerInfo(parties.size());
+	for (auto & x : playerInfo) {
+		x = new PlayerInfo;
+	}
+	read_frigate_circuit(circuit_filename, circ, &playerInfo, SEC_PARAMETER);
+
 
 	//Now accept wire ciphertexts from garbler
-	unsigned int num_wires = 0; //TODO change
+	unsigned int num_wires = 0; //TODO change - get the total number of wires
 	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels; //TODO decrypt these
 	//encLabels[i] has the label pair for wire i
 	encLabels.resize(num_wires);
@@ -209,7 +229,7 @@ int main(int argc, char ** argv) {
 	ByteVec recombinedVec = mpz_to_vector(recombined_secret);
 	unsigned int aes_keylen = recombinedVec.size();
 	unsigned char * key = new unsigned char[aes_keylen];
-	memcpy(key, recombinedVec.data(), aes_keylen);	
+	memcpy(key, recombinedVec.data(), aes_keylen);
 
 	//3. Use AES to decrypt labels based on choices
 	//TODO finish once we have a function to convert ByteVec<->label
@@ -223,9 +243,9 @@ int main(int argc, char ** argv) {
 	for (unsigned int g = 0; g < decryptedLabels.size(); g++) {
 		unsigned char plaintext[AES_BUFFERSIZE];
 		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), key, iv, plaintext);
-		decryptedLabels[g] = stringToByteVec((char *) plaintext, plaintext_length);
+		decryptedLabels[g] = stringToByteVec((char *)plaintext, plaintext_length);
 	}
-	
+
 
 	//ONLINE
 	//1. Broadcast (and receive) labels
@@ -234,8 +254,7 @@ int main(int argc, char ** argv) {
 	//Clients receive first, then send
 	//Servers send first, then receive
 	//Start client threads first
-	//TODO how to get my port? CLI arg?
-	
+
 	std::vector<std::vector<BYTE> > upload; //TODO get this - my labels
 	std::vector<std::vector<std::vector<BYTE> > > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
@@ -259,11 +278,11 @@ int main(int argc, char ** argv) {
 		}
 		server_thread.join();
 	}
-	
+
 
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
-	
+
 
 
 
@@ -285,7 +304,7 @@ int main(int argc, char ** argv) {
 		std::cout << "ERROR in client sending key vector" << endl;
 		return 1;
 	}
-	
+
 	//Receive the encrypted message back from the server
 	char * encStr;
 	unsigned int encLen;
@@ -294,7 +313,7 @@ int main(int argc, char ** argv) {
 	vector<BYTE> encVec = stringToByteVec(encStr, encLen);
 	vector<BYTE> decVec = myTPM.c_RSA_decrypt(keyPair.second, encVec);
 	string decrypted = ByteVecToString(decVec);
-	
+
 	cout << "Client decrypted message: " << decrypted << endl;
 	*/
 
@@ -322,7 +341,7 @@ int parse_netfile(char * filename, char ** server_hostname, unsigned int & serve
 	while (ifs >> partynum >> hostname >> port) {
 		if (partynum < 0) {
 			*server_hostname = new char[hostname.size() + 1];
-			memcpy(*server_hostname, hostname.c_str(), hostname.size()+1);
+			memcpy(*server_hostname, hostname.c_str(), hostname.size() + 1);
 			server_port = port;
 			saw_server = true;
 		}
@@ -371,15 +390,15 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 	//First, receive which party the message is from
 	unsigned int * them;
 	unsigned int partyLen;
-	if (c.recvBuffer((void **) &them, partyLen) || partyLen != sizeof(them)) {
+	if (c.recvBuffer((void **)&them, partyLen) || partyLen != sizeof(them)) {
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
 	//Next, get how many choices they will send
-	
+
 	unsigned int * numChoices;
 	unsigned int dataLen;
-	if (c.recvBuffer((void **) &numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
+	if (c.recvBuffer((void **)&numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
@@ -404,7 +423,7 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 	}
 	//Next, send how many choices I am sending
 	unsigned int choices = upload.size();
-	if (c.sendBuffer(sizeof(unsigned int), (void *) &choices)) {
+	if (c.sendBuffer(sizeof(unsigned int), (void *)&choices)) {
 		cerr << "ERROR sending: " << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR sending");
 	}
@@ -415,7 +434,7 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 			throw new std::exception("ERROR sending");
 		}
 	}
-	
+
 	c.stop();
 }
 
@@ -458,7 +477,7 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 		unsigned int dataLen;
 		unsigned int * numChoices;
 		//Get the number of choices they will send
-		if (s.recvBuffer(i, (void **) &numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
+		if (s.recvBuffer(i, (void **)&numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
 			cerr << "ERROR : receiving" << endl;
 			throw new std::exception("ERROR receiving");
 		}
@@ -503,7 +522,7 @@ void send_message(unsigned int num_connections, unsigned int port, const std::ve
 	Server s(port);
 	if (s.init() || s.accept_connections(num_connections)) {
 		cerr << "ERROR initializing server: " << port << endl;
-			throw new std::exception("ERROR initializing server");
+		throw new std::exception("ERROR initializing server");
 	}
 	for (unsigned int i = 0; i < num_connections; i++) {
 		s.sendBuffer(i, message.size(), (char *)message.data());

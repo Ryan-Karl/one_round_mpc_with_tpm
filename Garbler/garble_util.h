@@ -87,4 +87,7 @@ wire_value * wire2garbling(const Wire * w, const bool which);
 int p_to_index(bool p1, bool p0);
 void garbling2wire(const wire_value *w, wire_value *k, bool *p);
 
+void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v);
+void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v);
+
 #endif

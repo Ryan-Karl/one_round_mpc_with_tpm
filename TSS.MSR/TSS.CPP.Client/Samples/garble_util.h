@@ -10,7 +10,8 @@ class wire_value {
   char * bits;
   int len;
   void set(int i, bool b);
-  std::vector<unsigned char> to_bytevec()const ;
+  std::vector<unsigned char> to_bytevec() const ;
+  void from_bytevec(const std::vector<unsigned char> * bits_in, const int i, const int nbits);
   bool get(int i) const ;
   void xor_with(wire_value * rhs);
 
@@ -85,5 +86,8 @@ void top_sort(std::deque<Wire *> & destination, const Circuit * circuit);
 wire_value * wire2garbling(const Wire * w, const bool which);
 int p_to_index(bool p1, bool p0);
 void garbling2wire(const wire_value *w, wire_value *k, bool *p);
+
+void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v);
+void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v);
 
 #endif
