@@ -18,6 +18,7 @@
 #include "TPMWrapper.h"
 #include "utilities.h"
 #include "garble_util.h"
+#include "player.h"
 
 
 #include <iostream>
@@ -74,7 +75,8 @@ int main(int argc, char ** argv) {
 	//INITIALIZE
 	//3. Compute a garbled circuit (and send it later)
 	Circuit * circ = new Circuit;
-	read_frigate_circuit(circuitfile, circ);
+	std::vector<PlayerInfo *> playerInfo;
+	read_frigate_circuit(circuitfile, circ, &playerInfo, SEC_PARAMETER);
 
 	//2. Receive public keys from parties	
 	Server s(port);

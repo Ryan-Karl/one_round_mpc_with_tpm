@@ -1,4 +1,4 @@
-﻿  ServerTest.cpp
+﻿  garble_nimpc.cpp
 c:\devsoft\mpir\mpirxx.h(1610): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
 c:\devsoft\mpir\mpirxx.h(1611): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
 c:\devsoft\mpir\mpirxx.h(1677): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
@@ -45,6 +45,151 @@ c:\devsoft\mpir\mpirxx.h(3374): warning C4244: 'argument': conversion from '__in
 c:\devsoft\mpir\mpirxx.h(3374): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
 c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
 c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(52): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(64): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\servertest.cpp(20): fatal error C1083: Cannot open include file: 'garble_util.h': No such file or directory
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(39): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(39): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(39): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(39): error C3203: 'vector': unspecialized class template can't be used as a template argument for template parameter '_Ty', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(41): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(41): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(41): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(41): error C3203: 'vector': unspecialized class template can't be used as a template argument for template parameter '_Ty', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(45): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(45): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(45): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(45): error C2133: 'tmp': unknown size
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(45): error C2512: 'std::vector': no appropriate default constructor available
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(625): note: see declaration of 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(46): error C2664: 'void std::vector<int,std::allocator<_Ty>>::push_back(_Ty &&)': cannot convert argument 1 from 'std::vector' to 'const _Ty &'
+          with
+          [
+              _Ty=int
+          ]
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(46): note: Reason: cannot convert from 'std::vector' to 'const _Ty'
+          with
+          [
+              _Ty=int
+          ]
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(46): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(55): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(55): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(55): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(57): error C2662: '_Vector_alloc<_Alloc_types>::_Val_types::size_type std::vector<_Ty,_Alloc>::size(void) noexcept const': cannot convert 'this' pointer from 'const std::vector' to 'const std::vector<_Ty,_Alloc> &'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(57): note: Reason: cannot convert from 'const std::vector' to 'const std::vector<_Ty,_Alloc>'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(57): note: Conversion requires a second user-defined-conversion operator or constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(58): error C2678: binary '[': no operator found which takes a left-hand operand of type 'const std::vector' (or there is no acceptable conversion)
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(1739): note: could be 'const _Ty &std::vector<_Ty,_Alloc>::operator [](const _Vector_alloc<_Alloc_types>::_Val_types::size_type) const'
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(1730): note: or       '_Ty &std::vector<_Ty,_Alloc>::operator [](const _Vector_alloc<_Alloc_types>::_Val_types::size_type)'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(58): note: while trying to match the argument list '(const std::vector, size_t)'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(68): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(68): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(68): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(68): error C3203: 'vector': unspecialized class template can't be used as a template argument for template parameter '_Ty', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(68): error C2079: 'flatten' uses undefined class 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(69): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(69): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(69): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(69): error C2133: 'ret': unknown size
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(69): error C2512: 'std::vector': no appropriate default constructor available
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(625): note: see declaration of 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(71): error C2663: 'std::vector<_Ty,_Alloc>::end': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(71): error C2661: 'std::vector<_Ty,_Alloc>::insert': no overloaded function takes 1 arguments
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(73): error C2440: 'return': cannot convert from 'std::vector' to 'std::vector'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(73): note: Cannot copy construct class 'std::vector' due to ambiguous copy constructors or no available copy constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(86): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(86): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(86): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(86): error C2079: 'stringToByteVec' uses undefined class 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(87): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(87): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(87): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(87): error C2133: 'v': unknown size
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(87): error C2512: 'std::vector': no appropriate default constructor available
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(625): note: see declaration of 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(88): error C2662: 'void std::vector<_Ty,_Alloc>::reserve(const _Vector_alloc<_Alloc_types>::_Val_types::size_type)': cannot convert 'this' pointer from 'std::vector' to 'std::vector<_Ty,_Alloc> &'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(88): note: Reason: cannot convert from 'std::vector' to 'std::vector<_Ty,_Alloc>'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(88): note: Conversion requires a second user-defined-conversion operator or constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(90): error C2663: 'std::vector<_Ty,_Alloc>::push_back': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(92): error C2440: 'return': cannot convert from 'std::vector' to 'std::vector'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(92): note: Cannot copy construct class 'std::vector' due to ambiguous copy constructors or no available copy constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(95): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(95): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(95): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(95): error C2079: 'stringToByteVec' uses undefined class 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(96): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(96): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(96): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(96): error C2133: 'v': unknown size
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(96): error C2512: 'std::vector': no appropriate default constructor available
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(625): note: see declaration of 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(97): error C2662: 'void std::vector<_Ty,_Alloc>::reserve(const _Vector_alloc<_Alloc_types>::_Val_types::size_type)': cannot convert 'this' pointer from 'std::vector' to 'std::vector<_Ty,_Alloc> &'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(97): note: Reason: cannot convert from 'std::vector' to 'std::vector<_Ty,_Alloc>'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(97): note: Conversion requires a second user-defined-conversion operator or constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(99): error C2663: 'std::vector<_Ty,_Alloc>::push_back': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(101): error C2440: 'return': cannot convert from 'std::vector' to 'std::vector'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(101): note: Cannot copy construct class 'std::vector' due to ambiguous copy constructors or no available copy constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(104): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(104): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(104): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(105): error C2663: 'std::vector<_Ty,_Alloc>::begin': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(105): error C2663: 'std::vector<_Ty,_Alloc>::end': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(109): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(109): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(109): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(112): error C2663: 'std::vector<_Ty,_Alloc>::_Unchecked_begin': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(112): error C2663: 'std::vector<_Ty,_Alloc>::_Unchecked_end': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(112): error C3536: '<begin>$L0': cannot be used before it is initialized
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(112): error C3536: '<end>$L0': cannot be used before it is initialized
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(112): error C2100: illegal indirection
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(122): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(122): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(122): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(122): error C2079: 'mpz_to_vector' uses undefined class 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(124): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(124): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(124): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(124): error C2514: 'std::vector': class has no constructors
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(625): note: see declaration of 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(125): error C2678: binary '[': no operator found which takes a left-hand operand of type 'std::vector' (or there is no acceptable conversion)
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(1739): note: could be 'const _Ty &std::vector<_Ty,_Alloc>::operator [](const _Vector_alloc<_Alloc_types>::_Val_types::size_type) const'
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(1730): note: or       '_Ty &std::vector<_Ty,_Alloc>::operator [](const _Vector_alloc<_Alloc_types>::_Val_types::size_type)'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(125): note: while trying to match the argument list '(std::vector, int)'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(126): error C2663: 'std::vector<_Ty,_Alloc>::resize': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(127): error C2440: 'return': cannot convert from 'std::vector' to 'std::vector'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(127): note: Cannot copy construct class 'std::vector' due to ambiguous copy constructors or no available copy constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(130): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(130): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(130): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(130): error C2079: 'mpz_to_vector' uses undefined class 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(131): error C2440: 'return': cannot convert from 'std::vector' to 'std::vector'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(131): note: Cannot copy construct class 'std::vector' due to ambiguous copy constructors or no available copy constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(134): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(134): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(134): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(134): error C2079: 'intToByteVec' uses undefined class 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(135): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(135): error C2923: 'std::vector': 'BYTE' is not a valid template type argument for parameter '_Ty'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(135): error C3203: 'allocator': unspecialized class template can't be used as a template argument for template parameter '_Alloc', expected a real type
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(135): error C2133: 'ret': unknown size
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(135): error C2512: 'std::vector': no appropriate default constructor available
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\vector(625): note: see declaration of 'std::vector'
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(136): error C2662: 'void std::vector<_Ty,_Alloc>::reserve(const _Vector_alloc<_Alloc_types>::_Val_types::size_type)': cannot convert 'this' pointer from 'std::vector' to 'std::vector<_Ty,_Alloc> &'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(136): note: Reason: cannot convert from 'std::vector' to 'std::vector<_Ty,_Alloc>'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(136): note: Conversion requires a second user-defined-conversion operator or constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(137): error C2663: 'std::vector<_Ty,_Alloc>::push_back': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(138): error C2663: 'std::vector<_Ty,_Alloc>::push_back': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(139): error C2663: 'std::vector<_Ty,_Alloc>::push_back': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(140): error C2663: 'std::vector<_Ty,_Alloc>::push_back': 2 overloads have no legal conversion for 'this' pointer
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(141): error C2440: 'return': cannot convert from 'std::vector' to 'std::vector'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(141): note: Cannot copy construct class 'std::vector' due to ambiguous copy constructors or no available copy constructor
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(148): error C2065: 'BYTE': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\utilities.h(148): fatal error C1003: error count exceeds 100; stopping compilation
+  garble_util.cpp
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(51): error C3861: 'wire2garbling': identifier not found
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(53): error C3861: 'p_to_index': identifier not found
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(71): error C3861: 'p_to_index': identifier not found
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(81): error C2065: 'w': undeclared identifier
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(81): error C3861: 'garbling2wire': identifier not found
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(97): error C2664: 'wire_value *xor_wire(wire_value *,wire_value *)': cannot convert argument 1 from 'bool' to 'wire_value *'
+  c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(97): note: Conversion from integral type to pointer type requires reinterpret_cast, C-style cast or function-style cast
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\garble_util.cpp(98): error C3861: 'garbling2wire': identifier not found
+  Generating Code...

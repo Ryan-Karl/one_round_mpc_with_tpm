@@ -176,6 +176,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="frigate_parse.cpp" />
+    <ClCompile Include="garble_nimpc.cpp" />
+    <ClCompile Include="garble_util.cpp" />
     <ClCompile Include="ServerTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -187,6 +190,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\includes\NetworkUtils.h" />
     <ClInclude Include="..\..\..\includes\ShamirSecret.h" />
+    <ClInclude Include="garble_util.h" />
+    <ClInclude Include="player.h" />
     <ClInclude Include="TPMWrapper.h" />
     <ClInclude Include="utilities.h" />
   </ItemGroup>
