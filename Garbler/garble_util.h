@@ -10,8 +10,9 @@ class wire_value {
   char * bits;
   int len;
   void set(int i, bool b);
-  std::vector<char> to_bytevec();
-  bool get(int i);
+  std::vector<unsigned char> to_bytevec()const ;
+  bool get(int i) const ;
+  void xor_with(wire_value * rhs);
 
   wire_value(int size);
   ~wire_value();
@@ -26,9 +27,9 @@ wire_value * random_wire(int width);
 bool random_bit();
 // Gives the hash of the concatenation of the below.  Must be of length (sec_param + 1)!
 // (split into arguments for convenience, will likely need to be concatenated)
-wire_value * hash(wire_value * ka, wire_value * kb, int gate_number);
+wire_value * hash_wire(wire_value * ka, wire_value * kb, int gate_number);
 // For the final one.
-bool hash(wire_value * ke, char * str, int gate_number);
+bool hash_bool(wire_value * ke, char * str, int gate_number);
 //wire_value * new_wire(int bitwidth);
 
 typedef unsigned char gate_type;
@@ -49,7 +50,7 @@ struct Wire {
   int gate_number;
 
   // garbled label for the NIOT, at least for root nodes (before the nested encryption and such) // Only used when wire is a gate, and when gate is not XOR // corresponds to 00, 01, 10, 11
-  bool garbled_labels[4];
+  wire_value* garbled_labels[4];
 
   bool is_root;
   bool output_garble_info[2];
@@ -81,5 +82,8 @@ struct Circuit {
 void get_garbled_circuit(Circuit * c);
 void top_sort(std::deque<Wire *> & destination, const Circuit * circuit);
 
+wire_value * wire2garbling(const Wire * w, const bool which);
+int p_to_index(bool p1, bool p0);
+void garbling2wire(const wire_value *w, wire_value *k, bool *p);
 
 #endif

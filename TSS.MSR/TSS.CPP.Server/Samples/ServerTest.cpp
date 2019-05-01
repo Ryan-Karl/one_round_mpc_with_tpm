@@ -126,6 +126,8 @@ int main(int argc, char ** argv) {
 	}
 	//An error check to do: assert that every entry in the vector is filled
 
+	//TODO send circuit
+
 	
 
 	//4. Select partial keys, get AES key, and split key into W_i shares for each party.
