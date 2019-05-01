@@ -10,6 +10,6 @@ typedef struct {
 } PlayerInfo;
 
 //Read frigate circuit and parse into structure -- called by server
-void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<PlayerInfo *> players, int security);
+void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<PlayerInfo *> * players, int security);
 
 #endif
