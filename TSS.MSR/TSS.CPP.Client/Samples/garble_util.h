@@ -10,8 +10,7 @@ class wire_value {
   char * bits;
   int len;
   void set(int i, bool b);
-  std::vector<unsigned char> to_bytevec() const ;
-  void from_bytevec(const std::vector<unsigned char> * bits_in, const int i, const int nbits);
+  std::vector<unsigned char> to_bytevec()const ;
   bool get(int i) const ;
   void xor_with(wire_value * rhs);
 

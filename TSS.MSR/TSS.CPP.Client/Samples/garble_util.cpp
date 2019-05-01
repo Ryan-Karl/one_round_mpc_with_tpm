@@ -168,14 +168,6 @@ std::vector<unsigned char> wire_value::to_bytevec() const {
   return v;
 }
 
-void from_bytevec(const std::vector<unsigned char> * bits_in, const int i, const int nbits){
-	delete bits;
-	bits = new char[nbits/CHAR_WIDTH + ((nbits%CHAR_WIDTH)?1:0)];
-	auto it = (*bits_in).begin() + i;
-	std::copy(it, it+(nbits/CHAR_WIDTH) + ((nbits%CHAR_WIDTH)?1:0), bits);
-	len = nbits;
-}	
-
 #include <openssl/sha.h>
 
 //Output of SHA1 is 160 bits (20 bytes)
