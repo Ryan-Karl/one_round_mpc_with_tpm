@@ -6,6 +6,11 @@
 #include <iostream>
 #include <exception>
 #include <unordered_map>
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <aes.h>
+#include <modes.h>
 #include "garble_util.h"
 // http://www.cs.toronto.edu/~vlad/papers/XOR_ICALP08.pdf
 
@@ -79,7 +84,7 @@ int p_to_index(bool p1, bool p0) {
 void eval_garbled_circuit(Circuit * c) {
   for (auto w_it = c->input_wires.begin(); w_it<c->input_wires.end(); w_it++) {
 	  Wire * w = *w_it;
-    garbling2wire(w->kp, w->k, &(w->p));
+    garbling2wire(w->label_kp, w->label_k, &(w->label_p));
   }
   std::deque<Wire *> t_ordering;
   top_sort(t_ordering, c);
@@ -96,7 +101,7 @@ void eval_garbled_circuit(Circuit * c) {
       Wire * b = w->right_child;
       int index = p_to_index(a->label_p, b->label_p);
       wire_value * garbling = xor_wire(w->garbled_labels[index], hash_wire(a->label_k, b->label_k, w->gate_number));
-      garbling2wire(garbling, w->label_k, w->label_p);
+      garbling2wire(garbling, w->label_k, &(w->label_p));
     }
   }
   for (auto w_it = c->output_wires.begin(); w_it<c->output_wires.end(); w_it++) {
@@ -156,8 +161,8 @@ bool wire_value::get(int i) const {
 	return (bits[i/CHAR_WIDTH] >> (i % CHAR_WIDTH)) & 1;
 }
 
-std::vector<char> wire_value::to_bytevec() const {
-  std::vector<char> v;
+std::vector<unsigned char> wire_value::to_bytevec() const {
+  std::vector<unsigned char> v;
   v.reserve(len*CHAR_WIDTH);
   v.assign(bits, bits + (len*CHAR_WIDTH));
   return v;

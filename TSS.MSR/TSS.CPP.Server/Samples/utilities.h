@@ -2,7 +2,17 @@
 #define UTILITIES_H
 
 
-//#include "stdafx.h"
+#ifdef WIN32
+#include "stdafx.h"
+#include <mpir.h>
+#include <mpirxx.h>
+#elif defined(__linux__)
+#include <gmp.h>
+#include <gmpxx.h>
+typedef unsigned char BYTE;
+#endif
+
+//
 //#include "Samples.h"
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -23,14 +33,7 @@
 #include <fstream>
 #include <limits.h>
 
-#ifdef WIN32
-#include <mpir.h>
-#include <mpirxx.h>
-#elif defined(__linux__)
-#include <gmp.h>
-#include <gmpxx.h>
-typedef unsigned char BYTE;
-#endif
+
 
 #define AES_KEY_SIZE 32
 #define IV_SIZE 16

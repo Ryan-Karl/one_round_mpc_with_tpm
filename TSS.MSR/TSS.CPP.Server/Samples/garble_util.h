@@ -10,7 +10,7 @@ class wire_value {
   char * bits;
   int len;
   void set(int i, bool b);
-  std::vector<char> to_bytevec()const ;
+  std::vector<unsigned char> to_bytevec()const ;
   bool get(int i) const ;
   void xor_with(wire_value * rhs);
 
@@ -50,7 +50,7 @@ struct Wire {
   int gate_number;
 
   // garbled label for the NIOT, at least for root nodes (before the nested encryption and such) // Only used when wire is a gate, and when gate is not XOR // corresponds to 00, 01, 10, 11
-  bool garbled_labels[4];
+  wire_value* garbled_labels[4];
 
   bool is_root;
   bool output_garble_info[2];
@@ -82,5 +82,8 @@ struct Circuit {
 void get_garbled_circuit(Circuit * c);
 void top_sort(std::deque<Wire *> & destination, const Circuit * circuit);
 
+wire_value * wire2garbling(const Wire * w, const bool which);
+int p_to_index(bool p1, bool p0);
+void garbling2wire(const wire_value *w, wire_value *k, bool *p);
 
 #endif

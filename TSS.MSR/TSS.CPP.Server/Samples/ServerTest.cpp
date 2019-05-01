@@ -45,13 +45,16 @@ void handleErrors(void);
 
 //First arg is port, second is a string to encrypt
 int main(int argc, char ** argv) {
+	mpz_class prime = 2147483647;
+
+
 	unsigned int num_required_args = 2;
 	if (argc < 2 * num_required_args) {
 		std::cout << "ERROR: provide all required arguments" << endl;
 		return 0;
 	}
-	char * circuitfile = nullptr; //TODO change
-	unsigned int num_parties = 0; //TODO change
+	char * circuitfile = nullptr; 
+	unsigned int num_parties = 0; 
 	unsigned int port = 0;
 	for (int argx = 0; argx < argc; argx++) {
 		if (!strcmp(argv[argx], "--port")) {
@@ -127,8 +130,12 @@ int main(int argc, char ** argv) {
 
 	//4. Select partial keys, get AES key, and split key into W_i shares for each party.
 	//(Need to get W_i)
-	vector<unsigned int> party_to_numwires(num_parties); //TODO initialize me
-	mpz_class prime; //TODO initialize me - send to party? Different for each party?
+	vector<unsigned int> party_to_numwires(num_parties); 
+	for (unsigned int z = 0; z < num_parties; z++) {
+		//Frigate may be off-by-one
+		party_to_numwires[z] = playerInfo[z]->input_wires.size();
+	}
+
 	//Initialize the TPM to get randomness
 	TPMWrapper myTPM;
 	//For each party:
@@ -151,7 +158,15 @@ int main(int argc, char ** argv) {
 		auto allShares = splitKeys.getShares(aes_key_mpz);
 		//std::vector<std::pair<mpz_class, mpz_class> >  shares(allShares.begin(), allShares.begin() + party_to_numwires[j]);
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
-			partyLabels(party_to_numwires[j]); //TODO init me - get each pair of labels from circuit
+			partyLabels(party_to_numwires[j]); 
+		for (unsigned int h = 0; h < partyLabels.size(); h++) {
+			wire_value * firstlabel = wire2garbling(playerInfo[j]->input_wires[h], 0);
+			wire_value * secondlabel = wire2garbling(playerInfo[j]->input_wires[h], 1);
+			partyLabels[h].first = firstlabel->to_bytevec();
+			partyLabels[h].second = secondlabel->to_bytevec();
+			delete firstlabel;
+			delete secondlabel;
+		}
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			encPartyLabels(party_to_numwires[j]); //The encrypted labels
 #define AES_BUFFERSIZE 128
