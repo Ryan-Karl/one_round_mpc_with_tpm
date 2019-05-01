@@ -21,6 +21,8 @@
 #include "NetworkUtils.h"
 #include "utilities.h"
 #include "TPMWrapper.h"
+#include "player.h"
+#include "garble_util.h"
 
 #define KEYFILE "keyfile.txt"
 #define ENCFILE "encfile.txt"
@@ -63,9 +65,14 @@ int main(int argc, char ** argv) {
 	unsigned int server_port = 0;
 	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
 	std::vector<bool> choices; 
+	char * circuit_filename;
 	//Parse arguments
 	bool got_party = false;
 	for (int argx = 0; argx < argc; argx++) {
+		if (!strcmp(argv[argx], "--circuit")) {
+			circuit_filename = argv[++argx];
+			continue;
+		}
 		if (!strcmp(argv[argx], "--party")) {
 			my_party = atoi(argv[++argx]);
 			got_party = true;
@@ -147,6 +154,19 @@ int main(int argc, char ** argv) {
 		delete recBuf;
 	}
 	//TODO Now accept garbled circuit
+	char * circuitBuf;
+	unsigned int circuitBufLen;
+	if (c.recvBuffer((void **)&circuitBuf, circuitBufLen)) {
+		cerr << "ERROR receiving circuit" << endl;
+		throw std::exception("ERROR receiving circuit");
+	}
+	Circuit * circ = new Circuit;
+	std::vector<PlayerInfo *> playerInfo(parties.size());
+	for (auto & x : playerInfo) {
+		x = new PlayerInfo;
+	}
+	read_frigate_circuit(circuit_filename, circ, &playerInfo, SEC_PARAMETER);
+
 
 	//Now accept wire ciphertexts from garbler
 	unsigned int num_wires = 0; //TODO change - get the total number of wires

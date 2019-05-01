@@ -168,7 +168,7 @@ std::vector<unsigned char> wire_value::to_bytevec() const {
   return v;
 }
 
-void from_bytevec(const std::vector<unsigned char> * bits_in, const int i, const int nbits){
+void wire_value::from_bytevec(const std::vector<unsigned char> * bits_in, const int i, const int nbits){
 	delete bits;
 	bits = new char[nbits/CHAR_WIDTH + ((nbits%CHAR_WIDTH)?1:0)];
 	auto it = (*bits_in).begin() + i;
@@ -295,23 +295,23 @@ void wire_value::xor_with(wire_value * rhs) {
 
 void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v) {
   std::deque<Wire *> t_ordering;
-  top_sort(t_ordering, circuit);
+  top_sort(t_ordering, c);
   while (!t_ordering.empty()) {
     Wire * w = t_ordering.back();
     t_ordering.pop_back();
-    if (w->is_gate && w->gate_type != GATE_XOR) {
+    if (w->is_gate && w->g_type != GATE_XOR) {
       //info
-      for (i=0; i<4; i++) {
-        std::vector<unsigned char> bv = w->garbled_labels[i].to_bytevec();
-        v.insert(v.end(), bv.begin(), bv.end());
+      for (int i=0; i<4; i++) {
+        std::vector<unsigned char> bv = w->garbled_labels[i]->to_bytevec();
+        v->insert(v->end(), bv.begin(), bv.end());
       }
     }
     if (w->is_root) {
-      for (i=0; i<2; i++) {
+      for (int i=0; i<2; i++) {
         if (w->output_garble_info[i]) {
-          v.push_back(1);
+          v->push_back(1);
         } else {
-          v.push_back(0);
+          v->push_back(0);
         }
       }
     }
@@ -320,21 +320,21 @@ void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v) {
 
 void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v) {
   std::deque<Wire *> t_ordering;
-  top_sort(t_ordering, circuit);
+  top_sort(t_ordering, c);
   int at=0;
   while (!t_ordering.empty()) {
     Wire * w = t_ordering.back();
     t_ordering.pop_back();
-    if (w->is_gate && w->gate_type != GATE_XOR) {
+    if (w->is_gate && w->g_type != GATE_XOR) {
       //info
-      for (i=0; i<4; i++) {
-        w->garbled_labels[i] = new wire_value;
-        w->garbled_labels[i].from_bytevec(v, at, c->security + 1);
+      for (int i=0; i<4; i++) {
+        w->garbled_labels[i] = new wire_value(c->security + 1);
+        w->garbled_labels[i]->from_bytevec(v, at, c->security + 1);
         at += (c->security + 1)/CHAR_WIDTH;
       }
     }
     if (w->is_root) {
-      for (i=0; i<2; i++) {
+      for (int i=0; i<2; i++) {
         if ((*v)[at]) {
           w->output_garble_info[i] = true;
         } else {

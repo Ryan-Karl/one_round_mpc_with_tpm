@@ -126,9 +126,15 @@ int main(int argc, char ** argv) {
 	}
 	//An error check to do: assert that every entry in the vector is filled
 
-	//TODO send circuit
-
-	
+	//Send circuit
+	std::vector<BYTE> circuitByteVec;
+	circuit_to_bytevec(circ, &circuitByteVec);
+	for (unsigned int t = 0; t < num_parties; t++) {
+		if (s.sendBuffer(t, circuitByteVec.size(), (void *)circuitByteVec.data())) {
+			cerr << "ERROR sending circuit" << endl;
+			return 1;
+		}
+	}	
 
 	//4. Select partial keys, get AES key, and split key into W_i shares for each party.
 	//(Need to get W_i)

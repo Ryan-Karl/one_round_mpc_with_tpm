@@ -1,4 +1,54 @@
-﻿LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
+﻿  ClientTest.cpp
+c:\devsoft\mpir\mpirxx.h(1610): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+c:\devsoft\mpir\mpirxx.h(1611): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
+c:\devsoft\mpir\mpirxx.h(1677): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+c:\devsoft\mpir\mpirxx.h(1678): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
+c:\devsoft\mpir\mpirxx.h(1822): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+c:\devsoft\mpir\mpirxx.h(1823): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
+c:\devsoft\mpir\mpirxx.h(1905): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+c:\devsoft\mpir\mpirxx.h(1907): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
+c:\devsoft\mpir\mpirxx.h(2045): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+c:\devsoft\mpir\mpirxx.h(2047): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+c:\devsoft\mpir\mpirxx.h(2048): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
+c:\devsoft\mpir\mpirxx.h(2050): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
+c:\devsoft\mpir\mpirxx.h(2136): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+c:\devsoft\mpir\mpirxx.h(2138): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3341): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3341): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3342): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3342): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3343): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3343): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3344): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3344): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3345): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3345): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3347): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3347): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3348): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3348): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3349): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3349): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3359): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3359): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3360): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3360): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3361): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3361): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3362): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3362): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3372): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3372): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3373): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3373): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3374): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3374): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
+c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\networkutils.h(52): warning C4018: '<': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\networkutils.h(64): warning C4018: '<': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\clienttest.cpp(57): warning C4018: '<': signed/unsigned mismatch
+LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
 libeay32.lib(buf_str.obj) : warning LNK4099: PDB 'libeay32_lib.pdb' was not found with 'libeay32.lib(buf_str.obj)' or at 'C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Debug\libeay32_lib.pdb'; linking object as if no debug info
 libeay32.lib(cmac.obj) : warning LNK4099: PDB 'libeay32_lib.pdb' was not found with 'libeay32.lib(cmac.obj)' or at 'C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Debug\libeay32_lib.pdb'; linking object as if no debug info
 libeay32.lib(cm_ameth.obj) : warning LNK4099: PDB 'libeay32_lib.pdb' was not found with 'libeay32.lib(cm_ameth.obj)' or at 'C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Debug\libeay32_lib.pdb'; linking object as if no debug info
