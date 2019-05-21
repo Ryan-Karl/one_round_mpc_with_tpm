@@ -216,7 +216,7 @@ wire_value * random_wire(int width){
 	//assert(width > 0);
 	wire_value * wv = new wire_value(width);
 	for(int i = 0; i < width/CHAR_WIDTH; i++){
-		wv[i] = rand() & 0xFF;
+		wv->bits[i] = rand() & 0xFF;
 	}	
 	return wv;
 }	
