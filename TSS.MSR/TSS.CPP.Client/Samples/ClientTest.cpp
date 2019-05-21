@@ -112,7 +112,7 @@ int main(int argc, char ** argv) {
 	auto startTime = high_resolution_clock::now();
 	//1. Get key pair
 	TPMWrapper myTPM;
-	myTPM.init(5000);
+	myTPM.init(2321);
 	//TODO (later) Ryan find out how to force limited usage
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
@@ -164,12 +164,14 @@ int main(int argc, char ** argv) {
 		delete recBuf;
 	}
 	//TODO Now accept garbled circuit
+	
 	char * circuitBuf;
 	unsigned int circuitBufLen;
 	if (c.recvBuffer((void **)&circuitBuf, circuitBufLen)) {
 		cerr << "ERROR receiving circuit" << endl;
 		throw std::exception("ERROR receiving circuit");
 	}
+	
 	Circuit * circ = new Circuit;
 	std::vector<PlayerInfo *> playerInfo(parties.size());
 	for (auto & x : playerInfo) {

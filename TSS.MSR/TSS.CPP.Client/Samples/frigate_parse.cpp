@@ -15,7 +15,7 @@ int main(int argc, char ** argv) {
 */
 
 void expand_add(std::vector<Wire*> *wires, int index, Wire * w) {
-  wires->reserve(index + 1);
+  wires->resize(index + 1);
   (*wires)[index] = w;
 }
 
@@ -24,8 +24,11 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
   //associates number to Wire
   std::vector<Wire *> wires;
   std::ifstream file(filename);
-  if (!file.good())
-    exit(1);
+  if (!file.good()) {
+	  std::cerr << "Frigate file bad" << std::endl;
+	  exit(1);
+  }
+    
   std::string in;
   std::string out;
   int max_player=0;

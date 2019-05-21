@@ -79,6 +79,9 @@ int main(int argc, char ** argv) {
 	//3. Compute a garbled circuit (and send it later)
 	Circuit * circ = new Circuit;
 	std::vector<PlayerInfo *> playerInfo(num_parties);
+	for (auto & ptr : playerInfo) {
+		ptr = new PlayerInfo;
+	}
 	read_frigate_circuit(circuitfile, circ, &playerInfo, SEC_PARAMETER);
 
 	//2. Receive public keys from parties	
@@ -206,6 +209,11 @@ int main(int argc, char ** argv) {
 	}
 
 	//That's all folks!
+	//Cleanup
+	for (auto & ptr : playerInfo) {
+		delete ptr;
+		ptr = nullptr;
+	}
 	s.stop();
 	std::cout << "Garbler finished" << endl;
 	return 0;
