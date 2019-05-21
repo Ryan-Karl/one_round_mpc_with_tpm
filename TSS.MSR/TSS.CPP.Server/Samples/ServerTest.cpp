@@ -78,7 +78,7 @@ int main(int argc, char ** argv) {
 	//INITIALIZE
 	//3. Compute a garbled circuit (and send it later)
 	Circuit * circ = new Circuit;
-	std::vector<PlayerInfo *> playerInfo;
+	std::vector<PlayerInfo *> playerInfo(num_parties);
 	read_frigate_circuit(circuitfile, circ, &playerInfo, SEC_PARAMETER);
 
 	//2. Receive public keys from parties	
