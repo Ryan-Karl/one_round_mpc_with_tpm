@@ -1,0 +1,61 @@
+How to solve quizzes?
+Send your answers to aczajka@nd.edu by the due date indicated in each quiz. Please send your answers in plain text and don't use Word or PDF attachments (unless it is necessary).
+Provide your name or your netID in the email so that I can identify the author.
+Send your answer quickly. If it is incorrect, we will have some time to work together on a correct answer until the deadline.
+We will discuss shortly the correct answers is class (after the deadline).
+ 
+Quiz 7 -- due by Monday, April 29, 11:59 pm (4 points)
+(2 points) Pupil changes its size, even without light stimuli. This may degrade the performance of an iris recognition system. How the fact that pupil changes its size can be used to increase the reliability of a biometric system?
+(1 point) Which approach prevents from a successful hill climbing attack in face recognition system:
+A) Storing pseudonymous identifiers in the database instead of regular reference templates.
+B) Returning only binary decisions (match / non-match) from the matching subsystem instead of the comparison score.
+C) Implementing a method that detects silicone mask presented to the camera instead of an authentic face.
+(1 point) Which technique provides a better security of biometric reference templates:
+A) selecting a subset of features for comparison
+B) presentation attack detection
+
+Quiz 6 -- due by Friday, April 5, 11:59 pm (2 points)
+Questions in PDF
+ 
+
+Quiz 5 -- due by Friday, March 29, 11:59 pm (2 points)
+(0.5 points) Which information is better for biometric recognition of thermal hand images:
+A) average temperature of your entire hand
+B) relative temperatures measured in different parts of a hand
+(1.5 points) Different geometrical features of our hand have different variance. Which metric is better to calculate a distance between biometric features in hand geometry recognition:
+A) Euclidean
+B) Mahalanobis
+You can take a look at the definitions of Euclidean distance: https://en.wikipedia.org/wiki/Euclidean_distance, and Mahalanobis distance: https://en.wikipedia.org/wiki/Mahalanobis_distance.
+ 
+
+Quiz 4 -- due by Monday, March 4, 11:59 pm (2 points)
+(1 point) What is the average (expected) percentage of disagreeing bits in two iris codes calculated for two unrelated irises and compared using XOR (exclusive OR) operation?
+(1 point) How would you justify this?
+
+Tip 1: Iris structure is highly individual and we observe little spatial correlations among local iris image patches.
+Tip 2: You can think that each iris code is a result of a series of coin tosses: the head is codes as zero, and the tail is coded as one.
+
+It's easy to find the answer to Q1 in my slides, but try to think about this before looking into slides.
+ 
+Quiz 3 -- due by Monday, February 25, 11:59 pm (2 points)
+(1 point) A white pixel (255) surrounded by black (0) pixels will be translated to:
+A) uniform LBP pattern
+B) nonuniform LBP pattern
+(1 point) Let's have some fun. Go to http://superrecognisers.com and make the first part ("Stage 1") of the test prepared by University of Greenwich, UK. The score is for you -- no need to report it as part of your answer. Instead, please answer the following two questions:
+A) What was the most confusing factor that made the face recognition hard for you (in this test)?
+B) What method(s) would you implement (when writing your face recognition software) to minimize the impact of this factor on the performance?
+ 
+Quiz 2 -- due by Monday, February 11, 11:59 pm (2 points)
+(1 point) The fingerprint features that are not unique to a subject are:
+A) singular points
+B) complex minutiae
+C) location and shape of sweat pores
+(1 point) Assume that Poincare index is zero in all tested local areas of the fingerprint image. The Henry's class of this fingerprint is: 
+A) whorl
+B) double loop
+C) plain arch
+ 
+
+Quiz 1 -- due by Monday, January 28, 11:59 pm (2 points)
+(1 point) We decided to use biometric recognition to identify frequent travelers at Chicago O'Hare airport. Is DNA a good biometric mode in this application? Justify (in 2-3 sentences) your answer. Hint: think about related people (especially identical twins).
+(1 point) We have tested two biometric methods: A and B. The following error estimators were obtained: FNMRA=0.1, FMRA=0.02, FNMRB=0.01, FMRB=0.2. Which method would be better for applications requiring high security? Again, justify (in 2-3 sentences) your answer.

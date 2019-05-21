@@ -15,7 +15,7 @@ int main(int argc, char ** argv) {
 */
 
 void expand_add(std::vector<Wire*> *wires, int index, Wire * w) {
-  wires->reserve(index + 1);
+  wires->resize(index + 1);
   (*wires)[index] = w;
 }
 

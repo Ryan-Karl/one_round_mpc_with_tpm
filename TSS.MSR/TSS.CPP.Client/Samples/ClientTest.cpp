@@ -12,6 +12,7 @@
 #include <openssl/err.h>
 #include <aes.h>
 #include <modes.h>
+#include <chrono>
 
 //#include "../includes/TPMWrapper.h"
 //#include "../includes/NetworkUtils.h"
@@ -32,6 +33,9 @@
 #define DEFAULT_PROTOCOL_PORT 30000
 
 using namespace std;
+using namespace std::chrono;
+
+std::vector<BYTE> get_junk(unsigned int n);
 
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *ciphertext);
@@ -53,6 +57,7 @@ int parse_netfile(char * filename, char ** server_hostname, unsigned int & serve
 	std::vector<std::pair<std::string, unsigned int> > & parties);
 
 int main(int argc, char ** argv) {
+	srand(time(NULL));
 	unsigned int num_required_args = 3;
 	if (argc < 2 * num_required_args) {
 		std::cout << "ERROR: provide all required arguments" << endl;
@@ -102,11 +107,12 @@ int main(int argc, char ** argv) {
 	assert(got_party);
 
 
-
+	
 	//INITIALIZE
+	auto startTime = high_resolution_clock::now();
 	//1. Get key pair
 	TPMWrapper myTPM;
-	myTPM.init(CLIENT_TPM_PORT);
+	myTPM.init(5000);
 	//TODO (later) Ryan find out how to force limited usage
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
@@ -118,6 +124,10 @@ int main(int argc, char ** argv) {
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
 
+	auto initTime = high_resolution_clock::now();
+	auto initDuration = duration_cast<microseconds>(startTime - initTime);
+	cout << "Initialize time: " << initDuration.count() << endl;
+	auto serverStart = high_resolution_clock::now();
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
 	if (c.init()) {
@@ -169,8 +179,8 @@ int main(int argc, char ** argv) {
 
 
 	//Now accept wire ciphertexts from garbler
-	unsigned int num_wires = 0; //TODO change - get the total number of wires
-	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels; //TODO decrypt these
+	unsigned int num_wires = playerInfo[my_party]->input_wires.size(); //Get the total number of wires
+	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels; //We will decrypt these (later)
 	//encLabels[i] has the label pair for wire i
 	encLabels.resize(num_wires);
 	for (unsigned int j = 0; j < num_wires; j++) {
@@ -192,6 +202,10 @@ int main(int argc, char ** argv) {
 	}
 	//Close connection to garbler
 	c.stop();
+	auto serverStop = high_resolution_clock::now();
+	auto serverDuration = duration_cast<microseconds>(serverStart - serverStop);
+	cout << "Server communication time: " << serverDuration.count() << endl;
+
 
 	//PREPROCESS
 	//1. Decrypt
@@ -235,6 +249,10 @@ int main(int argc, char ** argv) {
 	//TODO finish once we have a function to convert ByteVec<->label
 	std::vector<std::vector<BYTE> >
 		decryptedLabels(choices.size());
+	//ONLY FOR EMULATION TESTS
+	for (auto & x : decryptedLabels) {
+		x = get_junk(SEC_PARAMETER + 1);
+	}
 	//Change me later!
 	//std::vector<int> wires;
 #define AES_BUFFERSIZE 128
@@ -255,7 +273,6 @@ int main(int argc, char ** argv) {
 	//Servers send first, then receive
 	//Start client threads first
 
-	std::vector<std::vector<BYTE> > upload; //TODO get this - my labels
 	std::vector<std::vector<std::vector<BYTE> > > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
 	for (unsigned int u = 0; u < my_party; u++) {
@@ -279,10 +296,26 @@ int main(int argc, char ** argv) {
 		server_thread.join();
 	}
 
-
+	auto evalStart = high_resolution_clock::now();
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
-
+	for (unsigned int b = 0; b < parties.size(); b++) {
+		std::vector<std::vector<BYTE> > currVec = (b == my_party)? decryptedLabels : downloads[b];
+		unsigned int num_wires_for_player = currVec.size();
+		for (unsigned int q = 0; q < num_wires_for_player; q++) {
+			wire_value * wv = new wire_value(SEC_PARAMETER + 1);
+			wv->from_bytevec(&currVec[q], 0, SEC_PARAMETER + 1);
+			playerInfo[b]->input_wires[q]->label_kp = wv;
+		}
+	}
+	std::cout << "Circuit answer: " << std::endl;
+	for (auto & x : circ->output_wires) {
+		std::cout << x->output_value << ' ';
+	}
+	std::cout << std::endl;
+	auto evalEnd = high_resolution_clock::now();
+	auto evalDuration = duration_cast<microseconds>(serverStart - serverStop);
+	std::cout << "Evaluation time: " << evalDuration.count() << std::endl;
 
 
 
@@ -318,6 +351,16 @@ int main(int argc, char ** argv) {
 	*/
 
 	return 0;
+}
+
+//Returns random data, prepended with the length
+std::vector<BYTE> get_junk(unsigned int n) {
+	vector<BYTE> j(n);
+	for (auto & x : j) {
+		x = (BYTE) rand();
+	}
+	vector<BYTE> emptyVec;
+	return concatenate(j, emptyVec);
 }
 
 //First line of file has number of PARTIES
