@@ -28,11 +28,13 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
     exit(1);
   std::string in;
   std::string out;
-  int max_player=0;
+  int max_player = 0;
   int n_wires = 0;
   int wire_i, player;
   while (file.peek() == 'I') {
     file >> in >> wire_i >> player;
+	//DEBUGGING
+	std::cout << in << ' ' << wire_i << ' ' << player << std::endl;
     file.ignore(); // ignore \n
     Wire * w = new Wire;
     w->gate_number = wire_i;
@@ -56,7 +58,8 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
       file >> gatenum >> wire_i >> x >> y;
     }
     file.ignore(); // ignore \n
-
+	//DEBUGGING
+	std::cout << gatenum << ' ' << wire_i << ' ' << x << ' ' << y << std::endl;
     Wire * w = new Wire;
     w->gate_number = wire_i;
     w->is_gate = true;
