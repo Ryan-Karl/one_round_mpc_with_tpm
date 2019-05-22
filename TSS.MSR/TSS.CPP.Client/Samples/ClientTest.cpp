@@ -155,7 +155,7 @@ int main(int argc, char ** argv) {
 		*/
 		char * recBuf;
 		if (c.recvBuffer((void **)&recBuf, msgSize)) {
-			cerr << "ERROR getting key" << i << endl;
+			cerr << "ERROR getting key " << i << endl;
 			throw std::exception("ERROR getting key");
 		}
 		std::vector<BYTE> keyByteVec = stringToByteVec(recBuf, msgSize);

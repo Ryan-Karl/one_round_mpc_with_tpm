@@ -15,7 +15,9 @@ int main(int argc, char ** argv) {
 */
 
 void expand_add(std::vector<Wire*> *wires, int index, Wire * w) {
-  wires->resize(index + 1);
+	if (wires->size() <= index) {
+		wires->resize(index + 1, nullptr);
+	}
   (*wires)[index] = w;
 }
 
@@ -60,11 +62,26 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
     file.ignore(); // ignore \n
 	//DEBUGGING
 	std::cout << gatenum << ' ' << wire_i << ' ' << x << ' ' << y << std::endl;
-    Wire * w = new Wire;
+	Wire * w;
+	if (wire_i >= wires.size() || wires[wire_i] == nullptr) {
+		w = new Wire;
+		expand_add(&wires, wire_i, w);
+	}
+	else {
+		w = wires[wire_i];
+	}
     w->gate_number = wire_i;
     w->is_gate = true;
     w->g_type = (gate_type)gatenum;
+	if (x >= wires.size() || wires[x] == nullptr) {
+		Wire * x_ptr = new Wire;
+		expand_add(&wires, x, x_ptr);
+	}
     w->left_child = wires[x];
+	if (y >= wires.size() || wires[y] == nullptr) {
+		Wire * y_ptr = new Wire;
+		expand_add(&wires, y, y_ptr);
+	}
     w->right_child = wires[y];
     expand_add(&wires, wire_i, w);
     n_wires += 1;
@@ -72,6 +89,10 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
   while (file.peek() == 'O') {
     // Note -- ignores which player an output wire is 'for'
     file >> out >> x >> player;
+	if (x >= wires.size() || wires[x] == nullptr) {
+		Wire * x_ptr = new Wire;
+		expand_add(&wires, x, x_ptr);
+	}
     wires[x]->is_root = true;
     circuit->output_wires.push_back(wires[x]);
     file.ignore(); // ignore \n
