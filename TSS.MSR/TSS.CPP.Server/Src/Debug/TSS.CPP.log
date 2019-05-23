@@ -1,5 +1,4 @@
-﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppClean.targets(76,5): warning : The process cannot access the file 'c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\src\debug\dllmain.obj' because it is being used by another process.
-  stdafx.cpp
+﻿  stdafx.cpp
   AuthSessions.cpp
   CryptoServices.cpp
   Helpers.cpp

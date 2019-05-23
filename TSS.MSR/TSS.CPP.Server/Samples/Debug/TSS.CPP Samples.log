@@ -1,51 +1,8 @@
-﻿  ServerTest.cpp
-c:\devsoft\mpir\mpirxx.h(1610): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
-c:\devsoft\mpir\mpirxx.h(1611): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
-c:\devsoft\mpir\mpirxx.h(1677): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
-c:\devsoft\mpir\mpirxx.h(1678): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
-c:\devsoft\mpir\mpirxx.h(1822): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
-c:\devsoft\mpir\mpirxx.h(1823): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
-c:\devsoft\mpir\mpirxx.h(1905): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
-c:\devsoft\mpir\mpirxx.h(1907): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
-c:\devsoft\mpir\mpirxx.h(2045): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
-c:\devsoft\mpir\mpirxx.h(2047): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
-c:\devsoft\mpir\mpirxx.h(2048): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
-c:\devsoft\mpir\mpirxx.h(2050): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
-c:\devsoft\mpir\mpirxx.h(2136): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
-c:\devsoft\mpir\mpirxx.h(2138): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3341): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3341): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3342): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3342): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3343): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3343): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3344): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3344): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3345): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3345): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3347): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3347): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3348): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3348): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3349): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3349): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3359): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3359): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3360): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3360): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3361): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3361): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3362): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3362): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3372): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3372): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3373): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3373): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3374): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3374): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from '__int64' to 'const long', possible loss of data
-c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(52): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(64): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\servertest.cpp(52): warning C4018: '<': signed/unsigned mismatch
+﻿  frigate_parse.cpp
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(19): warning C4018: '<=': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(49): warning C4018: '>=': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(72): warning C4018: '>=': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(82): warning C4018: '>=': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(87): warning C4018: '>=': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(98): warning C4018: '>=': signed/unsigned mismatch
   TSS.CPP Samples.vcxproj -> C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Server\Src\\Debug\TSS.CPP Samples.exe

@@ -27,8 +27,9 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
 	//associates number to Wire
 	std::vector<Wire *> wires;
 	std::ifstream file(filename);
-	if (!file.good())
+	if (!file.good()) {
 		exit(1);
+	}		
 	std::string in;
 	std::string out;
 	int max_player = 0;
