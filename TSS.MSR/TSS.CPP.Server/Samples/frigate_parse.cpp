@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <cassert>
 
 /*  test function
 int main(int argc, char ** argv) {
@@ -37,11 +38,14 @@ void read_frigate_circuit(char * filename, Circuit * circuit, std::vector<Player
 		file >> in >> wire_i >> player;
 		//DEBUGGING
 		//std::cout << in << ' ' << wire_i << ' ' << player << std::endl;
+		assert(player);
+		player--;
 		file.ignore(); // ignore \n
 		Wire * w = new Wire;
 		w->gate_number = wire_i;
 		w->is_root = false;
 		w->is_gate = false;
+		assert(wire_i >= wires.size() || wires[wire_i] == nullptr);
 		expand_add(&wires, wire_i, w);
 		circuit->input_wires.push_back(w);
 		(*players)[player]->input_wires.push_back(w);

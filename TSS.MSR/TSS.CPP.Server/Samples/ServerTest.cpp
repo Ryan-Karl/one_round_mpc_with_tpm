@@ -99,16 +99,17 @@ int main(int argc, char ** argv) {
 	for (unsigned int i = 0; i < num_parties; i++) {
 		//Should this be multithreaded?
 		//Receive the number of the party
-		unsigned int currentParty;
+		unsigned int * currentParty;
 		unsigned int msgLen;
 		s.recvBuffer(i, (void **)&currentParty, msgLen);
-		assert(msgLen == sizeof(currentParty));
-		assert(currentParty < num_parties);
-		party_to_connection[currentParty] = i;
+		*currentParty = ntohs(*currentParty);
+		assert(msgLen == sizeof(unsigned int));
+		assert(*currentParty < num_parties);
+		party_to_connection[*currentParty] = i;
 		//Receive the key of the party
 		char * recvBuf;
 		s.recvBuffer(i, (void **)&recvBuf, msgLen);
-		partyKeys[currentParty] = stringToByteVec(recvBuf, msgLen);
+		partyKeys[*currentParty] = stringToByteVec(recvBuf, msgLen);
 		delete recvBuf;
 	}
 	//Distribute all other keys to each party
