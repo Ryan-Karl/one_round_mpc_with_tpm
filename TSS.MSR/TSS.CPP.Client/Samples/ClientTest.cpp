@@ -119,7 +119,7 @@ int main(int argc, char ** argv) {
 	//Initialize these two parts
 
 	std::vector<BYTE> myKeyVec = keyPair.first.ToBuf();
-	std::vector<std::vector<BYTE> > keyVec;
+	//std::vector<std::vector<BYTE> > keyVec;
 	std::vector<TSS_KEY> other_keys(parties.size());
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
@@ -137,7 +137,7 @@ int main(int argc, char ** argv) {
 	//Send the server our party number so they know who is who
 	c.sendBuffer(sizeof(my_party), &my_party);
 	//Now send the key vector
-	c.sendBuffer(keyVec.size(), keyVec.data());
+	c.sendBuffer(myKeyVec.size(), myKeyVec.data());
 	for (unsigned int i = 0; i < parties.size(); i++) {
 		//Skip my party
 		if (i == my_party) {
