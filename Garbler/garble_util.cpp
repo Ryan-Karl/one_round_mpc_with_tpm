@@ -137,7 +137,8 @@ void garbling2wire(const wire_value *w, wire_value *k, bool *p) {
 
 wire_value::wire_value(int size) {
   //assert(size > 0);
-	bits = new char[size / CHAR_WIDTH]();
+	//bits = new char[size / CHAR_WIDTH]();
+  bits = new char[(size / CHAR_WIDTH) + (size%CHAR_WIDTH ? 1 : 0)];
   len = size;
 }
 

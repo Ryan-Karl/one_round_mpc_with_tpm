@@ -130,6 +130,10 @@ int main(int argc, char ** argv) {
 	}
 	//An error check to do: assert that every entry in the vector is filled
 
+	//TODO use keys for GC?
+
+	//Do garbling of circuit
+	get_garbled_circuit(circ);
 	//Send circuit
 	std::vector<BYTE> circuitByteVec;
 	circuit_to_bytevec(circ, &circuitByteVec);
