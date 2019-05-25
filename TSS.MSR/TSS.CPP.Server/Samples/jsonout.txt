@@ -1,0 +1,65 @@
+// Now create and import an externally created key. We will demonstrate
+	// creation and import of an RSA signing key.
+	TPMT_PUBLIC swKeyDef(TPM_ALG_ID::SHA1,
+		TPMA_OBJECT::sign |
+		TPMA_OBJECT::sensitiveDataOrigin |
+		TPMA_OBJECT::userWithAuth |
+		TPMA_OBJECT::adminWithPolicy,
+		policyDigest.digest,
+		TPMS_RSA_PARMS(
+			TPMT_SYM_DEF_OBJECT(TPM_ALG_ID::_NULL, 0, TPM_ALG_ID::_NULL),
+			TPMS_SCHEME_RSASSA(TPM_ALG_ID::SHA1), 2048, 65537),
+		TPM2B_PUBLIC_KEY_RSA(NullVec));
+
+	TSS_KEY importableKey;
+	importableKey.publicPart = swKeyDef;
+	importableKey.CreateKey();
+	ByteVec swKeyAuthValue{ 4, 5, 4, 5 };
+
+	// We can use TSS.C++ to create an duplication blob that we can Import()
+	TPMT_SENSITIVE sens(swKeyAuthValue, NullVec, TPM2B_PRIVATE_KEY_RSA(importableKey.privatePart));
+	TPMT_SYM_DEF_OBJECT noInnerWrapper = TPMT_SYM_DEF_OBJECT::NullObject();
+	DuplicationBlob dupBlob = storagePrimaryPublic.outPublic.CreateImportableObject(tpm,
+		importableKey.publicPart, sens, noInnerWrapper);
+
+	auto newPrivate = tpm.Import(storagePrimaryHandle,
+		NullVec,
+		importableKey.publicPart,
+		dupBlob.DuplicateObject,
+		dupBlob.EncryptedSeed,
+		noInnerWrapper);
+
+	// We can also import it with an inner wrapper
+	TPMT_SYM_DEF_OBJECT innerWrapper = TPMT_SYM_DEF_OBJECT(TPM_ALG_ID::AES, 128, TPM_ALG_ID::CFB);
+	dupBlob = storagePrimaryPublic.outPublic.CreateImportableObject(tpm,
+		importableKey.publicPart,
+		sens,
+		innerWrapper);
+	newPrivate = tpm.Import(storagePrimaryHandle,
+		dupBlob.InnerWrapperKey,
+		importableKey.publicPart,
+		dupBlob.DuplicateObject,
+		dupBlob.EncryptedSeed,
+		innerWrapper);
+
+	// Now load and use it.
+	TPM_HANDLE importedSwKey = tpm.Load(storagePrimaryHandle,
+		newPrivate,
+		importableKey.publicPart);
+	importedSwKey.SetAuth(swKeyAuthValue);
+	TPMT_HA dataToSign = TPMT_HA::FromHashOfString(TPM_ALG_ID::SHA1, "abc");
+	auto importedKeySig = tpm.Sign(importedSwKey,
+		dataToSign.digest,
+		TPMS_NULL_SIG_SCHEME(),
+		TPMT_TK_HASHCHECK::NullTicket());
+	// And verify
+	bool swKeySig = importableKey.publicPart.ValidateSignature(dataToSign.digest,
+		*importedKeySig.signature);
+	_ASSERT(swKeySig);
+
+	if (swKeySig) {
+		cout << "Imported SW-key works" << endl;
+	}
+
+	tpm.FlushContext(storagePrimaryHandle);
+	tpm.FlushContext(importedSwKey);
