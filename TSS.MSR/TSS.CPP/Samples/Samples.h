@@ -19,6 +19,7 @@ class Samples {
 
         // The following methods demonstrate how TSS.C++ is used to perform TPM functions.
         void RunAllSamples();
+		void TestFunction();
 		void MPC_TPM();
         void Rand();
         void PCR();

@@ -1,0 +1,11 @@
+Server:
+---------------
+1. Split data
+2. Encrypte data chuunkwize
+3. Send number of chunks of data and data
+
+Client:
+---------------
+1. Recive number of chunks and chunks
+2. Decrypt
+3. Concatenate

@@ -60,13 +60,8 @@ public:
 	static TSS_KEY s_importKey(const std::vector<BYTE> & keyVec);
 	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message); \
 
-	std::vector<BYTE> getRandBits(unsigned int numbits);
+		std::vector<BYTE> getRandBits(unsigned int numbits);
 
-	static std::vector<std::vector<BYTE> > TPMWrapper::chunk_encrypt(TSS_KEY & key,
-		const std::vector<BYTE> & message, unsigned int chunksize);
-
-	std::vector<BYTE> TPMWrapper::chunk_decrypt(TPM_HANDLE & handle,
-		const std::vector<std::vector<BYTE> > & ciphertexts, unsigned int hint = 0);
 
 protected:
 
@@ -92,6 +87,8 @@ std::vector<BYTE> TPMWrapper::getRandBits(unsigned int numbits) {
 	return tpm._GetRandLocal(numbits);
 }
 
+#define RSA_SCHEME 2048
+
 std::pair<TSS_KEY, TPM_HANDLE> TPMWrapper::c_genKeys() {
 	if (!initialized) {
 		throw std::logic_error("c_genKeys called without a TPM connection!");
@@ -105,7 +102,7 @@ std::pair<TSS_KEY, TPM_HANDLE> TPMWrapper::c_genKeys() {
 		WrapperNullVec,  // No policy
 		TPMS_RSA_PARMS(
 			TPMT_SYM_DEF_OBJECT::NullObject(),
-			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), 2048, 65537),
+			TPMS_SCHEME_OAEP(TPM_ALG_ID::SHA1), RSA_SCHEME, 65537),
 		TPM2B_PUBLIC_KEY_RSA(WrapperNullVec));
 	//Create software key
 	TSS_KEY k;
@@ -125,35 +122,15 @@ std::vector<BYTE> TPMWrapper::c_RSA_decrypt(TPM_HANDLE & handle, const std::vect
 	return tpm.RSA_Decrypt(handle, ciphertext, TPMS_NULL_ASYM_SCHEME(), WrapperNullVec);
 }
 
-std::vector<BYTE> TPMWrapper::chunk_decrypt(TPM_HANDLE & handle,
-	const std::vector<std::vector<BYTE> > & ciphertexts, unsigned int hint = 0) {
-	std::vector<std::vector<BYTE> > plaintexts(ciphertexts.size());
-	for (unsigned int i = 0; i < ciphertexts.size(); i++) {
-		plaintexts[i] = c_RSA_decrypt(handle, ciphertexts[i]);
-	}
-	return flatten(plaintexts, hint);
-}
-
 TSS_KEY TPMWrapper::s_importKey(const std::vector<BYTE> & keyVec) {
 	TSS_KEY k;
 	k.FromBuf(keyVec);
 	return k;
 }
 //Will fail if key is not properly initialized
-std::vector<BYTE> TPMWrapper::s_RSA_encrypt(TSS_KEY & key,
-	const std::vector<BYTE> & message) {
+std::vector<BYTE> TPMWrapper::s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message) {
 	ByteVec WrapperNullVec;
 	return key.publicPart.Encrypt(message, WrapperNullVec);
-}
-
-std::vector<std::vector<BYTE> > TPMWrapper::chunk_encrypt(TSS_KEY & key, 
-	const std::vector<BYTE> & message, unsigned int chunksize) {
-	auto vecList = splitChunks(message, chunksize);
-	std::vector<std::vector<BYTE> > ciphertexts(vecList.size());
-	for (unsigned int i = 0; i < vecList.size(); i++) {
-		ciphertexts[i] = TPMWrapper::s_RSA_encrypt(key, vecList[i]);
-	}
-	return ciphertexts;
 }
 
 bool TPMWrapper::init(unsigned int port) {

@@ -23,6 +23,8 @@ Microsoft Confidential
 #include <iterator>
 #include <cassert>
 #include <fstream>
+#include "TPMWrapper.h"
+#include <cassert>
 
 
 //https://social.msdn.microsoft.com/Forums/vstudio/en-US/9c0cbc07-823a-4ea7-bf7f-e05e13c17fb2/fatal-error-c1083-cannot-open-include-file-opensslcryptoh-no-such-file-or-directory
@@ -145,7 +147,8 @@ void Samples::RunAllSamples()
 	_check
 		//MPC_TPM();
 		//SoftwareKeys();
-		ImportDuplicate();
+		//ImportDuplicate();
+		TestFunction();
 	_check;
 
 	//Callback2();
@@ -203,6 +206,25 @@ std::vector<BYTE> intToByteVec(int x) {
 	ret.push_back(x && 0xFF);
 	return ret;
 }
+
+void Samples::TestFunction()
+{
+	TPMWrapper myTPM;
+	myTPM.init(3000);
+	auto keyPair = myTPM.c_genKeys();
+	std::vector<BYTE> myKeyVec = keyPair.first.ToBuf();
+
+	TSS_KEY server_key = TPMWrapper::s_importKey(myKeyVec);
+
+	ByteVec message = myTPM.getRandBits(128);
+	ByteVec ciphertext = TPMWrapper::s_RSA_encrypt(server_key, message);
+
+	ByteVec decrypted = myTPM.c_RSA_decrypt(keyPair.second, ciphertext);
+	assert(message == decrypted);
+	std::cout << "Encryption passed" << std::endl;
+
+}
+
 
 void Samples::MPC_TPM()
 {
