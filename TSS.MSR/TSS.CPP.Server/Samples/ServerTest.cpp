@@ -111,12 +111,16 @@ int main(int argc, char ** argv) {
 		s.recvBuffer(i, (void **)&recvBuf, msgLen);
 		partyKeys[*currentParty] = stringToByteVec(recvBuf, msgLen);
 		delete recvBuf;
+		delete currentParty;
 	}
 	//Distribute all other keys to each party
 	for (unsigned int y = 0; y < num_parties; y++) {
 		for (unsigned int z = 0; z < num_parties; z++) {
 			if (y == z) {
 				continue; //Don't bother sending a party its own key
+				
+			}
+			else {
 				//Send party z's key to party y
 				s.sendBuffer(party_to_connection[y],
 					partyKeys[y].size(), partyKeys[y].data());
@@ -126,6 +130,11 @@ int main(int argc, char ** argv) {
 	//Switch to software keys
 	std::vector<TSS_KEY> keyvec(partyKeys.size());
 	for (unsigned int u = 0; u < partyKeys.size(); u++) {
+		std::cout << "Keyvec from party " << u << " of " << partyKeys[u].size() << " bytes: ";
+		for (unsigned int i = 0; i < partyKeys[u].size(); i++) {
+			std::cout << partyKeys[u][i];
+		}
+		std::cout << endl;
 		keyvec[u] = TPMWrapper::s_importKey(partyKeys[u]);
 	}
 	//An error check to do: assert that every entry in the vector is filled
@@ -163,9 +172,12 @@ int main(int argc, char ** argv) {
 		aes_key = myTPM.getRandBits(AES_KEY_SIZE);
 		iv = myTPM.getRandBits(IV_SIZE);
 		//Get c-string representations of the AES key and IV
+		/*
 		unsigned char * key_str;
 		key_str = new unsigned char[aes_key.size()];
 		memcpy(key_str, aes_key.data(), aes_key.size());
+		delete key_str;
+		*/
 		//iv_str = new unsigned char[iv.size()];
 		//memcpy(iv_str, iv.data(), iv.size());
 		mpz_class aes_key_mpz = ByteVecToMPZ(aes_key);
@@ -185,14 +197,22 @@ int main(int argc, char ** argv) {
 		}
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			encPartyLabels(party_to_numwires[j]); //The encrypted labels
-#define AES_BUFFERSIZE 128
+//#define AES_BUFFERSIZE 128
 		//Encrypt the labels
 		for (unsigned int r = 0; r < partyLabels.size(); r++) {
-			unsigned char ciphertext[AES_BUFFERSIZE];
-			int label0_size = encrypt(partyLabels[r].first.data(), partyLabels[r].first.size(), key_str, iv_str, ciphertext);
+			int ctext0_size = AES_BLOCK_SIZE + partyLabels[r].first.size();
+			int ctext1_size = AES_BLOCK_SIZE + partyLabels[r].second.size();
+			unsigned char * ciphertext;
+			ciphertext = new unsigned char[ctext0_size];
+			//int label0_size = encrypt(partyLabels[r].first.data(), partyLabels[r].first.size(), key_str, iv_str, ciphertext);
+			int label0_size = encrypt(partyLabels[r].first.data(), partyLabels[r].first.size(), aes_key.data(), iv.data(), ciphertext);
 			encPartyLabels[r].first = stringToByteVec((char *) ciphertext, label0_size);
-			int label1_size = encrypt(partyLabels[r].second.data(), partyLabels[r].second.size(), key_str, iv_str, ciphertext);
+			delete ciphertext;
+			ciphertext = new unsigned char[ctext1_size];
+			//int label1_size = encrypt(partyLabels[r].second.data(), partyLabels[r].second.size(), key_str, iv_str, ciphertext);
+			int label1_size = encrypt(partyLabels[r].second.data(), partyLabels[r].second.size(), aes_key.data(), iv.data(), ciphertext);
 			encPartyLabels[r].second = stringToByteVec((char *) ciphertext, label1_size);
+			delete ciphertext;
 		}
 
 		for (unsigned int k = 0; k < encPartyLabels.size(); k++) {
@@ -206,7 +226,7 @@ int main(int argc, char ** argv) {
 			std::vector<BYTE> wire0ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire0share);
 			std::vector<BYTE> wire1ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire1share);
 			if (s.sendBuffer(party_to_connection[k], wire0ctext.size(), wire0ctext.data()) ||
-				s.sendBuffer(party_to_connection[k], wire0ctext.size(), wire0ctext.data())) {
+				s.sendBuffer(party_to_connection[k], wire1ctext.size(), wire1ctext.data())) {
 				cerr << "ERROR sending label/share ciphertexts" << endl;
 				return 1;
 			}

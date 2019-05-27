@@ -2,7 +2,17 @@
 #define UTILITIES_H
 
 
-//#include "stdafx.h"
+#ifdef WIN32
+#include "stdafx.h"
+#include <mpir.h>
+#include <mpirxx.h>
+#elif defined(__linux__)
+#include <gmp.h>
+#include <gmpxx.h>
+typedef unsigned char BYTE;
+#endif
+
+//
 //#include "Samples.h"
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -23,17 +33,10 @@
 #include <fstream>
 #include <limits.h>
 
-#ifdef WIN32
-#include <mpir.h>
-#include <mpirxx.h>
-#elif defined(__linux__)
-#include <gmp.h>
-#include <gmpxx.h>
-typedef char BYTE;
-#endif
 
-#define AES_KEY_SIZE 32
-#define IV_SIZE 16
+
+#define AES_KEY_SIZE 256
+#define IV_SIZE 128
 
 
 std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
@@ -150,7 +153,7 @@ std::vector<BYTE> concatenate(const std::vector<BYTE> & v1, const std::vector<BY
 	std::vector<BYTE> v(sizeof(unsigned int));
 	v.reserve(sizeof(unsigned int) + len + v2.size());
 	for (unsigned int i = 0; i < sizeof(unsigned int); i++) {
-		v[i] = (len >> (i*CHAR_WIDTH)) & 0xF;
+		v[i] = (len >> (i*CHAR_WIDTH)) & 0xFF;
 	}
 	v.insert(v.end(), v1.begin(), v1.end());
 	v.insert(v.end(), v2.begin(), v2.end());

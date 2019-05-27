@@ -138,6 +138,12 @@ int main(int argc, char ** argv) {
 	c.sendBuffer(sizeof(my_party), &my_party);
 	//Now send the key vector
 	c.sendBuffer(myKeyVec.size(), myKeyVec.data());
+	//DEBUGGING - print key vector
+	std::cout << "Client keyvec of " << myKeyVec.size() << " bytes: ";
+	for (const auto & b : myKeyVec) {
+		std::cout << b;
+	}
+	std::cout << std::endl;
 	for (unsigned int i = 0; i < parties.size(); i++) {
 		//Skip my party
 		if (i == my_party) {
@@ -163,8 +169,8 @@ int main(int argc, char ** argv) {
 		//delete partyNum;
 		delete recBuf;
 	}
-	//TODO Now accept garbled circuit
 	
+	//Now accept garbled circuit data from server
 	char * circuitBuf;
 	unsigned int circuitBufLen;
 	if (c.recvBuffer((void **)&circuitBuf, circuitBufLen)) {

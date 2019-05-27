@@ -59,8 +59,8 @@ public:
 
 	static TSS_KEY s_importKey(const std::vector<BYTE> & keyVec);
 	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message); \
-
-		std::vector<BYTE> getRandBits(unsigned int numbits);
+	
+	std::vector<BYTE> getRandBits(unsigned int numbits);
 
 
 protected:

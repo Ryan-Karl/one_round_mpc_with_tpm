@@ -35,8 +35,8 @@ typedef unsigned char BYTE;
 
 
 
-#define AES_KEY_SIZE 32
-#define IV_SIZE 16
+#define AES_KEY_SIZE 256
+#define IV_SIZE 128
 
 
 std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
