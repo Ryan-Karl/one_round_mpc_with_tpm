@@ -137,11 +137,21 @@ int main(int argc, char ** argv) {
 	c.sendBuffer(sizeof(my_party), &my_party);
 	//Now send the key vector
 	c.sendBuffer(myKeyVec.size(), myKeyVec.data());
+	//Receive the prime
+	std::vector<BYTE> primeVec;
+	if (c.recvByteVec(primeVec)) {
+		std::cerr << "ERROR receiving prime" << std::endl;
+	}
+	mpz_class prime = ByteVecToMPZ(primeVec);
+	//DEBUGGING - print prime
+	std::cout << "Received prime " << prime << std::endl;
 	//DEBUGGING - print key vector
+	/*
 	std::cout << "Client keyvec of " << myKeyVec.size() << " bytes: ";
 	for (const auto & b : myKeyVec) {
 		std::cout << b;
 	}
+	*/
 	std::cout << std::endl;
 	for (unsigned int i = 0; i < parties.size(); i++) {
 		//Skip my party
@@ -251,11 +261,14 @@ int main(int argc, char ** argv) {
 	//2b. Combine secret shares
 	//Assume secrets are in a concatenated vector
 	//First part is x-coord, second is y-coord
+	/*
 	//Get a prime number
 	//TODO find a better way than hardcoding
 	mpz_class prime = 2147483647;
+	*/
 	ShamirSecret shamir(prime, num_wires, num_wires);
 	std::vector<std::pair<mpz_class, mpz_class> > shares;
+	
 	//DEBUGGING
 	std::cout << "Decoding shares..." << std::endl;
 	for (unsigned int p = 0; p < keyShares.size(); p++) {

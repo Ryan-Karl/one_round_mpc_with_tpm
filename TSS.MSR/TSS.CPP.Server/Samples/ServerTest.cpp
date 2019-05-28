@@ -45,7 +45,7 @@ void handleErrors(void);
 
 //First arg is port, second is a string to encrypt
 int main(int argc, char ** argv) {
-	mpz_class prime = 2147483647;
+	
 
 
 	unsigned int num_required_args = 2;
@@ -74,6 +74,24 @@ int main(int argc, char ** argv) {
 	assert(circuitfile != nullptr);
 	assert(num_parties);
 	assert(port);
+
+	//Setup a prime number to use
+	/*
+	gmp_randstate_t state;
+	gmp_randinit_mt(state);
+	//Get a random seed
+	std::random_device rd;
+	unsigned int seed = rd();
+	gmp_randseed_ui(state, seed);
+	*/
+	mpz_class field_size = 2;
+	mpz_class prime_min;
+	mpz_class prime;
+	mpz_pow_ui(prime_min.get_mpz_t(), field_size.get_mpz_t(), AES_KEY_SIZE);
+	//Deprecated
+	mpz_nextprime(prime.get_mpz_t(), prime_min.get_mpz_t());
+	//mpz_next_likely_prime(prime.get_mpz_t(), prime_min.get_mpz_t(), state);
+
 
 	//INITIALIZE
 	//3. Compute a garbled circuit (and send it later)
@@ -112,6 +130,15 @@ int main(int argc, char ** argv) {
 		partyKeys[*currentParty] = stringToByteVec(recvBuf, msgLen);
 		delete recvBuf;
 		delete currentParty;
+		//Send the prime to the party
+		std::vector<BYTE> primeVec = mpz_to_vector(prime);
+		if (s.sendBuffer(i, primeVec.size(), primeVec.data())) {
+			std::cerr << "ERROR sending prime" << std::endl;
+		}
+		//DEBUGGING
+		else {
+			std::cout << "Sent prime " << prime << std::endl;
+		}
 	}
 	//Distribute all other keys to each party
 	for (unsigned int y = 0; y < num_parties; y++) {

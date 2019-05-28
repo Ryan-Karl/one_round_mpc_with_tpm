@@ -115,8 +115,6 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
 	return ret;
 }
 
-
-
 //https://stackoverflow.com/questions/24016611/how-can-i-save-a-gmp-mpz-t-mpz-class-to-vectorbyte
 std::vector<BYTE> mpz_to_vector(const mpz_t x) {
 	size_t size = (mpz_sizeinbase(x, 2) + CHAR_BIT - 1) / CHAR_BIT;
