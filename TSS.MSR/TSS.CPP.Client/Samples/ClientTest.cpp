@@ -113,7 +113,6 @@ int main(int argc, char ** argv) {
 	//1. Get key pair
 	TPMWrapper myTPM;
 	myTPM.init(2321);
-	//TODO (later) Ryan find out how to force limited usage
 	auto keyPair = myTPM.c_genKeys();
 	//2. Broadcast public key and receive public key
 	//Initialize these two parts
@@ -188,25 +187,40 @@ int main(int argc, char ** argv) {
 
 	//Now accept wire ciphertexts from garbler
 	unsigned int num_wires = playerInfo[my_party]->input_wires.size(); //Get the total number of wires
-	std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > > encLabels; //We will decrypt these (later)
+	std::vector<std::pair<std::vector<std::vector<BYTE> >, std::vector<std::vector<BYTE> > > > encLabels; //We will decrypt these (later)
 	//encLabels[i] has the label pair for wire i
 	encLabels.resize(num_wires);
 	for (unsigned int j = 0; j < num_wires; j++) {
 		//Receive c_w,0 and c_w,1 (in that order)
-		char * recLabel;
-		unsigned int labelSize;
-		if (c.recvBuffer((void **)& recLabel, labelSize)) {
-			cerr << "ERROR getting label" << j << " 0" << endl;
-			throw std::exception("ERROR getting label");
+		//First receive how many chunks we need for wire 0
+		unsigned int * numchunks;
+		unsigned int recvSize;
+		if (c.recvBuffer((void **)&numchunks, recvSize) || recvSize != sizeof(unsigned int)) {
+			cerr << "ERROR getting number of chunks for wire 0" << endl;
+			return 1;
 		}
-		encLabels[j].first = stringToByteVec(recLabel, labelSize);
-		delete recLabel;
-		if (c.recvBuffer((void **)& recLabel, labelSize)) {
-			cerr << "ERROR getting label" << j << " 1" << endl;
-			throw std::exception("ERROR getting label");
+		encLabels[j].first = std::vector<std::vector<BYTE> >(*numchunks);
+		for (unsigned int w0 = 0; w0 < *numchunks; w0++) {
+			if (c.recvByteVec(encLabels[j].first[w0])) {
+				cerr << "ERROR getting chunk " << w0 << endl;
+				return 1;
+			}
 		}
-		encLabels[j].second = stringToByteVec(recLabel, labelSize);
-		delete recLabel;
+		delete numchunks;
+		//Now get how many chunks we need for wire 1
+		if (c.recvBuffer((void **)&numchunks, recvSize) || recvSize != sizeof(unsigned int)) {
+			cerr << "ERROR getting number of chunks for wire 1" << endl;
+			return 1;
+		}
+		encLabels[j].second = std::vector<std::vector<BYTE> >(*numchunks);
+		for (unsigned int w1 = 0; w1 < *numchunks; w1++) {
+			if (c.recvByteVec(encLabels[j].second[w1])) {
+				cerr << "ERROR getting chunk " << w1 << endl;
+				return 1;
+			}
+		}
+		delete numchunks;
+
 	}
 	//Close connection to garbler
 	c.stop();
@@ -221,9 +235,11 @@ int main(int argc, char ** argv) {
 	intermediate_ciphertexts.resize(choices.size());
 	assert(choices.size() == num_wires);
 	for (unsigned int k = 0; k < choices.size(); k++) {
-		intermediate_ciphertexts[k] =
-			myTPM.c_RSA_decrypt(keyPair.second,
-			(!choices[k]) ? encLabels[k].first : encLabels[k].second);
+		
+		//Chunk decryption modification
+		intermediate_ciphertexts[k] = myTPM.chunk_decrypt(keyPair.second, (!choices[k]) ? encLabels[k].first : encLabels[k].second);
+		
+		//intermediate_ciphertexts[k] = myTPM.c_RSA_decrypt(keyPair.second, (!choices[k]) ? encLabels[k].first : encLabels[k].second);
 	}
 	//2. Extract symmetric key (and ciphertext)
 	//Ciphertext is first, key share is second

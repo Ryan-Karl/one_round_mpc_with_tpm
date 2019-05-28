@@ -84,6 +84,23 @@ public:
 		return recvBuffer(inSock, str_len, (void **) strloc);
 	}
 
+	int sendByteVec(socket_t inSock, const std::vector<char> & v) {
+		unsigned int vecLen = v.size();
+		return sendBytes(inSock, sizeof(vecLen), &vecLen) ||
+			sendBytes(inSock, v.size(), v.data());
+	}
+
+	int recvByteVec(socket_t inSock, std::vector<char> & v) {
+		v.clear();
+		unsigned int msgSize = 0;
+		if (recvBytes(inSock, sizeof(msgSize), (void *)&msgSize) ){
+			return 1;
+		}
+		msgSize = ntohl(msgSize);
+		v.resize(msgSize);
+		return recvBytes(inSock, msgSize, v.data());
+	}
+
 	int sendBuffer(socket_t inSock, unsigned int buffer_size, const void * buffer){
 		int size_out = htonl(buffer_size);
 		return sendBytes(inSock, sizeof(size_out), &size_out) 
@@ -128,6 +145,14 @@ public:
 
 	int recvString(unsigned int & str_len, char ** strloc){
 		return NetworkNode::recvString(sock, str_len, strloc);
+	}
+
+	int sendByteVec(const std::vector<char> & v) {
+		return NetworkNode::sendByteVec(sock, v);
+	}
+
+	int recvByteVec(std::vector<char> & v) {
+		return NetworkNode::recvByteVec(sock, v);
 	}
 
 	int init(){
@@ -398,6 +423,14 @@ public:
 
 	int recvString(unsigned int conn, unsigned int & str_len, char ** strloc){
 		return NetworkNode::recvString(connections[conn], str_len, strloc);
+	}
+
+	int sendByteVec(unsigned int conn, const std::vector<char> & v) {
+		return NetworkNode::sendByteVec(connections[conn], v);
+	}
+
+	int recvByteVec(unsigned int conn, std::vector<char> & v) {
+		return NetworkNode::recvByteVec(connections[conn], v);
 	}
 
 

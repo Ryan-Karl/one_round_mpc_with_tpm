@@ -126,12 +126,12 @@ std::vector<BYTE> TPMWrapper::c_RSA_decrypt(TPM_HANDLE & handle, const std::vect
 }
 
 std::vector<BYTE> TPMWrapper::chunk_decrypt(TPM_HANDLE & handle,
-	const std::vector<std::vector<BYTE> > & ciphertexts, unsigned int hint = 0) {
+	const std::vector<std::vector<BYTE> > & ciphertexts, unsigned int hint) {
 	std::vector<std::vector<BYTE> > plaintexts(ciphertexts.size());
 	for (unsigned int i = 0; i < ciphertexts.size(); i++) {
 		plaintexts[i] = c_RSA_decrypt(handle, ciphertexts[i]);
 	}
-	return flatten(plaintexts, hint);
+	return flatten(plaintexts);
 }
 
 TSS_KEY TPMWrapper::s_importKey(const std::vector<BYTE> & keyVec) {

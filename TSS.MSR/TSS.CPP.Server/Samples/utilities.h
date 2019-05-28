@@ -187,5 +187,19 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 	return 0;
 }
 
+std::vector<std::vector<BYTE> > splitChunks(const std::vector<BYTE> & v, unsigned int chunksize) {
+	unsigned int numchunks = (v.size() / chunksize) + (v.size() % chunksize ? 1 : 0);
+	std::vector<std::vector<BYTE> > ret(numchunks);
+	for (auto & x : ret) {
+		x.reserve(chunksize);
+	}
+	for (unsigned int i = 0; i < v.size(); i += chunksize) {
+		unsigned int endpoint = std::min(v.size(), i + chunksize);
+		ret[i/chunksize].insert(ret[i/chunksize].begin(), v.begin() + i, v.begin() + endpoint);
+	}
+	return ret;
+}
+
+
 
 #endif

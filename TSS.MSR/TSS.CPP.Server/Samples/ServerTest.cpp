@@ -223,13 +223,43 @@ int main(int argc, char ** argv) {
 			//Construct and send 0 and 1 wire labels, concatenated with secret share
 			std::vector<BYTE> wire0share = concatenate(encPartyLabels[k].first, sharePair);
 			std::vector<BYTE> wire1share = concatenate(encPartyLabels[k].second, sharePair);
-			std::vector<BYTE> wire0ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire0share);
-			std::vector<BYTE> wire1ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire1share);
-			if (s.sendBuffer(party_to_connection[k], wire0ctext.size(), wire0ctext.data()) ||
-				s.sendBuffer(party_to_connection[k], wire1ctext.size(), wire1ctext.data())) {
-				cerr << "ERROR sending label/share ciphertexts" << endl;
+
+			//Chunk encryption modification
+			std::vector<std::vector<BYTE> > wire0ctext = TPMWrapper::chunk_encrypt(keyvec[j], wire0share, 128);
+			std::vector<std::vector<BYTE> > wire1ctext = TPMWrapper::chunk_encrypt(keyvec[j], wire1share, 128);
+			
+			//Send number of chunks for wire 0 ciphertext
+			unsigned int wire0chunks = wire0ctext.size();
+			if (s.sendBuffer(party_to_connection[j], sizeof(wire0chunks), &wire0chunks)) {
+				cerr << "ERROR sending number of chunks for wire 0 to party " << k << std::endl;
 				return 1;
 			}
+			//Send chunks
+			for (unsigned int w0 = 0; w0 < wire0chunks; w0++) {
+				if (s.sendBuffer(party_to_connection[j], wire0ctext[w0].size(), wire0ctext[w0].data())) {
+					cerr << "ERROR sending chunk " << w0 << " for wire 0 to party " << k << endl;
+					return 1;
+				}
+			}
+			//Send number of chunks for wire 1 ciphertext
+			unsigned int wire1chunks = wire1ctext.size();
+			if (s.sendBuffer(party_to_connection[j], sizeof(wire1chunks), &wire1chunks)) {
+				cerr << "ERROR sending number of chunks for wire 1 to party " << k << std::endl;
+				return 1;
+			}
+			//Send chunks
+			for (unsigned int w1 = 0; w1 < wire0chunks; w1++) {
+				if (s.sendBuffer(party_to_connection[j], wire1ctext[w1].size(), wire1ctext[w1].data())) {
+					cerr << "ERROR sending chunk " << w1 << " for wire 0 to party " << k << endl;
+					return 1;
+				}
+			}
+
+
+			//std::vector<BYTE> wire0ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire0share);
+			//std::vector<BYTE> wire1ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire1share);
+
+			
 		}
 	}
 

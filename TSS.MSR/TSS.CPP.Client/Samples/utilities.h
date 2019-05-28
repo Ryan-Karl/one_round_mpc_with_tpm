@@ -193,9 +193,9 @@ std::vector<std::vector<BYTE> > splitChunks(const std::vector<BYTE> & v, unsigne
 	for (auto & x : ret) {
 		x.reserve(chunksize);
 	}
-	for (unsigned int i = 0; i < v.size(); i++) {
+	for (unsigned int i = 0; i < v.size(); i += chunksize) {
 		unsigned int endpoint = std::min(v.size(), i + chunksize);
-		ret[i].insert(ret[i].begin(), v.begin() + i, v.begin() + endpoint);
+		ret[i / chunksize].insert(ret[i/chunksize].begin(), v.begin() + i, v.begin() + endpoint);
 	}
 	return ret;
 }
