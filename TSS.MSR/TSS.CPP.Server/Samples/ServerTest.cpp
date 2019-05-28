@@ -130,11 +130,14 @@ int main(int argc, char ** argv) {
 	//Switch to software keys
 	std::vector<TSS_KEY> keyvec(partyKeys.size());
 	for (unsigned int u = 0; u < partyKeys.size(); u++) {
+		/*
+		//DEBUGGING - print out TSS_KEY buffer
 		std::cout << "Keyvec from party " << u << " of " << partyKeys[u].size() << " bytes: ";
 		for (unsigned int i = 0; i < partyKeys[u].size(); i++) {
 			std::cout << partyKeys[u][i];
 		}
 		std::cout << endl;
+		*/
 		keyvec[u] = TPMWrapper::s_importKey(partyKeys[u]);
 	}
 	//An error check to do: assert that every entry in the vector is filled
@@ -181,6 +184,8 @@ int main(int argc, char ** argv) {
 		//iv_str = new unsigned char[iv.size()];
 		//memcpy(iv_str, iv.data(), iv.size());
 		mpz_class aes_key_mpz = ByteVecToMPZ(aes_key);
+		//DEBUGGING
+		std::cout << "Party " << j << " AES key: " << aes_key_mpz << std::endl;
 		//Split AES key into shares - need a n-of-n secret share here
 		ShamirSecret splitKeys(prime, party_to_numwires[j], party_to_numwires[j]);
 		auto allShares = splitKeys.getShares(aes_key_mpz);
@@ -214,11 +219,14 @@ int main(int argc, char ** argv) {
 			encPartyLabels[r].second = stringToByteVec((char *) ciphertext, label1_size);
 			delete ciphertext;
 		}
-
+		//DEBUGGING
+		std::cout << "Sending shares..." << std::endl;
 		for (unsigned int k = 0; k < encPartyLabels.size(); k++) {
 			//Construct secret share of key as bytevec
 			std::vector<BYTE> shareX = mpz_to_vector(allShares[k].first);
 			std::vector<BYTE> shareY = mpz_to_vector(allShares[k].second);
+			//DEBUGGING - print x-y share pairs
+			std::cout << allShares[k].first << ' ' << allShares[k].second << std::endl;
 			std::vector<BYTE> sharePair = concatenate(shareX, shareY);
 			//Construct and send 0 and 1 wire labels, concatenated with secret share
 			std::vector<BYTE> wire0share = concatenate(encPartyLabels[k].first, sharePair);

@@ -57,6 +57,7 @@ public:
     if(recover > shares){
       throw std::logic_error("Pool secret is irrecoverable");
     }
+	prime = pr;
   }
 
   std::vector<std::pair<mpz_class, mpz_class> > getShares(const char * secret) const ;

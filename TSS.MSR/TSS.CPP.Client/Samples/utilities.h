@@ -110,18 +110,14 @@ std::string ByteVecToString(const std::vector<BYTE> & v) {
 }
 
 mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
-	mpz_class mcand = 1;
-	mpz_class result = 0;
-	for (const auto & c : v) {
-		result += mcand * c;
-		//Shift left by 8 bits
-		mpz_mul_2exp(mcand.get_mpz_t(), mcand.get_mpz_t(), 8);
-	}
-	return result;
+	mpz_class ret;
+	mpz_import(ret.get_mpz_t(), v.size(), 1, 1, 0, 0, &v[0]);
+	return ret;
 }
 
 
 
+//https://stackoverflow.com/questions/24016611/how-can-i-save-a-gmp-mpz-t-mpz-class-to-vectorbyte
 std::vector<BYTE> mpz_to_vector(const mpz_t x) {
 	size_t size = (mpz_sizeinbase(x, 2) + CHAR_BIT - 1) / CHAR_BIT;
 	std::vector<BYTE> v(size);
@@ -169,7 +165,7 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 	unsigned int len = v[0] |
 		(v[1] << CHAR_WIDTH) |
 		(v[2] << (2 * CHAR_WIDTH)) |
-		(v[3] << (2 * CHAR_WIDTH));
+		(v[3] << (3 * CHAR_WIDTH));
 	first.clear();
 	first.resize(len);
 	second.clear();
@@ -177,10 +173,10 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 	unsigned int i;
 	for (i = sizeof(unsigned int); i < v.size(); i++) {
 		if (i < sizeof(unsigned int) + len) {
-			first[i] = v[i];
+			first[i-sizeof(unsigned int)] = v[i];
 		}
 		else {
-			second[i] = v[i];
+			second[i-sizeof(unsigned int) - len] = v[i];
 		}
 
 	}

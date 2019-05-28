@@ -251,18 +251,23 @@ int main(int argc, char ** argv) {
 	//2b. Combine secret shares
 	//Assume secrets are in a concatenated vector
 	//First part is x-coord, second is y-coord
-	mpz_class prime;
-	unsigned int num_shares = 0;
-	unsigned int minimum = 0;
-	ShamirSecret shamir(prime, num_shares, minimum);
+	//Get a prime number
+	//TODO find a better way than hardcoding
+	mpz_class prime = 2147483647;
+	ShamirSecret shamir(prime, num_wires, num_wires);
 	std::vector<std::pair<mpz_class, mpz_class> > shares;
+	//DEBUGGING
+	std::cout << "Decoding shares..." << std::endl;
 	for (unsigned int p = 0; p < keyShares.size(); p++) {
 		std::vector<BYTE> xVec, yVec;
 		splitIntermediate(keyShares[p], xVec, yVec);
+		std::cout << ByteVecToMPZ(xVec) << ' ' << ByteVecToMPZ(yVec) << std::endl;
 		shares.push_back(std::pair<mpz_class, mpz_class>(
 			ByteVecToMPZ(xVec), ByteVecToMPZ(yVec)));
 	}
 	mpz_class recombined_secret = shamir.getSecret(shares);
+	//DEBUGGING
+	std::cout << "Recovered AES key is " << recombined_secret << std::endl;
 	//2c. Get AES key from recombined secret
 	ByteVec recombinedVec = mpz_to_vector(recombined_secret);
 	unsigned int aes_keylen = recombinedVec.size();
@@ -273,12 +278,6 @@ int main(int argc, char ** argv) {
 	//TODO finish once we have a function to convert ByteVec<->label
 	std::vector<std::vector<BYTE> >
 		decryptedLabels(choices.size());
-	//ONLY FOR EMULATION TESTS
-	for (auto & x : decryptedLabels) {
-		x = get_junk(SEC_PARAMETER + 1);
-	}
-	//Change me later!
-	//std::vector<int> wires;
 #define AES_BUFFERSIZE 128
 	unsigned char iv[10];
 	memcpy(iv, "Notre Dame", 10);
@@ -324,11 +323,12 @@ int main(int argc, char ** argv) {
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
 	for (unsigned int b = 0; b < parties.size(); b++) {
-		std::vector<std::vector<BYTE> > currVec = (b == my_party)? decryptedLabels : downloads[b];
-		unsigned int num_wires_for_player = currVec.size();
+		std::vector<std::vector<BYTE> > * currVec = (b == my_party)?
+			&decryptedLabels : &(downloads[b]);
+		unsigned int num_wires_for_player = currVec->size();
 		for (unsigned int q = 0; q < num_wires_for_player; q++) {
 			wire_value * wv = new wire_value(SEC_PARAMETER + 1);
-			wv->from_bytevec(&currVec[q], 0, SEC_PARAMETER + 1);
+			wv->from_bytevec(&((*currVec)[q]), 0, SEC_PARAMETER + 1);
 			playerInfo[b]->input_wires[q]->label_kp = wv;
 		}
 	}
@@ -340,39 +340,6 @@ int main(int argc, char ** argv) {
 	auto evalEnd = high_resolution_clock::now();
 	auto evalDuration = duration_cast<microseconds>(serverStart - serverStop);
 	std::cout << "Evaluation time: " << evalDuration.count() << std::endl;
-
-
-
-	//Send software key to server
-	/*
-	Client c(atoi(argv[1]), (argc >= 4 ? argv[3] : LOCALHOST));
-	if (!c.init()) {
-		std::cout << "Got connection" << endl;
-	}
-	else {
-		std::cout << "Connection failed!" << endl;
-		return 1;
-	}
-	std::vector<BYTE> keyVec = keyPair.first.ToBuf();
-	if (!c.sendBuffer(keyVec.size(), keyVec.data())) {
-		std::cout << "Client sent key vector" << endl;
-	}
-	else {
-		std::cout << "ERROR in client sending key vector" << endl;
-		return 1;
-	}
-
-	//Receive the encrypted message back from the server
-	char * encStr;
-	unsigned int encLen;
-	c.recvBuffer((void **) &encStr, encLen);
-	//Now decrypt the recieved string
-	vector<BYTE> encVec = stringToByteVec(encStr, encLen);
-	vector<BYTE> decVec = myTPM.c_RSA_decrypt(keyPair.second, encVec);
-	string decrypted = ByteVecToString(decVec);
-
-	cout << "Client decrypted message: " << decrypted << endl;
-	*/
 
 	return 0;
 }
