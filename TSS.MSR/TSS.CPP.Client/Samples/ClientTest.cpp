@@ -144,7 +144,7 @@ int main(int argc, char ** argv) {
 	}
 	mpz_class prime = ByteVecToMPZ(primeVec);
 	//DEBUGGING - print prime
-	std::cout << "Received prime " << prime << std::endl;
+	//std::cout << "Received prime " << prime << std::endl;
 	//DEBUGGING - print key vector
 	/*
 	std::cout << "Client keyvec of " << myKeyVec.size() << " bytes: ";

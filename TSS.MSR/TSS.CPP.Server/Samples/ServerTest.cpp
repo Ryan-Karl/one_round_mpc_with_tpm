@@ -135,10 +135,7 @@ int main(int argc, char ** argv) {
 		if (s.sendBuffer(i, primeVec.size(), primeVec.data())) {
 			std::cerr << "ERROR sending prime" << std::endl;
 		}
-		//DEBUGGING
-		else {
-			std::cout << "Sent prime " << prime << std::endl;
-		}
+
 	}
 	//Distribute all other keys to each party
 	for (unsigned int y = 0; y < num_parties; y++) {
@@ -199,8 +196,8 @@ int main(int argc, char ** argv) {
 	for (unsigned int j = 0; j < num_parties; j++) {
 		//Get AES key
 		std::vector<BYTE> aes_key, iv;
-		aes_key = myTPM.getRandBits(AES_KEY_SIZE);
-		iv = myTPM.getRandBits(IV_SIZE);
+		aes_key = myTPM.getRandBytes(AES_KEY_SIZE/CHAR_WIDTH);
+		iv = myTPM.getRandBytes(IV_SIZE/CHAR_WIDTH);
 		//Get c-string representations of the AES key and IV
 		/*
 		unsigned char * key_str;
@@ -213,9 +210,18 @@ int main(int argc, char ** argv) {
 		mpz_class aes_key_mpz = ByteVecToMPZ(aes_key);
 		//DEBUGGING
 		std::cout << "Party " << j << " AES key: " << aes_key_mpz << std::endl;
+		mpz_class modded_aes;
+		mpz_mod(modded_aes.get_mpz_t(), aes_key_mpz.get_mpz_t(), prime.get_mpz_t());
+		std::cout << "Modded key: " << modded_aes << std::endl;
 		//Split AES key into shares - need a n-of-n secret share here
 		ShamirSecret splitKeys(prime, party_to_numwires[j], party_to_numwires[j]);
 		auto allShares = splitKeys.getShares(aes_key_mpz);
+		mpz_class reconst_secret = splitKeys.getSecret(allShares);
+		std::cout << "Reconstructed AES key: " << reconst_secret << std::endl;
+		auto secondShares = splitKeys.getShares(reconst_secret);
+		mpz_class secondKey = splitKeys.getSecret(secondShares);
+		std::cout << "Second run of AES key: " << secondKey << std::endl;
+		
 		//std::vector<std::pair<mpz_class, mpz_class> >  shares(allShares.begin(), allShares.begin() + party_to_numwires[j]);
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			partyLabels(party_to_numwires[j]); 

@@ -60,7 +60,7 @@ public:
 	static TSS_KEY s_importKey(const std::vector<BYTE> & keyVec);
 	static std::vector<BYTE> s_RSA_encrypt(TSS_KEY & key, const std::vector<BYTE> & message); \
 
-		std::vector<BYTE> getRandBits(unsigned int numbits);
+		std::vector<BYTE> getRandBytes(unsigned int numbytes);
 
 	static std::vector<std::vector<BYTE> > TPMWrapper::chunk_encrypt(TSS_KEY & key,
 		const std::vector<BYTE> & message, unsigned int chunksize);
@@ -88,8 +88,8 @@ protected:
 	TPM_HANDLE nvHandle;
 };
 
-std::vector<BYTE> TPMWrapper::getRandBits(unsigned int numbits) {
-	return tpm._GetRandLocal(numbits);
+std::vector<BYTE> TPMWrapper::getRandBytes(unsigned int numbytes) {
+	return tpm._GetRandLocal(numbytes);
 }
 
 std::pair<TSS_KEY, TPM_HANDLE> TPMWrapper::c_genKeys() {
