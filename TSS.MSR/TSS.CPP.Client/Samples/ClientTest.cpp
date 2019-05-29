@@ -291,14 +291,18 @@ int main(int argc, char ** argv) {
 	//TODO finish once we have a function to convert ByteVec<->label
 	std::vector<std::vector<BYTE> >
 		decryptedLabels(choices.size());
-#define AES_BUFFERSIZE 128
+#define AES_BUFFERSIZE 2048
 	unsigned char iv[10];
 	memcpy(iv, "Notre Dame", 10);
 	for (unsigned int g = 0; g < decryptedLabels.size(); g++) {
-		unsigned char plaintext[AES_BUFFERSIZE];
-		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), key, iv, plaintext);
-		decryptedLabels[g] = stringToByteVec((char *)plaintext, plaintext_length);
+		decryptedLabels[g].resize(AES_BUFFERSIZE);
+		//unsigned char plaintext[AES_BUFFERSIZE];
+		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), key, iv, decryptedLabels[g].data());
+		assert(plaintext_length <= AES_BUFFERSIZE);
+		decryptedLabels[g].resize(plaintext_length);
+		//decryptedLabels[g] = stringToByteVec((char *)plaintext, plaintext_length);
 	}
+
 
 
 	//ONLINE
