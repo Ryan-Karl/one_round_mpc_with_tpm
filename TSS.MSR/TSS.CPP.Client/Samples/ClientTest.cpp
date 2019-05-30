@@ -143,31 +143,14 @@ int main(int argc, char ** argv) {
 		std::cerr << "ERROR receiving prime" << std::endl;
 	}
 	mpz_class prime = ByteVecToMPZ(primeVec);
-	//DEBUGGING - print prime
-	//std::cout << "Received prime " << prime << std::endl;
-	//DEBUGGING - print key vector
-	/*
-	std::cout << "Client keyvec of " << myKeyVec.size() << " bytes: ";
-	for (const auto & b : myKeyVec) {
-		std::cout << b;
-	}
-	*/
-	std::cout << std::endl;
+
+	//Get key vectors (in party order)
 	for (unsigned int i = 0; i < parties.size(); i++) {
 		//Skip my party
 		if (i == my_party) {
 			continue;
 		}
 		unsigned int msgSize;
-		//For each key: get party number, then key
-		//Don't get party number, just send keys in party order
-		/*
-		unsigned int * partyNum;
-		if (c.recvBuffer((void **)&partyNum, msgSize) || msgSize != sizeof(unsigned int)) {
-			cerr << "ERROR getting party number" << endl;
-			throw std::exception("ERROR getting party number");
-		}
-		*/
 		char * recBuf;
 		if (c.recvBuffer((void **)&recBuf, msgSize)) {
 			cerr << "ERROR getting key " << i << endl;
@@ -175,24 +158,23 @@ int main(int argc, char ** argv) {
 		}
 		std::vector<BYTE> keyByteVec = stringToByteVec(recBuf, msgSize);
 		other_keys[i] = myTPM.s_importKey(keyByteVec);
-		//delete partyNum;
 		delete recBuf;
 	}
 	
 	//Now accept garbled circuit data from server
-	char * circuitBuf;
-	unsigned int circuitBufLen;
-	if (c.recvBuffer((void **)&circuitBuf, circuitBufLen)) {
+	std::vector<BYTE> circuitBuf;
+	if (c.recvByteVec(circuitBuf)) {
 		cerr << "ERROR receiving circuit" << endl;
 		throw std::exception("ERROR receiving circuit");
 	}
-	
 	Circuit * circ = new Circuit;
 	std::vector<PlayerInfo *> playerInfo(parties.size());
 	for (auto & x : playerInfo) {
 		x = new PlayerInfo;
 	}
 	read_frigate_circuit(circuit_filename, circ, &playerInfo, SEC_PARAMETER);
+	//Use info from server to complete the circuit description
+	bytevec_to_circuit(circ, &circuitBuf);
 
 
 	//Now accept wire ciphertexts from garbler
@@ -230,7 +212,6 @@ int main(int argc, char ** argv) {
 			}
 		}
 		delete numchunks;
-
 	}
 	//Close connection to garbler
 	c.stop();
@@ -261,16 +242,8 @@ int main(int argc, char ** argv) {
 	//2b. Combine secret shares
 	//Assume secrets are in a concatenated vector
 	//First part is x-coord, second is y-coord
-	/*
-	//Get a prime number
-	//TODO find a better way than hardcoding
-	mpz_class prime = 2147483647;
-	*/
 	ShamirSecret shamir(prime, num_wires, num_wires);
 	std::vector<std::pair<mpz_class, mpz_class> > shares;
-	
-	//DEBUGGING
-	std::cout << "Decoding shares..." << std::endl;
 	for (unsigned int p = 0; p < keyShares.size(); p++) {
 		std::vector<BYTE> xVec, yVec;
 		splitIntermediate(keyShares[p], xVec, yVec);
@@ -279,14 +252,8 @@ int main(int argc, char ** argv) {
 			ByteVecToMPZ(xVec), ByteVecToMPZ(yVec)));
 	}
 	mpz_class recombined_secret = shamir.getSecret(shares);
-	//DEBUGGING
-	std::cout << "Recovered AES key is " << recombined_secret << std::endl;
 	//2c. Get AES key from recombined secret
-	ByteVec recombinedVec = mpz_to_vector(recombined_secret);
-	unsigned int aes_keylen = recombinedVec.size();
-	unsigned char * key = new unsigned char[aes_keylen];
-	memcpy(key, recombinedVec.data(), aes_keylen);
-
+	ByteVec aesVec = mpz_to_vector(recombined_secret);
 	//3. Use AES to decrypt labels based on choices
 	//TODO finish once we have a function to convert ByteVec<->label
 	std::vector<std::vector<BYTE> >
@@ -296,15 +263,11 @@ int main(int argc, char ** argv) {
 	memcpy(iv, "Notre Dame", 10);
 	for (unsigned int g = 0; g < decryptedLabels.size(); g++) {
 		decryptedLabels[g].resize(AES_BUFFERSIZE);
-		//unsigned char plaintext[AES_BUFFERSIZE];
-		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), key, iv, decryptedLabels[g].data());
+		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), (unsigned char *) aesVec.data(), iv, decryptedLabels[g].data());
 		assert(plaintext_length <= AES_BUFFERSIZE);
 		decryptedLabels[g].resize(plaintext_length);
-		//decryptedLabels[g] = stringToByteVec((char *)plaintext, plaintext_length);
 	}
-
-
-
+	   
 	//ONLINE
 	//1. Broadcast (and receive) labels
 	//Each party serves the number of parties - their number
@@ -335,7 +298,6 @@ int main(int argc, char ** argv) {
 		}
 		server_thread.join();
 	}
-
 	auto evalStart = high_resolution_clock::now();
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
@@ -349,10 +311,14 @@ int main(int argc, char ** argv) {
 			playerInfo[b]->input_wires[q]->label_kp = wv;
 		}
 	}
+	//2. Evaluate circuit
+	eval_garbled_circuit(circ);
+
 	std::cout << "Circuit answer: " << std::endl;
-	for (auto & x : circ->output_wires) {
-		std::cout << x->output_value << ' ';
+	for (Wire * x : circ->output_wires) {
+		std::cout << (x->output_value) << ' ';
 	}
+	//TODO clean up memory
 	std::cout << std::endl;
 	auto evalEnd = high_resolution_clock::now();
 	auto evalDuration = duration_cast<microseconds>(serverStart - serverStop);
@@ -457,13 +423,10 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 	downloads[*them].clear();
 	downloads[*them].resize(*numChoices);
 	for (unsigned int i = 0; i < *numChoices; i++) {
-		char * recvData;
-		if (c.recvBuffer((void **)&recvData, dataLen)) {
+		if (c.recvByteVec(downloads[*them][i])) {
 			cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 			throw new std::exception("ERROR receiving");
 		}
-		downloads[*them][i] = stringToByteVec(recvData, dataLen);
-		delete recvData;
 	}
 	delete numChoices;
 	//Send
@@ -536,6 +499,12 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 		downloads[*them].resize(*numChoices);
 		//Receive all their choices
 		for (unsigned int k = 0; k < downloads[*them].size(); k++) {
+			if (s.recvByteVec(i, downloads[*them][k])) {
+				cerr << "ERROR : receiving" << endl;
+				throw new std::exception("ERROR receiving");
+			}
+
+			/*
 			char * buf;
 			if (s.recvString(i, dataLen, &buf)) {
 				cerr << "ERROR : receiving" << endl;
@@ -543,6 +512,7 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 			}
 			downloads[*them][k] = stringToByteVec(buf, dataLen);
 			delete buf;
+			*/
 		}
 		//delete recvData;
 		delete numChoices;
@@ -550,37 +520,7 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 	}
 }
 
-void recv_message(char * hostname, unsigned int port, std::vector<BYTE> & message) {
-	Client c(port, hostname);
-	if (c.init()) {
-		cerr << "ERROR initializing client: " << hostname << ' ' << port << endl;
-		throw new std::exception("ERROR initializing client");
-	}
-	message.clear();
-	char * recvData;
-	unsigned int dataLen;
-	if (c.recvString(dataLen, &recvData)) {
-		cerr << "ERROR sending key: " << hostname << ' ' << port << endl;
-		throw new std::exception("ERROR sending key");
-	}
-	message = stringToByteVec(recvData, dataLen);
-	c.stop();
-	return;
-}
 
-
-void send_message(unsigned int num_connections, unsigned int port, const std::vector<BYTE> & message) {
-	Server s(port);
-	if (s.init() || s.accept_connections(num_connections)) {
-		cerr << "ERROR initializing server: " << port << endl;
-		throw new std::exception("ERROR initializing server");
-	}
-	for (unsigned int i = 0; i < num_connections; i++) {
-		s.sendBuffer(i, message.size(), (char *)message.data());
-	}
-	s.stop();
-	return;
-}
 
 //AES encryption/decryption from TSS.MSR Samples.cpp
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,

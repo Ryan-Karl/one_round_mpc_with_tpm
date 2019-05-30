@@ -499,38 +499,6 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 	}
 }
 
-void recv_message(char * hostname, unsigned int port, std::vector<BYTE> & message) {
-	Client c(port, hostname);
-	if (c.init()) {
-		cerr << "ERROR initializing client: " << hostname << ' ' << port << endl;
-		throw new std::exception("ERROR initializing client");
-	}
-	message.clear();
-	char * recvData;
-	unsigned int dataLen;
-	if (c.recvString(dataLen, &recvData)) {
-		cerr << "ERROR sending key: " << hostname << ' ' << port << endl;
-		throw new std::exception("ERROR sending key");
-	}
-	message = stringToByteVec(recvData, dataLen);
-	c.stop();
-	return;
-}
-
-
-void send_message(unsigned int num_connections, unsigned int port, const std::vector<BYTE> & message) {
-	Server s(port);
-	if (s.init() || s.accept_connections(num_connections)) {
-		cerr << "ERROR initializing server: " << port << endl;
-			throw new std::exception("ERROR initializing server");
-	}
-	for (unsigned int i = 0; i < num_connections; i++) {
-		s.sendBuffer(i, message.size(), (char *)message.data());
-	}
-	s.stop();
-	return;
-}
-
 //AES encryption/decryption from TSS.MSR Samples.cpp
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *ciphertext)

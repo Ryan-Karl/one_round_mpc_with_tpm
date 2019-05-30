@@ -90,4 +90,6 @@ void garbling2wire(const wire_value *w, wire_value *k, bool *p);
 void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v);
 void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v);
 
+void eval_garbled_circuit(Circuit * c);
+
 #endif

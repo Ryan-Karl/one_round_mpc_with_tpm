@@ -125,10 +125,7 @@ int main(int argc, char ** argv) {
 		assert(*currentParty < num_parties);
 		party_to_connection[*currentParty] = i;
 		//Receive the key of the party
-		char * recvBuf;
-		s.recvBuffer(i, (void **)&recvBuf, msgLen);
-		partyKeys[*currentParty] = stringToByteVec(recvBuf, msgLen);
-		delete recvBuf;
+		s.recvByteVec(i, partyKeys[*currentParty]);
 		delete currentParty;
 		//Send the prime to the party
 		std::vector<BYTE> primeVec = mpz_to_vector(prime);
@@ -147,26 +144,16 @@ int main(int argc, char ** argv) {
 			else {
 				//Send party z's key to party y
 				s.sendBuffer(party_to_connection[y],
-					partyKeys[y].size(), partyKeys[y].data());
+					partyKeys[z].size(), partyKeys[z].data());
 			}
 		}
 	}
 	//Switch to software keys
 	std::vector<TSS_KEY> keyvec(partyKeys.size());
 	for (unsigned int u = 0; u < partyKeys.size(); u++) {
-		/*
-		//DEBUGGING - print out TSS_KEY buffer
-		std::cout << "Keyvec from party " << u << " of " << partyKeys[u].size() << " bytes: ";
-		for (unsigned int i = 0; i < partyKeys[u].size(); i++) {
-			std::cout << partyKeys[u][i];
-		}
-		std::cout << endl;
-		*/
 		keyvec[u] = TPMWrapper::s_importKey(partyKeys[u]);
 	}
 	//An error check to do: assert that every entry in the vector is filled
-
-	//TODO use keys for GC?
 
 	//Do garbling of circuit
 	get_garbled_circuit(circ);
@@ -198,31 +185,11 @@ int main(int argc, char ** argv) {
 		std::vector<BYTE> aes_key, iv;
 		aes_key = myTPM.getRandBytes(AES_KEY_SIZE/CHAR_WIDTH);
 		iv = myTPM.getRandBytes(IV_SIZE/CHAR_WIDTH);
-		//Get c-string representations of the AES key and IV
-		/*
-		unsigned char * key_str;
-		key_str = new unsigned char[aes_key.size()];
-		memcpy(key_str, aes_key.data(), aes_key.size());
-		delete key_str;
-		*/
-		//iv_str = new unsigned char[iv.size()];
-		//memcpy(iv_str, iv.data(), iv.size());
 		mpz_class aes_key_mpz = ByteVecToMPZ(aes_key);
-		//DEBUGGING
-		std::cout << "Party " << j << " AES key: " << aes_key_mpz << std::endl;
-		mpz_class modded_aes;
-		mpz_mod(modded_aes.get_mpz_t(), aes_key_mpz.get_mpz_t(), prime.get_mpz_t());
-		std::cout << "Modded key: " << modded_aes << std::endl;
 		//Split AES key into shares - need a n-of-n secret share here
 		ShamirSecret splitKeys(prime, party_to_numwires[j], party_to_numwires[j]);
 		auto allShares = splitKeys.getShares(aes_key_mpz);
-		mpz_class reconst_secret = splitKeys.getSecret(allShares);
-		std::cout << "Reconstructed AES key: " << reconst_secret << std::endl;
-		auto secondShares = splitKeys.getShares(reconst_secret);
-		mpz_class secondKey = splitKeys.getSecret(secondShares);
-		std::cout << "Second run of AES key: " << secondKey << std::endl;
-		
-		//std::vector<std::pair<mpz_class, mpz_class> >  shares(allShares.begin(), allShares.begin() + party_to_numwires[j]);
+		//Construct labels to be sent
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			partyLabels(party_to_numwires[j]); 
 		for (unsigned int h = 0; h < partyLabels.size(); h++) {
@@ -235,31 +202,24 @@ int main(int argc, char ** argv) {
 		}
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			encPartyLabels(party_to_numwires[j]); //The encrypted labels
-//#define AES_BUFFERSIZE 128
 		//Encrypt the labels
 		for (unsigned int r = 0; r < partyLabels.size(); r++) {
 			int ctext0_size = AES_BLOCK_SIZE + partyLabels[r].first.size();
 			int ctext1_size = AES_BLOCK_SIZE + partyLabels[r].second.size();
 			unsigned char * ciphertext;
 			ciphertext = new unsigned char[ctext0_size];
-			//int label0_size = encrypt(partyLabels[r].first.data(), partyLabels[r].first.size(), key_str, iv_str, ciphertext);
 			int label0_size = encrypt(partyLabels[r].first.data(), partyLabels[r].first.size(), aes_key.data(), iv.data(), ciphertext);
 			encPartyLabels[r].first = stringToByteVec((char *) ciphertext, label0_size);
 			delete ciphertext;
 			ciphertext = new unsigned char[ctext1_size];
-			//int label1_size = encrypt(partyLabels[r].second.data(), partyLabels[r].second.size(), key_str, iv_str, ciphertext);
 			int label1_size = encrypt(partyLabels[r].second.data(), partyLabels[r].second.size(), aes_key.data(), iv.data(), ciphertext);
 			encPartyLabels[r].second = stringToByteVec((char *) ciphertext, label1_size);
 			delete ciphertext;
 		}
-		//DEBUGGING
-		std::cout << "Sending shares..." << std::endl;
 		for (unsigned int k = 0; k < encPartyLabels.size(); k++) {
 			//Construct secret share of key as bytevec
 			std::vector<BYTE> shareX = mpz_to_vector(allShares[k].first);
 			std::vector<BYTE> shareY = mpz_to_vector(allShares[k].second);
-			//DEBUGGING - print x-y share pairs
-			std::cout << allShares[k].first << ' ' << allShares[k].second << std::endl;
 			std::vector<BYTE> sharePair = concatenate(shareX, shareY);
 			//Construct and send 0 and 1 wire labels, concatenated with secret share
 			std::vector<BYTE> wire0share = concatenate(encPartyLabels[k].first, sharePair);
@@ -295,12 +255,6 @@ int main(int argc, char ** argv) {
 					return 1;
 				}
 			}
-
-
-			//std::vector<BYTE> wire0ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire0share);
-			//std::vector<BYTE> wire1ctext = TPMWrapper::s_RSA_encrypt(keyvec[k], wire1share);
-
-			
 		}
 	}
 
@@ -308,7 +262,13 @@ int main(int argc, char ** argv) {
 	//Cleanup
 	for (auto & ptr : playerInfo) {
 		delete ptr;
-		ptr = nullptr;
+	}
+	//Makeshift destructor for the circuit
+	//Still need to delte label_kp and label_k from each Wire*
+	std::deque<Wire *> wireholder;
+	top_sort(wireholder, circ);
+	for (Wire * w : wireholder) {
+		delete w;
 	}
 	s.stop();
 	std::cout << "Garbler finished" << endl;
