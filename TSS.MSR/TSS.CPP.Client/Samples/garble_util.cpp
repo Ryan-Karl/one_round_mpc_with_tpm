@@ -85,7 +85,7 @@ int p_to_index(bool p1, bool p0) {
 void eval_garbled_circuit(Circuit * c) {
 	for (auto w_it = c->input_wires.begin(); w_it < c->input_wires.end(); w_it++) {
 		Wire * w = *w_it;
-		garbling2wire(w->label_kp, w->label_k, &(w->label_p));
+		garbling2wire(w->label_kp, &(w->label_k), &(w->label_p));
 	}
 	std::deque<Wire *> t_ordering;
 	top_sort(t_ordering, c);
@@ -103,7 +103,7 @@ void eval_garbled_circuit(Circuit * c) {
 			Wire * b = w->right_child;
 			int index = p_to_index(a->label_p, b->label_p);
 			wire_value * garbling = xor_wire(w->garbled_labels[index], hash_wire(a->label_k, b->label_k, w->gate_number));
-			garbling2wire(garbling, w->label_k, &(w->label_p));
+			garbling2wire(garbling, &(w->label_k), &(w->label_p));
 		}
 	}
 	for (auto w_it = c->output_wires.begin(); w_it < c->output_wires.end(); w_it++) {
@@ -125,10 +125,14 @@ wire_value * wire2garbling(const Wire * w, const bool which) {
 	return ret;
 }
 
-void garbling2wire(const wire_value *w, wire_value *k, bool *p) {
+void garbling2wire(const wire_value *w, wire_value **k, bool *p) {
 	int size = w->len - 1;
+	if (*k == nullptr) {
+		//TODO make sure this is the right size value
+		*k = new wire_value(size);
+	}
 	for (int i = 0; i < size; i++) {
-		k->set(i, w->get(i));
+		(*k)->set(i, w->get(i));
 	}
 	*p = w->get(size);
 }
@@ -351,3 +355,26 @@ void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v) {
 	}
 }
 
+
+Wire::Wire(){
+	k[0] = k[1] = nullptr;
+	garbled_labels[0]
+		= garbled_labels[1]
+		= garbled_labels[2]
+		= garbled_labels[3]
+		= nullptr;
+	left_child = right_child = nullptr;
+	label_kp = label_k = nullptr;
+}
+
+Wire::~Wire() {
+	delete k[0];
+	delete k[1];
+	delete garbled_labels[0];
+	delete garbled_labels[1];
+	delete garbled_labels[2];
+	delete garbled_labels[3];
+	//TODO figure out if we need to delete children
+	delete label_kp;
+	delete label_k;
+}

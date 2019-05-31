@@ -106,6 +106,12 @@ int main(int argc, char ** argv) {
 	assert(server_port);
 	assert(got_party);
 
+	//DEBUGGING
+	std::cout << "Choices: ";
+	for (bool b : choices) {
+		std::cout << b << ' ';
+	}
+	std::cout << std::endl;
 
 	
 	//INITIALIZE

@@ -68,6 +68,10 @@ struct Wire {
   //Converted into these once received
   wire_value * label_k;
   bool label_p;
+
+  Wire();
+  ~Wire();
+
 };
 
 struct Circuit {
@@ -85,7 +89,7 @@ void top_sort(std::deque<Wire *> & destination, const Circuit * circuit);
 
 wire_value * wire2garbling(const Wire * w, const bool which);
 int p_to_index(bool p1, bool p0);
-void garbling2wire(const wire_value *w, wire_value *k, bool *p);
+void garbling2wire(const wire_value *w, wire_value **k, bool *p);
 
 void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v);
 void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v);
