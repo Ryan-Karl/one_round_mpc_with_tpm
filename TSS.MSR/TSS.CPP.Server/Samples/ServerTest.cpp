@@ -46,6 +46,7 @@ void handleErrors(void);
 //First arg is port, second is a string to encrypt
 int main(int argc, char ** argv) {
 	
+	srand(1);
 
 
 	unsigned int num_required_args = 2;
@@ -160,6 +161,15 @@ int main(int argc, char ** argv) {
 	//Send circuit
 	std::vector<BYTE> circuitByteVec;
 	circuit_to_bytevec(circ, &circuitByteVec);
+
+	//DEBUGGING
+	std::cout << "Sum of circuit: ";
+	mpz_class circuit_sum = ByteVecToMPZ(circuitByteVec);
+	std::cout << circuit_sum << std::endl;
+	std::cout << "Modded circuit sum: ";
+	mpz_mod_ui(circuit_sum.get_mpz_t(), circuit_sum.get_mpz_t(), 2147483647);
+	std::cout << circuit_sum << std::endl;
+
 	for (unsigned int t = 0; t < num_parties; t++) {
 		if (s.sendBuffer(t, circuitByteVec.size(), (void *)circuitByteVec.data())) {
 			cerr << "ERROR sending circuit" << endl;
@@ -264,7 +274,7 @@ int main(int argc, char ** argv) {
 		delete ptr;
 	}
 	//Makeshift destructor for the circuit
-	//Still need to delte label_kp and label_k from each Wire*
+	//Still need to delete label_kp and label_k from each Wire*
 	std::deque<Wire *> wireholder;
 	top_sort(wireholder, circ);
 	for (Wire * w : wireholder) {

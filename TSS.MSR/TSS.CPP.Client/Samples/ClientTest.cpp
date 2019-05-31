@@ -13,6 +13,7 @@
 #include <aes.h>
 #include <modes.h>
 #include <chrono>
+#include <unordered_set>
 
 //#include "../includes/TPMWrapper.h"
 //#include "../includes/NetworkUtils.h"
@@ -55,6 +56,7 @@ std::vector<bool> parse_choicefile(char * filename);
 
 int parse_netfile(char * filename, char ** server_hostname, unsigned int & server_port,
 	std::vector<std::pair<std::string, unsigned int> > & parties);
+
 
 int main(int argc, char ** argv) {
 	srand(time(NULL));
@@ -311,6 +313,16 @@ int main(int argc, char ** argv) {
 		std::vector<std::vector<BYTE> > * currVec = (b == my_party)?
 			&decryptedLabels : &(downloads[b]);
 		unsigned int num_wires_for_player = currVec->size();
+		//DEBUGGING
+		std::cout << "Labels for player " << b << std::endl;
+		for (const std::vector<BYTE> & v : *currVec) {
+			mpz_class labelSum = ByteVecToMPZ(v);
+		
+			std::cout << labelSum << ' ';
+		}
+		std::cout << std::endl;
+
+
 		for (unsigned int q = 0; q < num_wires_for_player; q++) {
 			wire_value * wv = new wire_value(SEC_PARAMETER + 1);
 			wv->from_bytevec(&((*currVec)[q]), 0, SEC_PARAMETER + 1);

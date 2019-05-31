@@ -47,6 +47,6 @@ c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from '__in
 c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\networkutils.h(52): warning C4018: '<': signed/unsigned mismatch
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\networkutils.h(64): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\clienttest.cpp(60): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\clienttest.cpp(62): warning C4018: '<': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\clienttest.cpp(62): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\clienttest.cpp(64): warning C4018: '<': signed/unsigned mismatch
   TSS.CPP Samples.vcxproj -> C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\\Debug\TSS.CPP Samples.exe

@@ -222,7 +222,8 @@ bool hash_bool(wire_value * ke, char * str, int gate_number) {
 wire_value * random_wire(int width) {
 	//assert(width > 0);
 	wire_value * wv = new wire_value(width);
-	for (int i = 0; i < width / CHAR_WIDTH; i++) {
+	int len = (width / CHAR_WIDTH) + (width % CHAR_WIDTH ? 1 : 0);
+	for (int i = 0; i < len; i++) {
 		wv->bits[i] = rand() & 0xFF;
 	}
 	return wv;
@@ -356,7 +357,7 @@ void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v) {
 }
 
 
-Wire::Wire(){
+Wire::Wire() {
 	k[0] = k[1] = nullptr;
 	garbled_labels[0]
 		= garbled_labels[1]
