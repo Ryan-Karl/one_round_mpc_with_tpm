@@ -53,6 +53,8 @@ int main(int argc, char ** argv){
 	*/
 
 	//Testing that bytevec_to_circuit and circuit_to_bytevec are inverses
+	//Reseed
+	srand(1);
 	Circuit * secondCircuit = new Circuit;
 	std::vector<PlayerInfo *> playerInfo2(num_parties);
 	for (auto & ptr : playerInfo2) {

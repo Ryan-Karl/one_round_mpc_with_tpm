@@ -1,5 +1,6 @@
 #include <thread>
 #include <math.h>
+#include <cstring>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -9,8 +10,8 @@
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include <aes.h>
-#include <modes.h>
+#include <openssl/aes.h>
+#include <openssl/modes.h>
 #include "garble_util.h"
 // http://www.cs.toronto.edu/~vlad/papers/XOR_ICALP08.pdf
 
