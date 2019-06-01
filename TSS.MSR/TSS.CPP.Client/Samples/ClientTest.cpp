@@ -314,6 +314,7 @@ int main(int argc, char ** argv) {
 			&decryptedLabels : &(downloads[b]);
 		unsigned int num_wires_for_player = currVec->size();
 		//DEBUGGING
+		/*
 		std::cout << "Labels for player " << b << std::endl;
 		for (const std::vector<BYTE> & v : *currVec) {
 			mpz_class labelSum = ByteVecToMPZ(v);
@@ -321,7 +322,7 @@ int main(int argc, char ** argv) {
 			std::cout << labelSum << ' ';
 		}
 		std::cout << std::endl;
-
+		*/
 
 		for (unsigned int q = 0; q < num_wires_for_player; q++) {
 			wire_value * wv = new wire_value(SEC_PARAMETER + 1);

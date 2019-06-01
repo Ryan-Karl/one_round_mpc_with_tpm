@@ -48,7 +48,6 @@ int main(int argc, char ** argv) {
 	
 	srand(1);
 
-
 	unsigned int num_required_args = 2;
 	if (argc < 2 * num_required_args) {
 		std::cout << "ERROR: provide all required arguments" << endl;
@@ -163,12 +162,12 @@ int main(int argc, char ** argv) {
 	circuit_to_bytevec(circ, &circuitByteVec);
 
 	//DEBUGGING
-	std::cout << "Sum of circuit: ";
-	mpz_class circuit_sum = ByteVecToMPZ(circuitByteVec);
-	std::cout << circuit_sum << std::endl;
-	std::cout << "Modded circuit sum: ";
-	mpz_mod_ui(circuit_sum.get_mpz_t(), circuit_sum.get_mpz_t(), 2147483647);
-	std::cout << circuit_sum << std::endl;
+	//std::cout << "Sum of circuit: ";
+	//mpz_class circuit_sum = ByteVecToMPZ(circuitByteVec);
+	//std::cout << circuit_sum << std::endl;
+	//std::cout << "Modded circuit sum: ";
+	//mpz_mod_ui(circuit_sum.get_mpz_t(), circuit_sum.get_mpz_t(), 2147483647);
+	//std::cout << circuit_sum << std::endl;
 
 	for (unsigned int t = 0; t < num_parties; t++) {
 		if (s.sendBuffer(t, circuitByteVec.size(), (void *)circuitByteVec.data())) {
@@ -204,7 +203,9 @@ int main(int argc, char ** argv) {
 			partyLabels(party_to_numwires[j]); 
 		for (unsigned int h = 0; h < partyLabels.size(); h++) {
 			wire_value * firstlabel = wire2garbling(playerInfo[j]->input_wires[h], 0);
+			std::cout << firstlabel->bits << std::endl;
 			wire_value * secondlabel = wire2garbling(playerInfo[j]->input_wires[h], 1);
+			std::cout << secondlabel->bits << std::endl;
 			partyLabels[h].first = firstlabel->to_bytevec();
 			partyLabels[h].second = secondlabel->to_bytevec();
 			delete firstlabel;

@@ -228,7 +228,7 @@ wire_value * random_wire(int width) {
 	wire_value * wv = new wire_value(width);
 	int len = (width / CHAR_WIDTH) + (width % CHAR_WIDTH ? 1 : 0);
 	for (int i = 0; i < len; i++) {
-		wv->bits[i] = rand() & 0xFF;
+		(wv->bits)[i] = rand() & 0xFF;
 	}
 	return wv;
 }
