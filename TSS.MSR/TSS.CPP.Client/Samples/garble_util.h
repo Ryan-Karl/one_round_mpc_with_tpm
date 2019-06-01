@@ -98,5 +98,6 @@ void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v);
 void eval_garbled_circuit(Circuit * c);
 
 void print_circuit_trace(Circuit * c, std::ostream & os);
+std::string byteVecToNumberString(const std::vector<unsigned char> & v);
 
 #endif
