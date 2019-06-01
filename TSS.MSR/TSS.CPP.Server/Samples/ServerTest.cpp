@@ -160,6 +160,8 @@ int main(int argc, char ** argv) {
 	//Send circuit
 	std::vector<BYTE> circuitByteVec;
 	circuit_to_bytevec(circ, &circuitByteVec);
+	//DEBUGGING
+	//std::cout << "Circuit sent: " << byteVecToNumberString(circuitByteVec) << std::endl;
 
 	//DEBUGGING
 	//std::cout << "Sum of circuit: ";
@@ -184,16 +186,23 @@ int main(int argc, char ** argv) {
 		party_to_numwires[z] = playerInfo[z]->input_wires.size();
 	}
 
+
 	//Initialize the TPM to get randomness
 	TPMWrapper myTPM;
 	//For each party:
-	unsigned char iv_str[10]; // = "Notre Dame Computer Science and Engineering";
-	memcpy(iv_str, "Notre Dame", 10);
+#define IV_LEN 128
+	unsigned char iv_str[IV_LEN/CHAR_WIDTH]; // = "Notre Dame Computer Science and Engineering";
+	memcpy(iv_str, "Notre Dame duLac", IV_LEN / CHAR_WIDTH);
 	for (unsigned int j = 0; j < num_parties; j++) {
 		//Get AES key
 		std::vector<BYTE> aes_key, iv;
 		aes_key = myTPM.getRandBytes(AES_KEY_SIZE/CHAR_WIDTH);
-		iv = myTPM.getRandBytes(IV_SIZE/CHAR_WIDTH);
+		//iv = myTPM.getRandBytes(IV_SIZE/CHAR_WIDTH);
+		iv = stringToByteVec("Notre Dame duLac", IV_LEN / CHAR_WIDTH);
+
+		//DEBUGGING print AES key
+		std::cout << "Server AES key: " << byteVecToNumberString(aes_key) << std::endl;
+		std::cout << "Key size: " << aes_key.size() * CHAR_WIDTH << std::endl;
 		mpz_class aes_key_mpz = ByteVecToMPZ(aes_key);
 		//Split AES key into shares - need a n-of-n secret share here
 		ShamirSecret splitKeys(prime, party_to_numwires[j], party_to_numwires[j]);
@@ -203,9 +212,9 @@ int main(int argc, char ** argv) {
 			partyLabels(party_to_numwires[j]); 
 		for (unsigned int h = 0; h < partyLabels.size(); h++) {
 			wire_value * firstlabel = wire2garbling(playerInfo[j]->input_wires[h], 0);
-			std::cout << firstlabel->bits << std::endl;
+			//std::cout << byteVecToNumberString(firstlabel->to_bytevec()) << std::endl;
 			wire_value * secondlabel = wire2garbling(playerInfo[j]->input_wires[h], 1);
-			std::cout << secondlabel->bits << std::endl;
+			//std::cout << byteVecToNumberString(secondlabel->to_bytevec()) << std::endl;
 			partyLabels[h].first = firstlabel->to_bytevec();
 			partyLabels[h].second = secondlabel->to_bytevec();
 			delete firstlabel;
@@ -214,18 +223,35 @@ int main(int argc, char ** argv) {
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			encPartyLabels(party_to_numwires[j]); //The encrypted labels
 		//Encrypt the labels
+		//TODO optimize out extra string copies
 		for (unsigned int r = 0; r < partyLabels.size(); r++) {
 			int ctext0_size = AES_BLOCK_SIZE + partyLabels[r].first.size();
+			encPartyLabels[r].first.resize(ctext0_size);
+			int label0_size = encrypt(partyLabels[r].first.data(), partyLabels[r].first.size(), aes_key.data(), iv.data(), encPartyLabels[r].first.data());
+			assert(label0_size <= ctext0_size);
+			encPartyLabels[r].first.resize(label0_size);
+
 			int ctext1_size = AES_BLOCK_SIZE + partyLabels[r].second.size();
+			encPartyLabels[r].second.resize(ctext1_size);
+			int label1_size = encrypt(partyLabels[r].second.data(), partyLabels[r].second.size(), aes_key.data(), iv.data(), encPartyLabels[r].second.data());
+			assert(label1_size <= ctext1_size);
+			encPartyLabels[r].second.resize(label1_size);
+			/*
 			unsigned char * ciphertext;
 			ciphertext = new unsigned char[ctext0_size];
 			int label0_size = encrypt(partyLabels[r].first.data(), partyLabels[r].first.size(), aes_key.data(), iv.data(), ciphertext);
 			encPartyLabels[r].first = stringToByteVec((char *) ciphertext, label0_size);
 			delete ciphertext;
+			
 			ciphertext = new unsigned char[ctext1_size];
 			int label1_size = encrypt(partyLabels[r].second.data(), partyLabels[r].second.size(), aes_key.data(), iv.data(), ciphertext);
 			encPartyLabels[r].second = stringToByteVec((char *) ciphertext, label1_size);
 			delete ciphertext;
+			*/
+			//DEBUGGING
+			std::cout << "Party " << j << " Label " << r << " pair" << std::endl;
+			std::cout << "\tLabel 0: " << byteVecToNumberString(partyLabels[r].first) << std::endl;
+			std::cout << "\tLabel 1: " << byteVecToNumberString(partyLabels[r].second) << std::endl;
 		}
 		for (unsigned int k = 0; k < encPartyLabels.size(); k++) {
 			//Construct secret share of key as bytevec

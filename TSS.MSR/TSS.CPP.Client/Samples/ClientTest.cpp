@@ -175,6 +175,7 @@ int main(int argc, char ** argv) {
 		cerr << "ERROR receiving circuit" << endl;
 		throw std::exception("ERROR receiving circuit");
 	}
+	
 	Circuit * circ = new Circuit;
 	std::vector<PlayerInfo *> playerInfo(parties.size());
 	for (auto & x : playerInfo) {
@@ -183,6 +184,10 @@ int main(int argc, char ** argv) {
 	read_frigate_circuit(circuit_filename, circ, &playerInfo, SEC_PARAMETER);
 	//Use info from server to complete the circuit description
 	bytevec_to_circuit(circ, &circuitBuf);
+
+	std::vector<BYTE> secondBuf;
+	circuit_to_bytevec(circ, &secondBuf);
+	assert(circuitBuf == secondBuf);
 
 
 	//Now accept wire ciphertexts from garbler
@@ -262,13 +267,16 @@ int main(int argc, char ** argv) {
 	mpz_class recombined_secret = shamir.getSecret(shares);
 	//2c. Get AES key from recombined secret
 	ByteVec aesVec = mpz_to_vector(recombined_secret);
+	//DEBUGGING print AES key
+	std::cout << "Client AES key: " << byteVecToNumberString(aesVec) << std::endl;
 	//3. Use AES to decrypt labels based on choices
 	//TODO finish once we have a function to convert ByteVec<->label
 	std::vector<std::vector<BYTE> >
 		decryptedLabels(choices.size());
 #define AES_BUFFERSIZE 2048
-	unsigned char iv[10];
-	memcpy(iv, "Notre Dame", 10);
+#define IV_LEN 128
+	unsigned char iv[IV_LEN/CHAR_WIDTH];
+	memcpy(iv, "Notre Dame duLac", IV_LEN / CHAR_WIDTH);
 	for (unsigned int g = 0; g < decryptedLabels.size(); g++) {
 		decryptedLabels[g].resize(AES_BUFFERSIZE);
 		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), (unsigned char *) aesVec.data(), iv, decryptedLabels[g].data());
@@ -314,15 +322,13 @@ int main(int argc, char ** argv) {
 			&decryptedLabels : &(downloads[b]);
 		unsigned int num_wires_for_player = currVec->size();
 		//DEBUGGING
-		/*
-		std::cout << "Labels for player " << b << std::endl;
-		for (const std::vector<BYTE> & v : *currVec) {
-			mpz_class labelSum = ByteVecToMPZ(v);
 		
-			std::cout << labelSum << ' ';
+		std::cout << "Labels for player " << b << std::endl;
+		for (const std::vector<BYTE> & v : *currVec) {		
+			std::cout << byteVecToNumberString(v) << std::endl;
 		}
 		std::cout << std::endl;
-		*/
+		
 
 		for (unsigned int q = 0; q < num_wires_for_player; q++) {
 			wire_value * wv = new wire_value(SEC_PARAMETER + 1);
