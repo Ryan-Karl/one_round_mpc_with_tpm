@@ -187,13 +187,60 @@ void print_labels(std::ostream & os, char * circuitfile, unsigned int num_partie
 	}
 }	
 
+void test_circuit_eval(std::ostream & os, char * circuitfile, 
+	unsigned int num_parties, const std::vector<bool> & choices){
+	srand(1);
+	Circuit * circ = new Circuit;
+	std::vector<PlayerInfo *> playerInfo(num_parties);
+	for (auto & ptr : playerInfo) {
+		ptr = new PlayerInfo;
+	}
+	read_frigate_circuit(circuitfile, circ, &playerInfo, SEC_PARAMETER);
+	get_garbled_circuit(circ);
+	std::vector<std::vector<std::pair<wire_value *, wire_value *> > > labels(num_parties);
+	unsigned int choice_idx = 0;
+	os << "Choices: ";
+	for(bool b : choices){
+		os << b << ' ';
+	}
+	os << std::endl;
+	for(PlayerInfo * pi : playerInfo){
+		for(Wire * w : pi->input_wires){
+			wire_value * wv = wire2garbling(w, choices[choice_idx++]);
+			w->label_kp = wv;
+		}
+	}
+	eval_garbled_circuit(circ);
+	os << "Circuit answer: "
+	for (Wire * x : circ->output_wires) {
+		os << (x->output_value) << ' ';
+	}
+	os << std::endl;
+}
+
+std::vector<bool> parse_choicefile(char * filename) {
+	std::ifstream ifs(filename);
+	if (!ifs.good()) {
+		cerr << "ERROR reading file " << filename << endl;
+		return std::vector<bool>();
+	}
+	int b;
+	vector<bool> ret;
+	while (ifs >> b) {
+		ret.push_back(b > 0);
+	}
+	return ret;
+}
+
 //Takes in a circuit filename as only argument
 int main(int argc, char ** argv){
 	if(argc != 3){
 		cerr << "ERROR arguments are: filename num_parties" << endl;
 		return 0;
 	}
-	test_vectors(cout, argv[1], atoi(argv[2]));
+
+	std::vector<bool> choices = parse_choicefile("choicefile.txt");
+	test_circuit_eval(cout, argv[1], atoi(argv[2]), choices);
 
 	return 0;
 }
