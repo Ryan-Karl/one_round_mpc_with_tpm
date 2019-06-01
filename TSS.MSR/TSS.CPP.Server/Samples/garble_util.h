@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <deque>
+#include <iostream>
 
 //Should be able to be used for a general width sequence of bits
 class wire_value {
@@ -95,5 +96,7 @@ void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v);
 void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v);
 
 void eval_garbled_circuit(Circuit * c);
+
+void print_circuit_trace(Circuit * c, std::ostream & os);
 
 #endif
