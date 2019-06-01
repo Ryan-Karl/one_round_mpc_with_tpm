@@ -38,8 +38,7 @@ void print_circuit(std::ostream & os, char * circuitfile, unsigned int num_parti
 	std::vector<unsigned char> circuitByteVec;
 	circuit_to_bytevec(circ, &circuitByteVec);
 	//Represent the circuit as a number for easier reading
-	mpz_class circuit_mpz = ByteVecToMPZ(circuitByteVec);
-	os << circuit_mpz << endl;
+	os << byteVecToNumberString(circuitByteVec) << std::endl; 
 	delete circ;
 	for(PlayerInfo * p : playerInfo){
 		delete p;
@@ -78,7 +77,11 @@ void test_vectors(std::ostream & os, char * circuitfile, unsigned int num_partie
 	get_garbled_circuit(circ);
 	std::vector<unsigned char> circuitByteVec;
 	circuit_to_bytevec(circ, &circuitByteVec);
+
 	Circuit * secondCircuit = new Circuit;
+	read_frigate_circuit(circuitfile, secondCircuit, &playerInfo,
+	 SEC_PARAMETER);
+	//get_garbled_circuit(circ);
 	std::vector<PlayerInfo *> playerInfo2(num_parties);
 	for (auto & ptr : playerInfo2) {
 		ptr = new PlayerInfo;
@@ -86,6 +89,7 @@ void test_vectors(std::ostream & os, char * circuitfile, unsigned int num_partie
 	bytevec_to_circuit(secondCircuit, &circuitByteVec);
 	std::vector<unsigned char> secondVec;
 	circuit_to_bytevec(secondCircuit, &secondVec);
+
 	if(secondVec != circuitByteVec){
 		os << "Vectors not equal!" << endl;
 	}
@@ -173,7 +177,7 @@ int main(int argc, char ** argv){
 		cerr << "ERROR arguments are: filename num_parties" << endl;
 		return 0;
 	}
-	test_bytevec(cout, argv[1], atoi(argv[2]));
+	test_vectors(cout, argv[1], atoi(argv[2]));
 
 	return 0;
 }
