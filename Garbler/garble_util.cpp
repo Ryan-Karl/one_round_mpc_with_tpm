@@ -15,6 +15,7 @@
 #include "garble_util.h"
 // http://www.cs.toronto.edu/~vlad/papers/XOR_ICALP08.pdf
 
+
 using namespace std;
 
 // Called by server.  Expects the structure of the circuit but not values relevant to garbling.
@@ -171,8 +172,9 @@ bool wire_value::get(int i) const {
 
 std::vector<unsigned char> wire_value::to_bytevec() const {
 	std::vector<unsigned char> v;
-	v.reserve(len*CHAR_WIDTH);
-	v.assign(bits, bits + (len*CHAR_WIDTH));
+	unsigned int vector_len = len/CHAR_WIDTH + (len%CHAR_WIDTH? 1 : 0);
+	v.reserve(vector_len);
+	v.assign(bits, bits + vector_len);
 	return v;
 }
 
@@ -219,6 +221,7 @@ bool hash_bool(wire_value * ke, char * str, int gate_number) {
 	return (hashout[0]) & 1;
 }
 
+static int rand_count = 0;
 
 wire_value * random_wire(int width) {
 	//assert(width > 0);
@@ -302,6 +305,16 @@ void wire_value::xor_with(wire_value * rhs) {
 	len = newlen;
 }
 
+#include <sstream>
+std::string byteVecToNumberString(const std::vector<unsigned char> & v) {
+	std::ostringstream os;
+	os << std::hex;
+	for(unsigned int i = 0; i < v.size(); i++){
+		os << (int) v[i] << ' ';
+	}
+	return os.str();
+}
+
 void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v) {
 	std::deque<Wire *> t_ordering;
 	top_sort(t_ordering, c);
@@ -379,4 +392,32 @@ Wire::~Wire() {
 	//TODO figure out if we need to delete children
 	delete label_kp;
 	delete label_k;
+}
+
+void print_wire(Wire * w, std::ostream & os){
+	os << "gate_number " << w->gate_number
+		//<< " is_root " << w->is_root
+		//<< " is_gate " << w->is_gate
+		<< " label_kp " << (w->label_kp != nullptr? w->label_kp->bits : "NULL")
+		<< " label_k " << (w->label_k != nullptr? w->label_k->bits : "NULL")
+		<< " left_child " << (w->left_child != nullptr? w->left_child->gate_number : -1)
+		<< " right_child " << (w->right_child != nullptr? w->right_child->gate_number : -1)
+		;
+
+		for(unsigned int i = 0; i < 4; i++){
+			os << " garbled_labels[" << i << "] "
+				<< (w->garbled_labels[i] != nullptr? w->garbled_labels[i]->bits : "NULL");
+		}
+
+
+		os << std::endl;
+}
+
+void print_circuit_trace(Circuit * c, std::ostream & os){
+	std::deque<Wire *> wires;
+	top_sort(wires, c);
+	for(Wire * w : wires){
+		print_wire(w, os);
+	}
+	os << std::endl;
 }

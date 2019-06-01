@@ -3,20 +3,21 @@
 
 #include <vector>
 #include <deque>
+#include <iostream>
 
 //Should be able to be used for a general width sequence of bits
 class wire_value {
-  public:
-  char * bits;
-  int len;
-  void set(int i, bool b);
-  std::vector<unsigned char> to_bytevec() const ;
-  void from_bytevec(const std::vector<unsigned char> * bits_in, const int i, const int nbits);
-  bool get(int i) const ;
-  void xor_with(wire_value * rhs);
+public:
+	char * bits;
+	int len;
+	void set(int i, bool b);
+	std::vector<unsigned char> to_bytevec() const;
+	void from_bytevec(const std::vector<unsigned char> * bits_in, const int i, const int nbits);
+	bool get(int i) const;
+	void xor_with(wire_value * rhs);
 
-  wire_value(int size);
-  ~wire_value();
+	wire_value(int size);
+	~wire_value();
 };
 
 
@@ -43,44 +44,44 @@ const gate_type GATE_XOR = 0x6;
 bool eval_gate(gate_type g, bool x, bool y);
 
 struct Wire {
-  //p - permutation bit - p_0, p_1 correspond to p[0], p[1]
-  bool p[2];
-  //k - key bits - k_0, k_1 correspond to k[0], k[1]
-  wire_value * k[2];
+	//p - permutation bit - p_0, p_1 correspond to p[0], p[1]
+	bool p[2];
+	//k - key bits - k_0, k_1 correspond to k[0], k[1]
+	wire_value * k[2];
 
-  int gate_number;
+	int gate_number;
 
-  // garbled label for the NIOT, at least for root nodes (before the nested encryption and such) // Only used when wire is a gate, and when gate is not XOR // corresponds to 00, 01, 10, 11
-  wire_value* garbled_labels[4];
+	// garbled label for the NIOT, at least for root nodes (before the nested encryption and such) // Only used when wire is a gate, and when gate is not XOR // corresponds to 00, 01, 10, 11
+	wire_value* garbled_labels[4];
 
-  bool is_root;
-  bool output_garble_info[2];
-  bool output_value;
+	bool is_root;
+	bool output_garble_info[2];
+	bool output_value;
 
-  // If this wire is the output of a gate, this section has useful information.
-  bool is_gate;
-  gate_type g_type;
-  Wire * left_child;
-  Wire * right_child;
+	// If this wire is the output of a gate, this section has useful information.
+	bool is_gate;
+	gate_type g_type;
+	Wire * left_child;
+	Wire * right_child;
 
-  // Will likely be used only during execution, received from other players
-  wire_value * label_kp;
-  //Converted into these once received
-  wire_value * label_k;
-  bool label_p;
+	// Will likely be used only during execution, received from other players
+	wire_value * label_kp;
+	//Converted into these once received
+	wire_value * label_k;
+	bool label_p;
 
-  Wire();
-  ~Wire();
+	Wire();
+	~Wire();
 
 };
 
 struct Circuit {
-  std::vector<Wire *> output_wires;
-  std::vector<Wire *> input_wires;
-  // number of wires -- will be more than the number of gates
-  long n_wires;
-  // Security parameter
-  int security;
+	std::vector<Wire *> output_wires;
+	std::vector<Wire *> input_wires;
+	// number of wires -- will be more than the number of gates
+	long n_wires;
+	// Security parameter
+	int security;
 };
 
 //Garble circuit
@@ -95,5 +96,7 @@ void circuit_to_bytevec(Circuit * c, std::vector<unsigned char> * v);
 void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v);
 
 void eval_garbled_circuit(Circuit * c);
+
+void print_circuit_trace(Circuit * c, std::ostream & os);
 
 #endif
