@@ -45,7 +45,32 @@ void print_circuit(std::ostream & os, char * circuitfile, unsigned int num_parti
 	}
 }
 
-void test_bytevec(std::ostream & os, char * circuitfile,
+void test_bytevec_to_circuit(std::ostream & os, char * circuitfile,
+ unsigned int num_parties){
+	Circuit * circ = new Circuit;
+	
+	std::vector<PlayerInfo *> playerInfo(num_parties);
+	for (auto & ptr : playerInfo) {
+		ptr = new PlayerInfo;
+	}
+	read_frigate_circuit(circuitfile, circ, &playerInfo, SEC_PARAMETER);
+	get_garbled_circuit(circ);
+	std::vector<unsigned char> circuitVec;
+	circuit_to_bytevec(circ, &circuitVec);
+
+	Circuit * circ2 = new Circuit;
+	Circuit * circ3 = new Circuit;
+	read_frigate_circuit(circuitfile, circ2, &playerInfo, SEC_PARAMETER);
+	read_frigate_circuit(circuitfile, circ3, &playerInfo, SEC_PARAMETER);
+	bytevec_to_circuit(circ2, &circuitVec);
+	bytevec_to_circuit(circ3, &circuitVec);
+	std::vector<unsigned char> circuitVec2, circuitvec3;
+	circuit_to_bytevec(circ2, &circuitVec2);
+	circuit_to_bytevec(circ3, &circuitvec3);
+	assert(circuitvec3 == circuitVec2);
+}
+
+void test_circuit_to_bytevec(std::ostream & os, char * circuitfile,
  unsigned int num_parties){
 srand(1);
 	Circuit * circ = new Circuit;
@@ -78,28 +103,19 @@ void test_vectors(std::ostream & os, char * circuitfile, unsigned int num_partie
 	std::vector<unsigned char> circuitByteVec;
 	circuit_to_bytevec(circ, &circuitByteVec);
 
-	Circuit * secondCircuit = new Circuit;
-	read_frigate_circuit(circuitfile, secondCircuit, &playerInfo,
-	 SEC_PARAMETER);
-	//get_garbled_circuit(circ);
-	std::vector<PlayerInfo *> playerInfo2(num_parties);
-	for (auto & ptr : playerInfo2) {
-		ptr = new PlayerInfo;
-	}
-	bytevec_to_circuit(secondCircuit, &circuitByteVec);
+	bytevec_to_circuit(circ, &circuitByteVec);
 	std::vector<unsigned char> secondVec;
-	circuit_to_bytevec(secondCircuit, &secondVec);
+	circuit_to_bytevec(circ, &secondVec);
 
 	if(secondVec != circuitByteVec){
 		os << "Vectors not equal!" << endl;
+		os << "First vector: " << byteVecToNumberString(circuitByteVec) << std::endl;
+		os << "Second vector: " << byteVecToNumberString(secondVec) << std::endl;
+		assert(secondVec == circuitByteVec);
 	}
 	delete circ;
-	delete secondCircuit;
 	for(PlayerInfo * p : playerInfo){
 		delete p;
-	}
-	for(PlayerInfo * p2 : playerInfo2){
-		delete p2;
 	}
 }
 

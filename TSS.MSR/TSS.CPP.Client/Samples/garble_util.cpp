@@ -353,7 +353,8 @@ void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v) {
 			for (int i = 0; i < 4; i++) {
 				w->garbled_labels[i] = new wire_value(c->security + 1);
 				w->garbled_labels[i]->from_bytevec(v, at, c->security + 1);
-				at += (c->security + 1) / CHAR_WIDTH;
+				//at += (c->security + 1) / CHAR_WIDTH;
+				at += ((c->security+1)/CHAR_WIDTH) + ((c->security+1)%CHAR_WIDTH ? 1 : 0);
 			}
 		}
 		if (w->is_root) {

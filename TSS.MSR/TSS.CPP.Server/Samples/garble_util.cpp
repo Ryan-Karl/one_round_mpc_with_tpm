@@ -228,7 +228,7 @@ wire_value * random_wire(int width) {
 	wire_value * wv = new wire_value(width);
 	int len = (width / CHAR_WIDTH) + (width % CHAR_WIDTH ? 1 : 0);
 	for (int i = 0; i < len; i++) {
-		(wv->bits)[i] = rand() & 0xFF;
+		wv->bits[i] = rand() & 0xFF;
 	}
 	return wv;
 }
@@ -353,7 +353,8 @@ void bytevec_to_circuit(Circuit * c, std::vector<unsigned char> * v) {
 			for (int i = 0; i < 4; i++) {
 				w->garbled_labels[i] = new wire_value(c->security + 1);
 				w->garbled_labels[i]->from_bytevec(v, at, c->security + 1);
-				at += (c->security + 1) / CHAR_WIDTH;
+				//at += (c->security + 1) / CHAR_WIDTH;
+				at += ((c->security+1)/CHAR_WIDTH) + ((c->security+1)%CHAR_WIDTH ? 1 : 0);
 			}
 		}
 		if (w->is_root) {
