@@ -1,4 +1,5 @@
 #include <thread>
+#include <cassert>
 #include <math.h>
 #include <cstring>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ using namespace std;
 void get_garbled_circuit(Circuit * c) {
 	//Get randomness from player info
 	wire_value * R = random_wire(c->security);
-	for (auto w_it = c->input_wires.begin(); w_it < c->input_wires.end(); w_it++) {
+	for (auto w_it = c->input_wires.begin(); w_it != c->input_wires.end(); w_it++) {
 		Wire * w = *w_it;
 		w->p[0] = random_bit();
 		w->p[1] = !(w->p[0]);
@@ -66,7 +67,7 @@ void get_garbled_circuit(Circuit * c) {
 	}
 
 	// create garbled output tables
-	for (auto w_it = c->output_wires.begin(); w_it < c->output_wires.end(); w_it++) {
+	for (auto w_it = c->output_wires.begin(); w_it != c->output_wires.end(); w_it++) {
 		Wire * w = *w_it;
 		bool e0 = hash_bool(w->k[0], "out", w->gate_number);
 		bool e1 = !hash_bool(w->k[1], "out", w->gate_number);
@@ -75,17 +76,19 @@ void get_garbled_circuit(Circuit * c) {
 	}
 }
 
+
 bool eval_gate(gate_type g, bool x, bool y) {
-	unsigned char offset = p_to_index(x, y) << 0x1;
+	unsigned char offset = 1 << p_to_index(x, y);
 	return ((g & offset) != 0);
 }
+
 
 int p_to_index(bool p1, bool p0) {
 	return (int)(p1 << 1) + (int)p0;
 }
 
 void eval_garbled_circuit(Circuit * c) {
-	for (auto w_it = c->input_wires.begin(); w_it < c->input_wires.end(); w_it++) {
+	for (auto w_it = c->input_wires.begin(); w_it != c->input_wires.end(); w_it++) {
 		Wire * w = *w_it;
 		garbling2wire(w->label_kp, &(w->label_k), &(w->label_p));
 	}
@@ -104,18 +107,20 @@ void eval_garbled_circuit(Circuit * c) {
 			Wire * a = w->left_child;
 			Wire * b = w->right_child;
 			int index = p_to_index(a->label_p, b->label_p);
-			wire_value * garbling = xor_wire(w->garbled_labels[index], hash_wire(a->label_k, b->label_k, w->gate_number));
+			wire_value * garbling = xor_wire(w->garbled_labels[index], 
+				hash_wire(a->label_k, b->label_k, w->gate_number));
 			garbling2wire(garbling, &(w->label_k), &(w->label_p));
 		}
 	}
-	for (auto w_it = c->output_wires.begin(); w_it < c->output_wires.end(); w_it++) {
+	for (auto w_it = c->output_wires.begin(); w_it != c->output_wires.end(); w_it++) {
 		Wire * w = *w_it;
-		
 		bool out = (w->output_garble_info[w->label_p] != hash_bool(w->label_k, "out", w->gate_number));
 		w->output_value = out;
 	}
 }
 
+
+//TODO optimize these functions
 // the garbling is just the concatenation of w->kb and w->pb for b=which
 wire_value * wire2garbling(const Wire * w, const bool which) {
 	wire_value * k = w->k[which];
@@ -133,7 +138,7 @@ void garbling2wire(const wire_value *w, wire_value **k, bool *p) {
 	if (*k == nullptr) {
 		//TODO make sure this is the right size value
 		*k = new wire_value(size);
-	}
+	} 
 	for (int i = 0; i < size; i++) {
 		(*k)->set(i, w->get(i));
 	}
@@ -145,9 +150,12 @@ void garbling2wire(const wire_value *w, wire_value **k, bool *p) {
 #endif
 
 wire_value::wire_value(int size) {
-	//assert(size > 0);
-	  //bits = new char[size / CHAR_WIDTH]();
-	bits = new char[(size / CHAR_WIDTH) + (size%CHAR_WIDTH ? 1 : 0)];
+	assert(size > 0);
+	int numBytes = (size / CHAR_WIDTH) + (size%CHAR_WIDTH ? 1 : 0);
+	bits = new char[numBytes];
+	for(int i = 0; i < numBytes; i++){
+		bits[i] = 0;
+	}
 	len = size;
 }
 
@@ -157,7 +165,7 @@ wire_value::~wire_value() {
 }
 
 void wire_value::set(int i, bool b) {
-	//assert(i >= 0 && i < len);
+	assert(i >= 0 && i < len);
 	if (b) {
 		bits[i / CHAR_WIDTH] |= (1 << (i % CHAR_WIDTH));
 	}
@@ -201,7 +209,7 @@ wire_value * hash_wire(wire_value * ka, wire_value * kb, int gate_number) {
 	fullbuf.insert(fullbuf.end(), ka->bits, (ka->bits) + (ka->len / CHAR_WIDTH) + ((ka->len % CHAR_WIDTH) ? 1 : 0));
 	fullbuf.insert(fullbuf.end(), kb->bits, (kb->bits) + (kb->len / CHAR_WIDTH) + ((kb->len % CHAR_WIDTH) ? 1 : 0));
 	for (unsigned int i = 0; i < sizeof(gate_number); i++) {
-		fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xFF));
+		fullbuf.push_back(((gate_number >> (i*CHAR_WIDTH)) & 0xFF));
 	}
 	wire_value * wv = new wire_value(SHA256_DIGEST_LENGTH*CHAR_WIDTH);
 	SHA256(fullbuf.data(), fullbuf.size(), (unsigned char *)wv->bits);
@@ -210,12 +218,12 @@ wire_value * hash_wire(wire_value * ka, wire_value * kb, int gate_number) {
 
 bool hash_bool(wire_value * ke, char * str, int gate_number) {
 	std::vector<unsigned char> fullbuf;
-	unsigned int numbits = ke->len + strlen(str) + sizeof(gate_number)*CHAR_WIDTH;
+	unsigned int numbits = ke->len + strlen(str)*CHAR_WIDTH + sizeof(gate_number)*CHAR_WIDTH;
 	fullbuf.reserve(numbits / CHAR_WIDTH);
 	fullbuf.insert(fullbuf.end(), ke->bits, (ke->bits) + (ke->len / CHAR_WIDTH) + ((ke->len % CHAR_WIDTH) ? 1 : 0));
 	fullbuf.insert(fullbuf.end(), (unsigned char *)str, (unsigned char *)str + strlen(str));
 	for (unsigned int i = 0; i < sizeof(gate_number); i++) {
-		fullbuf.push_back((gate_number >> (i*CHAR_WIDTH) & 0xFF));
+		fullbuf.push_back(((gate_number >> (i*CHAR_WIDTH)) & 0xFF));
 	}
 	char hashout[SHA256_DIGEST_LENGTH];
 	SHA256(fullbuf.data(), fullbuf.size(), (unsigned char *)hashout);
