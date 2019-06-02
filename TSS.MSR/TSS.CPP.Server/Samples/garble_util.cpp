@@ -110,6 +110,7 @@ void eval_garbled_circuit(Circuit * c) {
 	}
 	for (auto w_it = c->output_wires.begin(); w_it < c->output_wires.end(); w_it++) {
 		Wire * w = *w_it;
+		
 		bool out = (w->output_garble_info[w->label_p] != hash_bool(w->label_k, "out", w->gate_number));
 		w->output_value = out;
 	}
