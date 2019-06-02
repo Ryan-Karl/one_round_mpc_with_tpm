@@ -76,6 +76,12 @@ std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr) {
 	return ret;
 }
 
+void outputTiming(std::ostream & os, const std::string & phase, 
+	long long & duration, char delim = ','){
+	os << phase << delim << duration << delim;
+}
+
+
 /*
 std::string ByteVecToString(const std::vector<BYTE> & v) {
 	std::string str = "";
@@ -110,18 +116,12 @@ std::string ByteVecToString(const std::vector<BYTE> & v) {
 }
 
 mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
-	mpz_class mcand = 1;
-	mpz_class result = 0;
-	for (const auto & c : v) {
-		result += mcand * c;
-		//Shift left by 8 bits
-		mpz_mul_2exp(mcand.get_mpz_t(), mcand.get_mpz_t(), 8);
-	}
-	return result;
+	mpz_class ret;
+	mpz_import(ret.get_mpz_t(), v.size(), 1, 1, 0, 0, &v[0]);
+	return ret;
 }
 
-
-
+//https://stackoverflow.com/questions/24016611/how-can-i-save-a-gmp-mpz-t-mpz-class-to-vectorbyte
 std::vector<BYTE> mpz_to_vector(const mpz_t x) {
 	size_t size = (mpz_sizeinbase(x, 2) + CHAR_BIT - 1) / CHAR_BIT;
 	std::vector<BYTE> v(size);
@@ -169,7 +169,7 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 	unsigned int len = v[0] |
 		(v[1] << CHAR_WIDTH) |
 		(v[2] << (2 * CHAR_WIDTH)) |
-		(v[3] << (2 * CHAR_WIDTH));
+		(v[3] << (3 * CHAR_WIDTH));
 	first.clear();
 	first.resize(len);
 	second.clear();
@@ -177,15 +177,29 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 	unsigned int i;
 	for (i = sizeof(unsigned int); i < v.size(); i++) {
 		if (i < sizeof(unsigned int) + len) {
-			first[i] = v[i];
+			first[i - sizeof(unsigned int)] = v[i];
 		}
 		else {
-			second[i] = v[i];
+			second[i - sizeof(unsigned int) - len] = v[i];
 		}
 
 	}
 	return 0;
 }
+
+std::vector<std::vector<BYTE> > splitChunks(const std::vector<BYTE> & v, unsigned int chunksize) {
+	unsigned int numchunks = (v.size() / chunksize) + (v.size() % chunksize ? 1 : 0);
+	std::vector<std::vector<BYTE> > ret(numchunks);
+	for (auto & x : ret) {
+		x.reserve(chunksize);
+	}
+	for (unsigned int i = 0; i < v.size(); i += chunksize) {
+		unsigned int endpoint = std::min(v.size(), i + chunksize);
+		ret[i / chunksize].insert(ret[i / chunksize].begin(), v.begin() + i, v.begin() + endpoint);
+	}
+	return ret;
+}
+
 
 
 #endif

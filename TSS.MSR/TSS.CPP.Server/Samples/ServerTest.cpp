@@ -27,6 +27,7 @@
 #include <string.h>
 #include <cassert>
 #include <unordered_map>
+#include <chrono>
 
 #define BASEFILE "basefile.txt"
 #define ENCFILE "encfile.txt"
@@ -34,6 +35,7 @@
 #define NUMPARTIES_DEFAULT 1
 #define SERVER_TPM_PORT 2321
 
+using namespace std::chrono;
 using namespace std;
 
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
@@ -48,12 +50,15 @@ int main(int argc, char ** argv) {
 	
 	srand(1);
 	//START TIMING
+	auto startTime = high_resolution_clock::now();
+
 	unsigned int num_required_args = 2;
 	if (argc < 2 * num_required_args) {
 		std::cout << "ERROR: provide all required arguments" << endl;
 		return 0;
 	}
 	char * circuitfile = nullptr; 
+	char * timefile = nullptr;
 	unsigned int num_parties = 0; 
 	unsigned int port = 0;
 	for (int argx = 0; argx < argc; argx++) {
@@ -67,6 +72,10 @@ int main(int argc, char ** argv) {
 		}
 		if(!strcmp(argv[argx], "--parties")){
 			num_parties = atoi(argv[++argx]);
+			continue;
+		}
+		if(!strcmp(argv[argx], "--timefile")){
+			timefile = argv[++argx];
 			continue;
 		}
 	}
@@ -191,6 +200,7 @@ int main(int argc, char ** argv) {
 	TPMWrapper myTPM;
 	//For each party:
 #define IV_LEN 128
+	//Probably unneeded
 	unsigned char iv_str[IV_LEN/CHAR_WIDTH]; // = "Notre Dame Computer Science and Engineering";
 	memcpy(iv_str, "Notre Dame duLac", IV_LEN / CHAR_WIDTH);
 	for (unsigned int j = 0; j < num_parties; j++) {
@@ -297,6 +307,17 @@ int main(int argc, char ** argv) {
 
 	//CHECKPOINT1
 	//END_TIMING
+	auto endTime = high_resolution_clock::now();
+	std::ostringstream os;
+	auto garblerDuration = duration_cast<microseconds>(startTime - endTime);
+	outputTiming(os, "Garbler", garblerDuration);
+	if(timefile == nullptr){
+		std::cout << os.str() << std::endl;
+	}
+	else{
+		std::ofstream timeOut(timefile);
+		timeOut << os.str();
+	}
 
 	//That's all folks!
 	//Cleanup
@@ -311,7 +332,7 @@ int main(int argc, char ** argv) {
 		delete w;
 	}
 	s.stop();
-	std::cout << "Garbler finished" << endl;
+	//std::cout << "Garbler finished" << endl;
 	return 0;
 
 }

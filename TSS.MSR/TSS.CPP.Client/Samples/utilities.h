@@ -76,6 +76,12 @@ std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr) {
 	return ret;
 }
 
+void outputTiming(std::ostream & os, const std::string & phase, 
+	long long & duration, char delim = ','){
+	os << phase << delim << duration << delim;
+}
+
+
 /*
 std::string ByteVecToString(const std::vector<BYTE> & v) {
 	std::string str = "";
@@ -114,8 +120,6 @@ mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
 	mpz_import(ret.get_mpz_t(), v.size(), 1, 1, 0, 0, &v[0]);
 	return ret;
 }
-
-
 
 //https://stackoverflow.com/questions/24016611/how-can-i-save-a-gmp-mpz-t-mpz-class-to-vectorbyte
 std::vector<BYTE> mpz_to_vector(const mpz_t x) {
@@ -173,10 +177,10 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 	unsigned int i;
 	for (i = sizeof(unsigned int); i < v.size(); i++) {
 		if (i < sizeof(unsigned int) + len) {
-			first[i-sizeof(unsigned int)] = v[i];
+			first[i - sizeof(unsigned int)] = v[i];
 		}
 		else {
-			second[i-sizeof(unsigned int) - len] = v[i];
+			second[i - sizeof(unsigned int) - len] = v[i];
 		}
 
 	}
@@ -191,7 +195,7 @@ std::vector<std::vector<BYTE> > splitChunks(const std::vector<BYTE> & v, unsigne
 	}
 	for (unsigned int i = 0; i < v.size(); i += chunksize) {
 		unsigned int endpoint = std::min(v.size(), i + chunksize);
-		ret[i / chunksize].insert(ret[i/chunksize].begin(), v.begin() + i, v.begin() + endpoint);
+		ret[i / chunksize].insert(ret[i / chunksize].begin(), v.begin() + i, v.begin() + endpoint);
 	}
 	return ret;
 }

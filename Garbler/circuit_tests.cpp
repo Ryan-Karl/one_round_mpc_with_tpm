@@ -15,11 +15,12 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <fstream>
 
 
 #include "garble_util.h"
 #include "player.h"
-#include "../includes/utilities.h"
+//#include "../includes/utilities.h"
 
 using namespace std;
 
@@ -207,11 +208,16 @@ void test_circuit_eval(std::ostream & os, char * circuitfile,
 	for(PlayerInfo * pi : playerInfo){
 		for(Wire * w : pi->input_wires){
 			wire_value * wv = wire2garbling(w, choices[choice_idx++]);
+			//DEBUGGING
+			/*
+			std::vector<unsigned char> wv_vec(wv->bits, wv->bits + (wv->len/CHAR_WIDTH) + (wv->len%CHAR_WIDTH? 1:0));
+			std::cout << "Wire " << w->gate_number << " wire_value " << byteVecToNumberString(wv_vec) << std::endl;
+			*/
 			w->label_kp = wv;
 		}
 	}
 	eval_garbled_circuit(circ);
-	os << "Circuit answer: "
+	os << "Circuit answer: ";
 	for (Wire * x : circ->output_wires) {
 		os << (x->output_value) << ' ';
 	}
@@ -239,7 +245,10 @@ int main(int argc, char ** argv){
 		return 0;
 	}
 
+
+
 	std::vector<bool> choices = parse_choicefile("choicefile.txt");
+
 	test_circuit_eval(cout, argv[1], atoi(argv[2]), choices);
 
 	return 0;

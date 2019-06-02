@@ -76,6 +76,12 @@ std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr) {
 	return ret;
 }
 
+void outputTiming(std::ostream & os, const std::string & phase, 
+	long long & duration, char delim = ','){
+	os << phase << delim << duration << delim;
+}
+
+
 /*
 std::string ByteVecToString(const std::vector<BYTE> & v) {
 	std::string str = "";

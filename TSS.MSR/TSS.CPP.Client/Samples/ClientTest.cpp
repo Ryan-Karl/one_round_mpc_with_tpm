@@ -119,7 +119,8 @@ int main(int argc, char ** argv) {
 
 	
 	//INITIALIZE
-	auto startTime = high_resolution_clock::now();
+	std::ostringstream timeOut;
+	auto startInitialize = high_resolution_clock::now();
 	//1. Get key pair
 	TPMWrapper myTPM;
 	myTPM.init(2321);
@@ -133,10 +134,12 @@ int main(int argc, char ** argv) {
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
 
+	/*
 	auto initTime = high_resolution_clock::now();
 	auto initDuration = duration_cast<microseconds>(startTime - initTime);
 	cout << "Initialize time: " << initDuration.count() << endl;
 	auto serverStart = high_resolution_clock::now();
+	*/
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
 	if (c.init()) {
@@ -235,8 +238,12 @@ int main(int argc, char ** argv) {
 	cout << "Server communication time: " << serverDuration.count() << endl;
 
 	//CHECKPOINT1
+	auto endInitialize = high_resolution_clock::now();
+	auto timeInitialize = duration_cast<microseconds>(endInitialize - startInitialize);
+	outputTiming(timeOut, "Initialization", timeInitialize);
 
 	//PREPROCESS
+	auto startPreprocess = high_resolution_clock::now();
 	//1. Decrypt
 	std::vector<std::vector<BYTE> > intermediate_ciphertexts;
 	intermediate_ciphertexts.resize(choices.size());
@@ -271,7 +278,7 @@ int main(int argc, char ** argv) {
 	//2c. Get AES key from recombined secret
 	ByteVec aesVec = mpz_to_vector(recombined_secret);
 	//DEBUGGING print AES key
-	std::cout << "Client AES key: " << byteVecToNumberString(aesVec) << std::endl;
+	//std::cout << "Client AES key: " << byteVecToNumberString(aesVec) << std::endl;
 	//3. Use AES to decrypt labels based on choices
 	//TODO finish once we have a function to convert ByteVec<->label
 	std::vector<std::vector<BYTE> >
@@ -288,8 +295,12 @@ int main(int argc, char ** argv) {
 	}
 	   
 	//CHECKPOINT2
+	auto endPreprocess = high_resolution_clock::now();
+	auto timePreprocess = duration_cast<microseconds>(endPreprocess - startPreprocess);
+	outputTiming(timeOut, "Preprocessing", timePreprocess);
 
 	//ONLINE
+	auto startOnline = high_resolution_clock::now();
 	//1. Broadcast (and receive) labels
 	//Each party serves the number of parties - their number
 	//Each party is a client to their number
@@ -322,6 +333,9 @@ int main(int argc, char ** argv) {
 	auto evalStart = high_resolution_clock::now();
 
 	//CHECKPOINT3
+	auto endOnline = high_resolution_clock::now();
+	auto timeOnline = duration_cast<microseconds>(endOnline - endOnline);
+	outputTiming(timeOut, "Online", timeOnline);
 
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
@@ -330,13 +344,13 @@ int main(int argc, char ** argv) {
 			&decryptedLabels : &(downloads[b]);
 		unsigned int num_wires_for_player = currVec->size();
 		//DEBUGGING
-		
+		/*
 		std::cout << "Labels for player " << b << std::endl;
 		for (const std::vector<BYTE> & v : *currVec) {		
 			std::cout << byteVecToNumberString(v) << std::endl;
 		}
 		std::cout << std::endl;
-		
+		*/
 
 		for (unsigned int q = 0; q < num_wires_for_player; q++) {
 			wire_value * wv = new wire_value(SEC_PARAMETER + 1);
@@ -354,14 +368,22 @@ int main(int argc, char ** argv) {
 	for (Wire * x : circ->output_wires) {
 		std::cout << (x->output_value) << ' ';
 	}
-	//TODO clean up memory
 	std::cout << std::endl;
+	//TODO clean up memory
+	
 	auto evalEnd = high_resolution_clock::now();
-	auto evalDuration = duration_cast<microseconds>(serverStart - serverStop);
-	std::cout << "Evaluation time: " << evalDuration.count() << std::endl;
+	auto evalDuration = duration_cast<microseconds>(evalEnd - evalStart);
+	outputTiming(timeOut, "Evaluation", evalDuration);
 
 	//END_TIMING
 
+	if(timefile == nullptr){
+		std::cout << os.str() << std::endl;
+	}
+	else{
+		std::ofstream timeOut(timefile);
+		timeOut << os.str();
+	}
 	return 0;
 }
 
