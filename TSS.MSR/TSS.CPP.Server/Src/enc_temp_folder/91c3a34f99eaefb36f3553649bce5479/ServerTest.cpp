@@ -47,7 +47,7 @@ void handleErrors(void);
 int main(int argc, char ** argv) {
 	
 	srand(1);
-	//START TIMING
+
 	unsigned int num_required_args = 2;
 	if (argc < 2 * num_required_args) {
 		std::cout << "ERROR: provide all required arguments" << endl;
@@ -294,9 +294,6 @@ int main(int argc, char ** argv) {
 			}
 		}
 	}
-
-	//CHECKPOINT1
-	//END_TIMING
 
 	//That's all folks!
 	//Cleanup

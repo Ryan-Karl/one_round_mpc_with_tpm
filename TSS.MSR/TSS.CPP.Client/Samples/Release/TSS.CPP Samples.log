@@ -1,2 +1,6 @@
 ﻿  ClientTest.cpp
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\client_backup\clienttest.cpp(71): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\clienttest.cpp(604): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  frigate_parse.cpp
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\frigate_parse.cpp(112): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?
+  garble_util.cpp
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.client\samples\garble_util.cpp(445): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "stdafx.h"' to your source?

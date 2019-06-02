@@ -59,6 +59,8 @@ int parse_netfile(char * filename, char ** server_hostname, unsigned int & serve
 
 
 int main(int argc, char ** argv) {
+
+	//START
 	srand(time(NULL));
 	unsigned int num_required_args = 3;
 	if (argc < 2 * num_required_args) {
@@ -232,6 +234,7 @@ int main(int argc, char ** argv) {
 	auto serverDuration = duration_cast<microseconds>(serverStart - serverStop);
 	cout << "Server communication time: " << serverDuration.count() << endl;
 
+	//CHECKPOINT1
 
 	//PREPROCESS
 	//1. Decrypt
@@ -284,6 +287,8 @@ int main(int argc, char ** argv) {
 		decryptedLabels[g].resize(plaintext_length);
 	}
 	   
+	//CHECKPOINT2
+
 	//ONLINE
 	//1. Broadcast (and receive) labels
 	//Each party serves the number of parties - their number
@@ -315,6 +320,9 @@ int main(int argc, char ** argv) {
 		server_thread.join();
 	}
 	auto evalStart = high_resolution_clock::now();
+
+	//CHECKPOINT3
+
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
 	for (unsigned int b = 0; b < parties.size(); b++) {

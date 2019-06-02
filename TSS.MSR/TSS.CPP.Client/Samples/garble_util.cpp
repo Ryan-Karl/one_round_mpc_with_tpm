@@ -104,7 +104,7 @@ void eval_garbled_circuit(Circuit * c) {
 		wire_value * ke = w->label_k;
 		if (ke != nullptr) {
 			std::vector<unsigned char> k_before(ke->bits, ke->bits + (ke->len / CHAR_WIDTH) + ((ke->len % CHAR_WIDTH) ? 1 : 0));
-			std::cout << w->gate_number << " k before: " << byteVecToNumberString(k_before) << std::endl;
+//			std::cout << w->gate_number << " k before: " << byteVecToNumberString(k_before) << std::endl;
 		}
 		if (w->is_gate && w->g_type == GATE_XOR) {
 			Wire * a = w->left_child;
@@ -120,11 +120,11 @@ void eval_garbled_circuit(Circuit * c) {
 			garbling2wire(garbling, &(w->label_k), &(w->label_p));
 		}
 		std::vector<unsigned char> k_after((unsigned char *) (w->label_k->bits), (unsigned char *) w->label_k->bits + (w->label_k->len / CHAR_WIDTH) + (w->label_k->len%CHAR_WIDTH ? 1 : 0));
-		std::cout << w->gate_number << " k after: " << byteVecToNumberString(k_after) << std::endl;
+//		std::cout << w->gate_number << " k after: " << byteVecToNumberString(k_after) << std::endl;
 	}
 	for (auto w_it = c->output_wires.begin(); w_it < c->output_wires.end(); w_it++) {
 		Wire * w = *w_it;
-		std::cout << "Garbled_label " << w->output_garble_info[w->label_p] << " label_k " << w->label_k << " label_p " << w->label_p << std::endl;
+		std::cout << std::endl << "Garbled_label " << w->output_garble_info[w->label_p] << " Hash bool: " << hash_bool(w->label_k, "out", w->gate_number) << " label_k " << w->label_k << " label_p " << w->label_p << std::endl;
 		bool out = (w->output_garble_info[w->label_p] != hash_bool(w->label_k, "out", w->gate_number));
 		w->output_value = out;
 	}
@@ -223,7 +223,7 @@ wire_value * hash_wire(wire_value * ka, wire_value * kb, int gate_number) {
 bool hash_bool(wire_value * ke, char * str, int gate_number) {
 	//DEBUGGING
 	std::vector<unsigned char> ke_bv(ke->bits, ke->bits + (ke->len / CHAR_WIDTH) + ((ke->len % CHAR_WIDTH) ? 1 : 0));
-	std::cout << "ke: " << byteVecToNumberString(ke_bv) << std::endl;
+//	std::cout << "ke: " << byteVecToNumberString(ke_bv) << std::endl;
 
 	std::vector<unsigned char> fullbuf;
 	unsigned int numbits = ke->len + strlen(str) + sizeof(gate_number)*CHAR_WIDTH;
@@ -235,7 +235,7 @@ bool hash_bool(wire_value * ke, char * str, int gate_number) {
 	}
 	//DEBUGGING
 	std::string hashstr = byteVecToNumberString(fullbuf);
-	std::cout << "Hash buffer: " << hashstr << std::endl;
+//	std::cout << "Hash buffer: " << hashstr << std::endl;
 	char hashout[SHA256_DIGEST_LENGTH];
 	SHA256(fullbuf.data(), fullbuf.size(), (unsigned char *)hashout);
 	return (hashout[0]) & 1;
