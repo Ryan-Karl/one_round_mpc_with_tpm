@@ -344,6 +344,9 @@ int main(int argc, char ** argv) {
 			playerInfo[b]->input_wires[q]->label_kp = wv;
 		}
 	}
+
+	//CHECKPOINT4
+
 	//2. Evaluate circuit
 	eval_garbled_circuit(circ);
 
@@ -356,6 +359,8 @@ int main(int argc, char ** argv) {
 	auto evalEnd = high_resolution_clock::now();
 	auto evalDuration = duration_cast<microseconds>(serverStart - serverStop);
 	std::cout << "Evaluation time: " << evalDuration.count() << std::endl;
+
+	//END_TIMING
 
 	return 0;
 }

@@ -104,7 +104,7 @@ void eval_garbled_circuit(Circuit * c) {
 		wire_value * ke = w->label_k;
 		if (ke != nullptr) {
 			std::vector<unsigned char> k_before(ke->bits, ke->bits + (ke->len / CHAR_WIDTH) + ((ke->len % CHAR_WIDTH) ? 1 : 0));
-//			std::cout << w->gate_number << " k before: " << byteVecToNumberString(k_before) << std::endl;
+			std::cout << w->gate_number << " k before: " << byteVecToNumberString(k_before) << std::endl;
 		}
 		if (w->is_gate && w->g_type == GATE_XOR) {
 			Wire * a = w->left_child;
@@ -120,7 +120,7 @@ void eval_garbled_circuit(Circuit * c) {
 			garbling2wire(garbling, &(w->label_k), &(w->label_p));
 		}
 		std::vector<unsigned char> k_after((unsigned char *) (w->label_k->bits), (unsigned char *) w->label_k->bits + (w->label_k->len / CHAR_WIDTH) + (w->label_k->len%CHAR_WIDTH ? 1 : 0));
-//		std::cout << w->gate_number << " k after: " << byteVecToNumberString(k_after) << std::endl;
+		std::cout << w->gate_number << " k after: " << byteVecToNumberString(k_after) << std::endl;
 	}
 	for (auto w_it = c->output_wires.begin(); w_it < c->output_wires.end(); w_it++) {
 		Wire * w = *w_it;
