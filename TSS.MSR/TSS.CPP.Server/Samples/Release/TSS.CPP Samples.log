@@ -1,12 +1,4 @@
-﻿  stdafx.cpp
-  frigate_parse.cpp
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(19): warning C4018: '<=': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(76): warning C4018: '>=': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(86): warning C4018: '>=': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(91): warning C4018: '>=': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\frigate_parse.cpp(102): warning C4018: '>=': signed/unsigned mismatch
-  garble_util.cpp
-  ServerTest.cpp
+﻿  ServerTest.cpp
 c:\devsoft\mpir\mpirxx.h(1610): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
 c:\devsoft\mpir\mpirxx.h(1611): warning C4244: 'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
 c:\devsoft\mpir\mpirxx.h(1677): warning C4244: 'argument': conversion from '__int64' to 'mpir_si', possible loss of data
@@ -55,10 +47,10 @@ c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from '__in
 c:\devsoft\mpir\mpirxx.h(3375): warning C4244: 'argument': conversion from 'unsigned __int64' to 'const unsigned long', possible loss of data
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(52): warning C4018: '<': signed/unsigned mismatch
 c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\networkutils.h(64): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\servertest.cpp(52): warning C4018: '<': signed/unsigned mismatch
-LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
-LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
-  Generating code
-  All 1526 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
-  Finished generating code
-  TSS.CPP Samples.vcxproj -> C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Server\Src\Release\TSS.CPP Samples.exe
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\servertest.cpp(56): warning C4018: '<': signed/unsigned mismatch
+c:\users\ckrkr\documents\github\one_round_mpc_with_tpm\tss.msr\tss.cpp.server\samples\servertest.cpp(313): error C2664: 'void outputTiming(std::ostream &,const std::string &,__int64 &,char)': cannot convert argument 3 from '_To' to '__int64 &'
+          with
+          [
+              _To=std::chrono::microseconds
+          ]
+  garble_util.cpp

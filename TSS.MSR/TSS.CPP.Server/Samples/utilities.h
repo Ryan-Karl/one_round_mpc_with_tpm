@@ -76,9 +76,10 @@ std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr) {
 	return ret;
 }
 
-void outputTiming(std::ostream & os, const std::string & phase, 
-	long long & duration, char delim = ','){
-	os << phase << delim << duration << delim;
+void outputTiming(std::ostream & os,
+	const std::string & phase,
+	std::chrono::microseconds & duration, char delim = ',') {
+	os << phase << delim << (long long)duration.count() << delim;
 }
 
 

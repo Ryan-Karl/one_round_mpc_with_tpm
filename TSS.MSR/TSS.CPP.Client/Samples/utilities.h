@@ -32,6 +32,7 @@ typedef unsigned char BYTE;
 #include <cassert>
 #include <fstream>
 #include <limits.h>
+#include <chrono>
 
 
 
@@ -76,9 +77,10 @@ std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr) {
 	return ret;
 }
 
-void outputTiming(std::ostream & os, const std::string & phase, 
-	long long & duration, char delim = ','){
-	os << phase << delim << duration << delim;
+void outputTiming(std::ostream & os, 
+	const std::string & phase, 
+	std::chrono::microseconds & duration, char delim = ','){
+	os << phase << delim << (long long) duration.count() << delim;
 }
 
 
@@ -194,7 +196,7 @@ std::vector<std::vector<BYTE> > splitChunks(const std::vector<BYTE> & v, unsigne
 		x.reserve(chunksize);
 	}
 	for (unsigned int i = 0; i < v.size(); i += chunksize) {
-		unsigned int endpoint = std::min(v.size(), i + chunksize);
+		unsigned int endpoint = std::min((unsigned int) v.size(), i + chunksize);
 		ret[i / chunksize].insert(ret[i / chunksize].begin(), v.begin() + i, v.begin() + endpoint);
 	}
 	return ret;

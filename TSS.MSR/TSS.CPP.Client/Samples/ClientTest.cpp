@@ -71,6 +71,7 @@ int main(int argc, char ** argv) {
 	unsigned int my_party = 0;
 	unsigned int myPort = 0;
 	char * server_hostname = "127.0.0.1";
+	char * timefile = nullptr;
 	unsigned int server_port = 0;
 	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
 	std::vector<bool> choices;
@@ -97,6 +98,10 @@ int main(int argc, char ** argv) {
 		}
 		if (!strcmp(argv[argx], "--choices")) {
 			choices = parse_choicefile(argv[++argx]);
+			continue;
+		}
+		if (!strcmp(argv[argx], "--timefile")) {
+			timefile = argv[++argx];
 			continue;
 		}
 	}
@@ -134,12 +139,9 @@ int main(int argc, char ** argv) {
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
 
-	/*
-	auto initTime = high_resolution_clock::now();
-	auto initDuration = duration_cast<microseconds>(startTime - initTime);
-	cout << "Initialize time: " << initDuration.count() << endl;
+
 	auto serverStart = high_resolution_clock::now();
-	*/
+	
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
 	if (c.init()) {
@@ -378,11 +380,11 @@ int main(int argc, char ** argv) {
 	//END_TIMING
 
 	if(timefile == nullptr){
-		std::cout << os.str() << std::endl;
+		std::cout << timeOut.str() << std::endl;
 	}
 	else{
-		std::ofstream timeOut(timefile);
-		timeOut << os.str();
+		std::ofstream timeFileOut(timefile);
+		timeFileOut << timeOut.str();
 	}
 	return 0;
 }
