@@ -17,7 +17,9 @@
      Creating library C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Release\TSS.CPP.lib and object C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Release\TSS.CPP.exp
 LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  All 9145 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  0 of 9145 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 libeay32.lib(buf_str.obj) : warning LNK4099: PDB 'libeay32_lib.pdb' was not found with 'libeay32.lib(buf_str.obj)' or at 'C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Release\libeay32_lib.pdb'; linking object as if no debug info
 libeay32.lib(cmac.obj) : warning LNK4099: PDB 'libeay32_lib.pdb' was not found with 'libeay32.lib(cmac.obj)' or at 'C:\Users\ckrkr\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Release\libeay32_lib.pdb'; linking object as if no debug info
