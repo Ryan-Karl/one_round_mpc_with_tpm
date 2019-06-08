@@ -173,7 +173,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OutDir);C:\Program Files\OpenSSL-Win64\lib;C:\DevSoft\mpir\msvc\vs15\lib_mpir_gc\x64\Release;C:\DevSoft\mpir\msvc\vs15\lib_mpir_cxx\x64\Release;</AdditionalLibraryDirectories>
