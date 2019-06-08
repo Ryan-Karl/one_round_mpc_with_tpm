@@ -106,7 +106,6 @@ int main(int argc, char** argv) {
 		}
 	}
 	//Set my port, if not set
-	myPort = parties[my_party].second;
 	if (!myPort) {
 		myPort = DEFAULT_PROTOCOL_PORT;
 	}
