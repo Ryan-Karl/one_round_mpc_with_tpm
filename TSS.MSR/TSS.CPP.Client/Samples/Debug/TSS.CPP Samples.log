@@ -1,6 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ﻿
 =======
+=======
+>>>>>>> parent of 38fb778... Update
 ﻿  ClientTest.cpp
 C:\DevSoft\mpir\mpirxx.h(1610,60): warning C4244:  'argument': conversion from '__int64' to 'mpir_si', possible loss of data
 C:\DevSoft\mpir\mpirxx.h(1611,63): warning C4244:  'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
@@ -52,4 +55,7 @@ C:\Users\Administrator\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.C
 C:\Users\Administrator\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Samples\NetworkUtils.h(64,20): warning C4018:  '<': signed/unsigned mismatch
 C:\Users\Administrator\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Samples\ClientTest.cpp(64,12): warning C4244:  'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   TSS.CPP Samples.vcxproj -> C:\Users\Administrator\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\\Debug\TSS.CPP Samples.exe
+<<<<<<< HEAD
 >>>>>>> parent of e4fa199... Fixed config file
+=======
+>>>>>>> parent of 38fb778... Update
