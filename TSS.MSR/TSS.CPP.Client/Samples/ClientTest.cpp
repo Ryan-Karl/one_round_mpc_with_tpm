@@ -38,27 +38,27 @@ using namespace std::chrono;
 
 std::vector<BYTE> get_junk(unsigned int n);
 
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
-	unsigned char *iv, unsigned char *ciphertext);
+int encrypt(unsigned char* plaintext, int plaintext_len, unsigned char* key,
+	unsigned char* iv, unsigned char* ciphertext);
 
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
-	unsigned char *iv, unsigned char *plaintext);
+int decrypt(unsigned char* ciphertext, int ciphertext_len, unsigned char* key,
+	unsigned char* iv, unsigned char* plaintext);
 void handleErrors(void);
 
-void server_connect(Server & s, unsigned int num_cons, unsigned int me,
-	std::vector<std::vector<std::vector<BYTE> > > & downloads,
-	const std::vector<std::vector<BYTE> > & upload);
+void server_connect(Server& s, unsigned int num_cons, unsigned int me,
+	std::vector<std::vector<std::vector<BYTE> > >& downloads,
+	const std::vector<std::vector<BYTE> >& upload);
 
-void client_connect(unsigned int me, const std::string & hostname, unsigned int port,
-	std::vector<std::vector<std::vector<BYTE> > > & downloads, const std::vector<std::vector<BYTE> > & upload);
+void client_connect(unsigned int me, const std::string& hostname, unsigned int port,
+	std::vector<std::vector<std::vector<BYTE> > >& downloads, const std::vector<std::vector<BYTE> >& upload);
 
-std::vector<bool> parse_choicefile(char * filename);
+std::vector<bool> parse_choicefile(char* filename);
 
-int parse_netfile(char * filename, char ** server_hostname, unsigned int & server_port,
-	std::vector<std::pair<std::string, unsigned int> > & parties);
+int parse_netfile(char* filename, char** server_hostname, unsigned int& server_port,
+	std::vector<std::pair<std::string, unsigned int> >& parties);
 
 
-int main(int argc, char ** argv) {
+int main(int argc, char** argv) {
 
 	//START
 	srand(time(NULL));
@@ -70,12 +70,12 @@ int main(int argc, char ** argv) {
 	//Vars to be initialized
 	unsigned int my_party = 0;
 	unsigned int myPort = 0;
-	char * server_hostname = "127.0.0.1";
-	char * timefile = nullptr;
+	char* server_hostname = "127.0.0.1";
+	char* timefile = nullptr;
 	unsigned int server_port = 0;
 	std::vector<std::pair<std::string, unsigned int> > parties; //Get party info from file
 	std::vector<bool> choices;
-	char * circuit_filename = "placeholder.txt";
+	char* circuit_filename = "placeholder.txt";
 	//Parse arguments
 	bool got_party = false;
 	for (int argx = 0; argx < argc; argx++) {
@@ -122,7 +122,7 @@ int main(int argc, char ** argv) {
 	}
 	std::cout << std::endl;
 
-	
+
 	//INITIALIZE
 	std::ostringstream timeOut;
 	auto startInitialize = high_resolution_clock::now();
@@ -141,7 +141,7 @@ int main(int argc, char ** argv) {
 
 
 	auto serverStart = high_resolution_clock::now();
-	
+
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
 	if (c.init()) {
@@ -166,8 +166,8 @@ int main(int argc, char ** argv) {
 			continue;
 		}
 		unsigned int msgSize;
-		char * recBuf;
-		if (c.recvBuffer((void **)&recBuf, msgSize)) {
+		char* recBuf;
+		if (c.recvBuffer((void**)& recBuf, msgSize)) {
 			cerr << "ERROR getting key " << i << endl;
 			throw std::exception("ERROR getting key");
 		}
@@ -175,17 +175,17 @@ int main(int argc, char ** argv) {
 		other_keys[i] = myTPM.s_importKey(keyByteVec);
 		delete recBuf;
 	}
-	
+
 	//Now accept garbled circuit data from server
 	std::vector<BYTE> circuitBuf;
 	if (c.recvByteVec(circuitBuf)) {
 		cerr << "ERROR receiving circuit" << endl;
 		throw std::exception("ERROR receiving circuit");
 	}
-	
-	Circuit * circ = new Circuit;
-	std::vector<PlayerInfo *> playerInfo(parties.size());
-	for (auto & x : playerInfo) {
+
+	Circuit* circ = new Circuit;
+	std::vector<PlayerInfo*> playerInfo(parties.size());
+	for (auto& x : playerInfo) {
 		x = new PlayerInfo;
 	}
 	read_frigate_circuit(circuit_filename, circ, &playerInfo, SEC_PARAMETER);
@@ -205,9 +205,9 @@ int main(int argc, char ** argv) {
 	for (unsigned int j = 0; j < num_wires; j++) {
 		//Receive c_w,0 and c_w,1 (in that order)
 		//First receive how many chunks we need for wire 0
-		unsigned int * numchunks;
+		unsigned int* numchunks;
 		unsigned int recvSize;
-		if (c.recvBuffer((void **)&numchunks, recvSize) || recvSize != sizeof(unsigned int)) {
+		if (c.recvBuffer((void**)& numchunks, recvSize) || recvSize != sizeof(unsigned int)) {
 			cerr << "ERROR getting number of chunks for wire 0" << endl;
 			return 1;
 		}
@@ -220,7 +220,7 @@ int main(int argc, char ** argv) {
 		}
 		delete numchunks;
 		//Now get how many chunks we need for wire 1
-		if (c.recvBuffer((void **)&numchunks, recvSize) || recvSize != sizeof(unsigned int)) {
+		if (c.recvBuffer((void**)& numchunks, recvSize) || recvSize != sizeof(unsigned int)) {
 			cerr << "ERROR getting number of chunks for wire 1" << endl;
 			return 1;
 		}
@@ -251,10 +251,10 @@ int main(int argc, char ** argv) {
 	intermediate_ciphertexts.resize(choices.size());
 	assert(choices.size() == num_wires);
 	for (unsigned int k = 0; k < choices.size(); k++) {
-		
+
 		//Chunk decryption modification
 		intermediate_ciphertexts[k] = myTPM.chunk_decrypt(keyPair.second, (!choices[k]) ? encLabels[k].first : encLabels[k].second);
-		
+
 		//intermediate_ciphertexts[k] = myTPM.c_RSA_decrypt(keyPair.second, (!choices[k]) ? encLabels[k].first : encLabels[k].second);
 	}
 	//2. Extract symmetric key (and ciphertext)
@@ -287,15 +287,15 @@ int main(int argc, char ** argv) {
 		decryptedLabels(choices.size());
 #define AES_BUFFERSIZE 2048
 #define IV_LEN 128
-	unsigned char iv[IV_LEN/CHAR_WIDTH];
+	unsigned char iv[IV_LEN / CHAR_WIDTH];
 	memcpy(iv, "Notre Dame duLac", IV_LEN / CHAR_WIDTH);
 	for (unsigned int g = 0; g < decryptedLabels.size(); g++) {
 		decryptedLabels[g].resize(AES_BUFFERSIZE);
-		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), (unsigned char *) aesVec.data(), iv, decryptedLabels[g].data());
+		int plaintext_length = decrypt(labels[g].data(), labels[g].size(), (unsigned char*)aesVec.data(), iv, decryptedLabels[g].data());
 		assert(plaintext_length <= AES_BUFFERSIZE);
 		decryptedLabels[g].resize(plaintext_length);
 	}
-	   
+
 	//CHECKPOINT2
 	auto endPreprocess = high_resolution_clock::now();
 	auto timePreprocess = duration_cast<microseconds>(endPreprocess - startPreprocess);
@@ -319,7 +319,7 @@ int main(int argc, char ** argv) {
 	Server s(myPort);
 	s.init();
 	if (parties.size() - 1 == my_party) {
-		for (auto & x : client_threads) {
+		for (auto& x : client_threads) {
 			x.join();
 		}
 	}
@@ -327,7 +327,7 @@ int main(int argc, char ** argv) {
 		std::thread server_thread(&server_connect, s,
 			parties.size() - my_party, my_party,
 			downloads, decryptedLabels);
-		for (auto & x : client_threads) {
+		for (auto& x : client_threads) {
 			x.join();
 		}
 		server_thread.join();
@@ -342,20 +342,20 @@ int main(int argc, char ** argv) {
 	//EVALUATE
 	//1. Feed each label into the circuit, detect corruption
 	for (unsigned int b = 0; b < parties.size(); b++) {
-		std::vector<std::vector<BYTE> > * currVec = (b == my_party)?
+		std::vector<std::vector<BYTE> >* currVec = (b == my_party) ?
 			&decryptedLabels : &(downloads[b]);
 		unsigned int num_wires_for_player = currVec->size();
 		//DEBUGGING
 		/*
 		std::cout << "Labels for player " << b << std::endl;
-		for (const std::vector<BYTE> & v : *currVec) {		
+		for (const std::vector<BYTE> & v : *currVec) {
 			std::cout << byteVecToNumberString(v) << std::endl;
 		}
 		std::cout << std::endl;
 		*/
 
 		for (unsigned int q = 0; q < num_wires_for_player; q++) {
-			wire_value * wv = new wire_value(SEC_PARAMETER + 1);
+			wire_value* wv = new wire_value(SEC_PARAMETER + 1);
 			wv->from_bytevec(&((*currVec)[q]), 0, SEC_PARAMETER + 1);
 			playerInfo[b]->input_wires[q]->label_kp = wv;
 		}
@@ -367,22 +367,22 @@ int main(int argc, char ** argv) {
 	eval_garbled_circuit(circ);
 
 	std::cout << "Circuit answer: " << std::endl;
-	for (Wire * x : circ->output_wires) {
+	for (Wire* x : circ->output_wires) {
 		std::cout << (x->output_value) << ' ';
 	}
 	std::cout << std::endl;
 	//TODO clean up memory
-	
+
 	auto evalEnd = high_resolution_clock::now();
 	auto evalDuration = duration_cast<microseconds>(evalEnd - evalStart);
 	outputTiming(timeOut, "Evaluation", evalDuration);
 
 	//END_TIMING
 
-	if(timefile == nullptr){
+	if (timefile == nullptr) {
 		std::cout << timeOut.str() << std::endl;
 	}
-	else{
+	else {
 		std::ofstream timeFileOut(timefile);
 		timeFileOut << timeOut.str();
 	}
@@ -392,8 +392,8 @@ int main(int argc, char ** argv) {
 //Returns random data, prepended with the length
 std::vector<BYTE> get_junk(unsigned int n) {
 	vector<BYTE> j(n);
-	for (auto & x : j) {
-		x = (BYTE) rand();
+	for (auto& x : j) {
+		x = (BYTE)rand();
 	}
 	vector<BYTE> emptyVec;
 	return concatenate(j, emptyVec);
@@ -401,8 +401,8 @@ std::vector<BYTE> get_junk(unsigned int n) {
 
 //First line of file has number of PARTIES
 //Following lines contain: partynum (-1 if garbler) hostname portnum
-int parse_netfile(char * filename, char ** server_hostname, unsigned int & server_port,
-	std::vector<std::pair<std::string, unsigned int> > & parties) {
+int parse_netfile(char* filename, char** server_hostname, unsigned int& server_port,
+	std::vector<std::pair<std::string, unsigned int> >& parties) {
 	unsigned int num_parties;
 	std::ifstream ifs(filename);
 	if (!ifs.good()) {
@@ -439,7 +439,7 @@ int parse_netfile(char * filename, char ** server_hostname, unsigned int & serve
 	return 0;
 }
 
-std::vector<bool> parse_choicefile(char * filename) {
+std::vector<bool> parse_choicefile(char* filename) {
 	std::ifstream ifs(filename);
 	if (!ifs.good()) {
 		cerr << "ERROR reading file " << filename << endl;
@@ -458,8 +458,8 @@ bool amIClient(unsigned int me, unsigned int them) {
 }
 
 //Clients receive first, then send
-void client_connect(unsigned int me, const std::string & hostname, unsigned int port,
-	std::vector<std::vector<std::vector<BYTE> > > & downloads, const std::vector<std::vector<BYTE> > & upload) {
+void client_connect(unsigned int me, const std::string& hostname, unsigned int port,
+	std::vector<std::vector<std::vector<BYTE> > >& downloads, const std::vector<std::vector<BYTE> >& upload) {
 	Client c(port, hostname.c_str());
 	if (c.init()) {
 		cerr << "ERROR initializing client: " << hostname << ' ' << port << endl;
@@ -467,17 +467,17 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 	}
 	//Receive
 	//First, receive which party the message is from
-	unsigned int * them;
+	unsigned int* them;
 	unsigned int partyLen;
-	if (c.recvBuffer((void **)&them, partyLen) || partyLen != sizeof(them)) {
+	if (c.recvBuffer((void**)& them, partyLen) || partyLen != sizeof(them)) {
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
 	//Next, get how many choices they will send
 
-	unsigned int * numChoices;
+	unsigned int* numChoices;
 	unsigned int dataLen;
-	if (c.recvBuffer((void **)&numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
+	if (c.recvBuffer((void**)& numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
@@ -493,19 +493,19 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 	delete numChoices;
 	//Send
 	//First, send which party I am
-	if (c.sendBuffer(sizeof(me), (void *)&me)) {
+	if (c.sendBuffer(sizeof(me), (void*)& me)) {
 		cerr << "ERROR sending: " << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR sending");
 	}
 	//Next, send how many choices I am sending
 	unsigned int choices = upload.size();
-	if (c.sendBuffer(sizeof(unsigned int), (void *)&choices)) {
+	if (c.sendBuffer(sizeof(unsigned int), (void*)& choices)) {
 		cerr << "ERROR sending: " << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR sending");
 	}
 	//Next, send my data
 	for (unsigned int j = 0; j < upload.size(); j++) {
-		if (c.sendBuffer(upload[j].size(), (void *)upload[j].data())) {
+		if (c.sendBuffer(upload[j].size(), (void*)upload[j].data())) {
 			cerr << "ERROR sending: " << hostname << ' ' << port << endl;
 			throw new std::exception("ERROR sending");
 		}
@@ -516,13 +516,13 @@ void client_connect(unsigned int me, const std::string & hostname, unsigned int 
 
 //Servers send first, then receive
 //Assumes server has been created and initialized
-void server_connect(Server & s, unsigned int num_cons, unsigned int me,
-	std::vector<std::vector<std::vector<BYTE> > > & downloads,
-	const std::vector<std::vector<BYTE> > & upload) {
+void server_connect(Server& s, unsigned int num_cons, unsigned int me,
+	std::vector<std::vector<std::vector<BYTE> > >& downloads,
+	const std::vector<std::vector<BYTE> >& upload) {
 	s.accept_connections(num_cons);
 	for (unsigned int i = 0; i < num_cons; i++) {
 		//First, send which party I am
-		if (s.sendBuffer(i, sizeof(me), (void *)&me)) {
+		if (s.sendBuffer(i, sizeof(me), (void*)& me)) {
 			cerr << "ERROR sending: " << i << endl;
 			throw new std::exception("ERROR sending");
 		}
@@ -535,25 +535,25 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 		}
 		//Next, send each choice
 		for (unsigned int j = 0; j < upload.size(); j++) {
-			if (s.sendBuffer(i, upload[j].size(), (void *)upload[j].data())) {
+			if (s.sendBuffer(i, upload[j].size(), (void*)upload[j].data())) {
 				cerr << "ERROR sending: " << i;
 				throw new std::exception("ERROR sending");
 			}
 		}
 		//Receive
 		//First, receive which party the message is from
-		unsigned int * them;
+		unsigned int* them;
 		unsigned int partyLen;
-		if (s.recvBuffer(i, (void **)&them, partyLen) || partyLen != sizeof(them)) {
+		if (s.recvBuffer(i, (void**)& them, partyLen) || partyLen != sizeof(them)) {
 			cerr << "ERROR : receiving" << endl;
 			throw new std::exception("ERROR receiving");
 		}
 		//Next, get the actual data
 		//char * recvData;
 		unsigned int dataLen;
-		unsigned int * numChoices;
+		unsigned int* numChoices;
 		//Get the number of choices they will send
-		if (s.recvBuffer(i, (void **)&numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
+		if (s.recvBuffer(i, (void**)& numChoices, dataLen) || dataLen != sizeof(unsigned int)) {
 			cerr << "ERROR : receiving" << endl;
 			throw new std::exception("ERROR receiving");
 		}
@@ -585,10 +585,10 @@ void server_connect(Server & s, unsigned int num_cons, unsigned int me,
 
 
 //AES encryption/decryption from TSS.MSR Samples.cpp
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
-	unsigned char *iv, unsigned char *ciphertext)
+int encrypt(unsigned char* plaintext, int plaintext_len, unsigned char* key,
+	unsigned char* iv, unsigned char* ciphertext)
 {
-	EVP_CIPHER_CTX *ctx;
+	EVP_CIPHER_CTX* ctx;
 	int len;
 	int ciphertext_len;
 	// Create and initialise the context
@@ -609,10 +609,10 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 	return ciphertext_len;
 }
 
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
-	unsigned char *iv, unsigned char *plaintext)
+int decrypt(unsigned char* ciphertext, int ciphertext_len, unsigned char* key,
+	unsigned char* iv, unsigned char* plaintext)
 {
-	EVP_CIPHER_CTX *ctx;
+	EVP_CIPHER_CTX* ctx;
 	int len;
 	int plaintext_len;
 	// Create and initialise the context

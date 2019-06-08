@@ -56,7 +56,7 @@ std::vector<std::vector<BYTE> > vectorsFromHexFile(std::ifstream & ifs) {
 	return ret;
 }
 
-void outputToStream(std::ostream & os, const std::vector<BYTE> & bv) {
+void outputToStream(std::ostream& os, const std::vector<BYTE>& bv) {
 	os << std::hex;
 	for (size_t i = 0; i < bv.size(); i++) {
 		os << (int)bv[i];
@@ -69,17 +69,17 @@ void outputToStream(std::ostream & os, const std::vector<BYTE> & bv) {
 	}
 }
 
-std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> > & arr) {
+std::vector<BYTE> flatten(const std::vector<std::vector<BYTE> >& arr) {
 	std::vector<BYTE> ret;
-	for (const auto & vec : arr) {
+	for (const auto& vec : arr) {
 		ret.insert(ret.end(), vec.begin(), vec.end());
 	}
 	return ret;
 }
 
-void outputTiming(std::ostream & os,
-	const std::string & phase,
-	std::chrono::microseconds & duration, char delim = ',') {
+void outputTiming(std::ostream& os,
+	const std::string& phase,
+	std::chrono::microseconds& duration, char delim = ',') {
 	os << phase << delim << (long long)duration.count() << delim;
 }
 
@@ -94,7 +94,7 @@ std::string ByteVecToString(const std::vector<BYTE> & v) {
 }
 */
 
-std::vector<BYTE> stringToByteVec(const char * str, unsigned int strlen) {
+std::vector<BYTE> stringToByteVec(const char* str, unsigned int strlen) {
 	std::vector<BYTE> v;
 	v.reserve(strlen);
 	for (unsigned int i = 0; i < strlen; i++) {
@@ -103,7 +103,7 @@ std::vector<BYTE> stringToByteVec(const char * str, unsigned int strlen) {
 	return v;
 }
 
-std::vector<BYTE> stringToByteVec(const std::string & s) {
+std::vector<BYTE> stringToByteVec(const std::string& s) {
 	std::vector<BYTE> v;
 	v.reserve(s.size());
 	for (unsigned int i = 0; i < s.size(); i++) {
@@ -112,12 +112,12 @@ std::vector<BYTE> stringToByteVec(const std::string & s) {
 	return v;
 }
 
-std::string ByteVecToString(const std::vector<BYTE> & v) {
+std::string ByteVecToString(const std::vector<BYTE>& v) {
 	std::string str(v.begin(), v.end());
 	return str;
 }
 
-mpz_class ByteVecToMPZ(const std::vector<BYTE> & v) {
+mpz_class ByteVecToMPZ(const std::vector<BYTE>& v) {
 	mpz_class ret;
 	mpz_import(ret.get_mpz_t(), v.size(), 1, 1, 0, 0, &v[0]);
 	return ret;
@@ -132,7 +132,7 @@ std::vector<BYTE> mpz_to_vector(const mpz_t x) {
 	return v;
 }
 
-inline std::vector<BYTE> mpz_to_vector(mpz_class & x) {
+inline std::vector<BYTE> mpz_to_vector(mpz_class& x) {
 	return mpz_to_vector(x.get_mpz_t());
 }
 
@@ -155,14 +155,14 @@ std::vector<BYTE> concatenate(const std::vector<BYTE> & v1, const std::vector<BY
 	std::vector<BYTE> v(sizeof(unsigned int));
 	v.reserve(sizeof(unsigned int) + len + v2.size());
 	for (unsigned int i = 0; i < sizeof(unsigned int); i++) {
-		v[i] = (len >> (i*CHAR_WIDTH)) & 0xFF;
+		v[i] = (len >> (i * CHAR_WIDTH)) & 0xFF;
 	}
 	v.insert(v.end(), v1.begin(), v1.end());
 	v.insert(v.end(), v2.begin(), v2.end());
 	return v;
 }
 
-int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, std::vector<BYTE> & second) {
+int splitIntermediate(const std::vector<BYTE>& v, std::vector<BYTE>& first, std::vector<BYTE>& second) {
 	if (v.size() < 5) {
 		throw std::logic_error("Vector to split not long enough!");
 		return 1;
@@ -189,10 +189,10 @@ int splitIntermediate(const std::vector<BYTE> & v, std::vector<BYTE> & first, st
 	return 0;
 }
 
-std::vector<std::vector<BYTE> > splitChunks(const std::vector<BYTE> & v, unsigned int chunksize) {
+std::vector<std::vector<BYTE> > splitChunks(const std::vector<BYTE>& v, unsigned int chunksize) {
 	unsigned int numchunks = (v.size() / chunksize) + (v.size() % chunksize ? 1 : 0);
 	std::vector<std::vector<BYTE> > ret(numchunks);
-	for (auto & x : ret) {
+	for (auto& x : ret) {
 		x.reserve(chunksize);
 	}
 	for (unsigned int i = 0; i < v.size(); i += chunksize) {
