@@ -319,13 +319,8 @@ int main(int argc, char** argv) {
 		client_threads[u] = std::thread(&client_connect,
 			my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
 	}
-<<<<<<< HEAD
 	
-	if (parties.size() - 1 == my_party) {
-=======
-
 	if (!server_cons) {
->>>>>>> c9d61c6c8453da963bf1ebe07ae344bea69fdd6b
 		for (auto& x : client_threads) {
 			x.join();
 		}
@@ -528,7 +523,7 @@ void client_connect(unsigned int me, const std::string& hostname, unsigned int p
 void server_connect(Server& s, unsigned int num_cons, unsigned int me,
 	std::vector<std::vector<std::vector<BYTE> > >& downloads,
 	const std::vector<std::vector<BYTE> >& upload) {
-	if (!num_cons || !s.hasConnections()) {
+	if (!num_cons) {
 		return;
 	}
 	s.accept_connections(num_cons);
