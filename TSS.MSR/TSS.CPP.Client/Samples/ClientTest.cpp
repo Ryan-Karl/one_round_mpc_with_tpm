@@ -313,20 +313,23 @@ int main(int argc, char** argv) {
 
 	std::vector<std::vector<std::vector<BYTE> > > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
-	for (unsigned int u = 0; u < my_party; u++) {
+	unsigned int client_cons = my_party;
+	unsigned int server_cons = parties.size() - client_cons - 1; //-1 so we don't count ourselves
+	for (unsigned int u = 0; u < client_cons; u++) {
 		client_threads[u] = std::thread(&client_connect,
 			my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
 	}
-	Server s(myPort);
-	s.init();
-	if (parties.size() - 1 == my_party) {
+
+	if (!server_cons) {
 		for (auto& x : client_threads) {
 			x.join();
 		}
 	}
 	else {
+		Server s(myPort);
+		s.init();
 		std::thread server_thread(&server_connect, s,
-			parties.size() - my_party, my_party,
+			server_cons, my_party,
 			downloads, decryptedLabels);
 		for (auto& x : client_threads) {
 			x.join();
@@ -520,6 +523,9 @@ void client_connect(unsigned int me, const std::string& hostname, unsigned int p
 void server_connect(Server& s, unsigned int num_cons, unsigned int me,
 	std::vector<std::vector<std::vector<BYTE> > >& downloads,
 	const std::vector<std::vector<BYTE> >& upload) {
+	if (!num_cons || !s.hasConnections()) {
+		return;
+	}
 	s.accept_connections(num_cons);
 	for (unsigned int i = 0; i < num_cons; i++) {
 		//First, send which party I am
