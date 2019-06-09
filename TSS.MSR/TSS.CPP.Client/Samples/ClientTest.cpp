@@ -321,13 +321,8 @@ int main(int argc, char** argv) {
 		client_threads[u] = std::thread(&client_connect,
 			my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
 	}
-<<<<<<< HEAD
 	
-	if (parties.size() - 1 == my_party) {
-=======
-
 	if (!server_cons) {
->>>>>>> c9d61c6c8453da963bf1ebe07ae344bea69fdd6b
 		for (auto& x : client_threads) {
 			x.join();
 		}
