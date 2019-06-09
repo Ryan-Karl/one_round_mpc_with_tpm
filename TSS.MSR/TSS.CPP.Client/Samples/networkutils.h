@@ -224,6 +224,9 @@ public:
 	}
 
 	int stop() {
+		if (sock == INVALID_SOCKET) {
+			return 1;
+		}
 		int result;
 		//Shutdown and disable further sending of data
 #ifdef WIN32

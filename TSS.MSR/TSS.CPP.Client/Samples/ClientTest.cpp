@@ -140,9 +140,6 @@ int main(int argc, char** argv) {
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
 
-
-	auto serverStart = high_resolution_clock::now();
-
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
 	if (c.init()) {
@@ -236,10 +233,7 @@ int main(int argc, char** argv) {
 	}
 	//Close connection to garbler
 	c.stop();
-	auto serverStop = high_resolution_clock::now();
-	auto serverDuration = duration_cast<microseconds>(serverStart - serverStop);
-	cout << "Server communication time: " << serverDuration.count() << endl;
-
+	
 	//CHECKPOINT1
 	auto endInitialize = high_resolution_clock::now();
 	auto timeInitialize = duration_cast<microseconds>(endInitialize - startInitialize);
@@ -273,7 +267,6 @@ int main(int argc, char** argv) {
 	for (unsigned int p = 0; p < keyShares.size(); p++) {
 		std::vector<BYTE> xVec, yVec;
 		splitIntermediate(keyShares[p], xVec, yVec);
-		std::cout << ByteVecToMPZ(xVec) << ' ' << ByteVecToMPZ(yVec) << std::endl;
 		shares.push_back(std::pair<mpz_class, mpz_class>(
 			ByteVecToMPZ(xVec), ByteVecToMPZ(yVec)));
 	}
