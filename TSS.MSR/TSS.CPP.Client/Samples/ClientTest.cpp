@@ -317,14 +317,15 @@ int main(int argc, char** argv) {
 		client_threads[u] = std::thread(&client_connect,
 			my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
 	}
-	Server s(myPort);
-	s.init();
+	
 	if (parties.size() - 1 == my_party) {
 		for (auto& x : client_threads) {
 			x.join();
 		}
 	}
 	else {
+		Server s(myPort);
+		s.init();
 		std::thread server_thread(&server_connect, s,
 			parties.size() - my_party, my_party,
 			downloads, decryptedLabels);
