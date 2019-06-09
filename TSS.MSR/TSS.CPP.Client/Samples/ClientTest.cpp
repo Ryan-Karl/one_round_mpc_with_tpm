@@ -315,6 +315,15 @@ int main(int argc, char** argv) {
 	std::vector<std::thread> client_threads(my_party);
 	unsigned int client_cons = my_party;
 	unsigned int server_cons = parties.size() - client_cons - 1; //-1 so we don't count ourselves
+	for (unsigned int u = 0; u < my_party; u++) {
+		client_connect(my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
+	}
+	if (server_cons) {
+		Server s(myPort);
+		s.init();
+		server_connect(s, server_cons, my_party, downloads, decryptedLabels);
+	}
+	/*
 	for (unsigned int u = 0; u < client_cons; u++) {
 		client_threads[u] = std::thread(&client_connect,
 			my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
@@ -336,6 +345,7 @@ int main(int argc, char** argv) {
 		}
 		server_thread.join();
 	}
+	*/
 	auto evalStart = high_resolution_clock::now();
 
 	//CHECKPOINT3
@@ -523,7 +533,7 @@ void client_connect(unsigned int me, const std::string& hostname, unsigned int p
 void server_connect(Server& s, unsigned int num_cons, unsigned int me,
 	std::vector<std::vector<std::vector<BYTE> > >& downloads,
 	const std::vector<std::vector<BYTE> >& upload) {
-	if (!num_cons || !s.hasConnections()) {
+	if (!num_cons) {
 		return;
 	}
 	s.accept_connections(num_cons);
