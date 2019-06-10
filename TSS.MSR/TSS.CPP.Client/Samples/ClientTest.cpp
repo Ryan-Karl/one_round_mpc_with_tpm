@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
 
 	//CHECKPOINT3
 	auto endOnline = high_resolution_clock::now();
-	auto timeOnline = duration_cast<microseconds>(endOnline - endOnline);
+	auto timeOnline = duration_cast<microseconds>(endOnline - startOnline);
 	outputTiming(timeOut, "Online", timeOnline);
 
 	//EVALUATE
