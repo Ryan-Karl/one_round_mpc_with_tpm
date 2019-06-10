@@ -129,7 +129,7 @@ int main(int argc, char ** argv) {
 		unsigned int * currentParty;
 		unsigned int msgLen;
 		s.recvBuffer(i, (void **)&currentParty, msgLen);
-		*currentParty = ntohs(*currentParty);
+		//*currentParty = ntohs(*currentParty);
 		assert(msgLen == sizeof(unsigned int));
 		assert(*currentParty < num_parties);
 		party_to_connection[*currentParty] = i;
@@ -211,8 +211,8 @@ int main(int argc, char ** argv) {
 		iv = stringToByteVec("Notre Dame duLac", IV_LEN / CHAR_WIDTH);
 
 		//DEBUGGING print AES key
-		std::cout << "Server AES key: " << byteVecToNumberString(aes_key) << std::endl;
-		std::cout << "Key size: " << aes_key.size() * CHAR_WIDTH << std::endl;
+		//std::cout << "Server AES key: " << byteVecToNumberString(aes_key) << std::endl;
+		//std::cout << "Key size: " << aes_key.size() * CHAR_WIDTH << std::endl;
 		mpz_class aes_key_mpz = ByteVecToMPZ(aes_key);
 		//Split AES key into shares - need a n-of-n secret share here
 		ShamirSecret splitKeys(prime, party_to_numwires[j], party_to_numwires[j]);
@@ -259,9 +259,9 @@ int main(int argc, char ** argv) {
 			delete ciphertext;
 			*/
 			//DEBUGGING
-			std::cout << "Party " << j << " Label " << r << " pair" << std::endl;
-			std::cout << "\tLabel 0: " << byteVecToNumberString(partyLabels[r].first) << std::endl;
-			std::cout << "\tLabel 1: " << byteVecToNumberString(partyLabels[r].second) << std::endl;
+			//std::cout << "Party " << j << " Label " << r << " pair" << std::endl;
+			//std::cout << "\tLabel 0: " << byteVecToNumberString(partyLabels[r].first) << std::endl;
+			//std::cout << "\tLabel 1: " << byteVecToNumberString(partyLabels[r].second) << std::endl;
 		}
 		for (unsigned int k = 0; k < encPartyLabels.size(); k++) {
 			//Construct secret share of key as bytevec
@@ -315,8 +315,13 @@ int main(int argc, char ** argv) {
 		std::cout << os.str() << std::endl;
 	}
 	else{
-		std::ofstream timeOut(timefile);
-		timeOut << os.str();
+		std::ofstream timeOut;
+		timeOut.open(timefile, std::ios::out | std::ios::app);
+		if (timeOut.fail()) {
+			throw new std::ios_base::failure(std::strerror(errno));
+		}
+		timeOut.exceptions(timeOut.exceptions() | std::ios::failbit | std::ifstream::badbit);
+		timeOut << os.str() << std::endl;
 	}
 
 	//That's all folks!
