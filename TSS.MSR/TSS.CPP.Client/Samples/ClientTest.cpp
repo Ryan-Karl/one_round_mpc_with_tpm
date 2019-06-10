@@ -390,8 +390,14 @@ int main(int argc, char** argv) {
 		std::cout << timeOut.str() << std::endl;
 	}
 	else {
-		std::ofstream timeFileOut(timefile);
-		timeFileOut << timeOut.str();
+		std::ofstream timeOutStream;
+		timeOutStream.open(timefile, std::ios::out | std::ios::app);
+		if (timeOutStream.fail()) {
+			std::cerr << "Timing output failed!" << std::endl;
+			return -1;
+		}
+		timeOutStream.exceptions(timeOutStream.exceptions() | std::ios::failbit | std::ifstream::badbit);
+		timeOutStream << timeOut.str() << std::endl;
 	}
 	return 0;
 }
