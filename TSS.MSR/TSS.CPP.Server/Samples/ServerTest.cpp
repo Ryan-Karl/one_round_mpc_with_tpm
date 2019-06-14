@@ -318,7 +318,8 @@ int main(int argc, char ** argv) {
 		std::ofstream timeOut;
 		timeOut.open(timefile, std::ios::out | std::ios::app);
 		if (timeOut.fail()) {
-			throw new std::ios_base::failure(std::strerror(errno));
+			std::cerr << "Timing output failed!" << std::endl;
+			return -1;
 		}
 		timeOut.exceptions(timeOut.exceptions() | std::ios::failbit | std::ifstream::badbit);
 		timeOut << os.str() << std::endl;
