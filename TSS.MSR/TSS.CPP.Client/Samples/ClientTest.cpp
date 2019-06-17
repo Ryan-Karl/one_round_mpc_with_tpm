@@ -106,6 +106,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	//Set my port, if not set
+	myPort = parties[my_party].second;
 	if (!myPort) {
 		myPort = DEFAULT_PROTOCOL_PORT;
 	}
@@ -138,9 +139,6 @@ int main(int argc, char** argv) {
 	std::vector<TSS_KEY> other_keys(parties.size());
 	std::vector<std::thread> sendThreadVec;
 	sendThreadVec.resize(parties.size());
-
-
-	auto serverStart = high_resolution_clock::now();
 
 	//First send key to server, then accept n-1 keys from server, then garbled circuit
 	Client c(server_port, server_hostname);
@@ -235,10 +233,7 @@ int main(int argc, char** argv) {
 	}
 	//Close connection to garbler
 	c.stop();
-	auto serverStop = high_resolution_clock::now();
-	auto serverDuration = duration_cast<microseconds>(serverStart - serverStop);
-	cout << "Server communication time: " << serverDuration.count() << endl;
-
+	
 	//CHECKPOINT1
 	auto endInitialize = high_resolution_clock::now();
 	auto timeInitialize = duration_cast<microseconds>(endInitialize - startInitialize);
@@ -272,7 +267,6 @@ int main(int argc, char** argv) {
 	for (unsigned int p = 0; p < keyShares.size(); p++) {
 		std::vector<BYTE> xVec, yVec;
 		splitIntermediate(keyShares[p], xVec, yVec);
-		std::cout << ByteVecToMPZ(xVec) << ' ' << ByteVecToMPZ(yVec) << std::endl;
 		shares.push_back(std::pair<mpz_class, mpz_class>(
 			ByteVecToMPZ(xVec), ByteVecToMPZ(yVec)));
 	}
@@ -312,31 +306,44 @@ int main(int argc, char** argv) {
 
 	std::vector<std::vector<std::vector<BYTE> > > downloads(parties.size());
 	std::vector<std::thread> client_threads(my_party);
+	unsigned int client_cons = my_party;
+	unsigned int server_cons = parties.size() - client_cons - 1; //-1 so we don't count ourselves
 	for (unsigned int u = 0; u < my_party; u++) {
+		client_connect(my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
+	}
+	if (server_cons) {
+		Server s(myPort);
+		s.init();
+		server_connect(s, server_cons, my_party, downloads, decryptedLabels);
+	}
+	/*
+	for (unsigned int u = 0; u < client_cons; u++) {
 		client_threads[u] = std::thread(&client_connect,
 			my_party, parties[u].first, parties[u].second, downloads, decryptedLabels);
 	}
-	Server s(myPort);
-	s.init();
-	if (parties.size() - 1 == my_party) {
+	
+	if (!server_cons) {
 		for (auto& x : client_threads) {
 			x.join();
 		}
 	}
 	else {
+		Server s(myPort);
+		s.init();
 		std::thread server_thread(&server_connect, s,
-			parties.size() - my_party, my_party,
+			server_cons, my_party,
 			downloads, decryptedLabels);
 		for (auto& x : client_threads) {
 			x.join();
 		}
 		server_thread.join();
 	}
+	*/
 	auto evalStart = high_resolution_clock::now();
 
 	//CHECKPOINT3
 	auto endOnline = high_resolution_clock::now();
-	auto timeOnline = duration_cast<microseconds>(endOnline - endOnline);
+	auto timeOnline = duration_cast<microseconds>(endOnline - startOnline);
 	outputTiming(timeOut, "Online", timeOnline);
 
 	//EVALUATE
@@ -383,8 +390,14 @@ int main(int argc, char** argv) {
 		std::cout << timeOut.str() << std::endl;
 	}
 	else {
-		std::ofstream timeFileOut(timefile);
-		timeFileOut << timeOut.str();
+		std::ofstream timeOutStream;
+		timeOutStream.open(timefile, std::ios::out | std::ios::app);
+		if (timeOutStream.fail()) {
+			std::cerr << "Timing output failed!" << std::endl;
+			return -1;
+		}
+		timeOutStream.exceptions(timeOutStream.exceptions() | std::ios::failbit | std::ifstream::badbit);
+		timeOutStream << timeOut.str() << std::endl;
 	}
 	return 0;
 }
@@ -519,6 +532,9 @@ void client_connect(unsigned int me, const std::string& hostname, unsigned int p
 void server_connect(Server& s, unsigned int num_cons, unsigned int me,
 	std::vector<std::vector<std::vector<BYTE> > >& downloads,
 	const std::vector<std::vector<BYTE> >& upload) {
+	if (!num_cons) {
+		return;
+	}
 	s.accept_connections(num_cons);
 	for (unsigned int i = 0; i < num_cons; i++) {
 		//First, send which party I am
