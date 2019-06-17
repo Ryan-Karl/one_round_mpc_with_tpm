@@ -57,6 +57,7 @@ public:
     if(recover > shares){
       throw std::logic_error("Pool secret is irrecoverable");
     }
+	prime = pr;
   }
 
   std::vector<std::pair<mpz_class, mpz_class> > getShares(const char * secret) const ;
@@ -72,6 +73,29 @@ mpz_class ShamirSecret::PI(const std::vector<mpz_class> & vals){
   return accum;
 }
 
+mpz_class ShamirSecret::getSecret(const std::vector<std::pair<mpz_class, mpz_class> > & shares) const {
+	mpz_class sum = 0;
+	size_t k = shares.size();
+	for (size_t j = 0; j < k; j++) {
+		mpz_class mcand = 1;
+		for (size_t m = 0; m < k; m++) {
+			if (m == j) {
+				continue;
+			}
+			//mpz_class x_m = shares[m].first;
+			mcand *= shares[m].first;
+			mpz_class den = shares[m].first - shares[j].first;
+			mpz_class inv_result;
+			assert(!mpz_invert(inv_result.get_mpt_t(), den.get_mpz_t(), prime.get_mpz_t()));
+			mcand *= inv_result;
+		}
+		sum += mcand*shares[j].second;
+	}
+	mpz_mod(sum.get_mpz_t(), sum.get_mpz_t(), prime.get_mpz_t());
+	return sum;
+}
+
+/*
 mpz_class ShamirSecret::getSecret(const std::vector<std::pair<mpz_class, mpz_class> > & shares) const {
   #ifdef DEBUG
   if(hasDuplicates(shares)){
@@ -122,6 +146,7 @@ mpz_class ShamirSecret::getSecret(const std::vector<std::pair<mpz_class, mpz_cla
   mpz_fdiv_r(ret.get_mpz_t(), divmod_result.get_mpz_t(), prime.get_mpz_t());
   return ret;
 }
+*/
 
 const char * ShamirSecret::getSecretString(std::vector<std::pair<mpz_class, mpz_class> > & shares) const {
   mpz_class mpz_result = getSecret(shares);
