@@ -1,5 +1,4 @@
-﻿  ClientTest.cpp
-C:\DevSoft\mpir\mpirxx.h(1610,60): warning C4244:  'argument': conversion from '__int64' to 'mpir_si', possible loss of data
+﻿C:\DevSoft\mpir\mpirxx.h(1610,60): warning C4244:  'argument': conversion from '__int64' to 'mpir_si', possible loss of data
 C:\DevSoft\mpir\mpirxx.h(1611,63): warning C4244:  'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
 C:\DevSoft\mpir\mpirxx.h(1677,67): warning C4244:  'argument': conversion from '__int64' to 'mpir_si', possible loss of data
 C:\DevSoft\mpir\mpirxx.h(1678,69): warning C4244:  'argument': conversion from 'unsigned __int64' to 'mpir_ui', possible loss of data
@@ -370,4 +369,3 @@ libeay32.lib(sha256.obj) : warning LNK4099: PDB '' was not found with 'libeay32.
 libeay32.lib(sha512.obj) : warning LNK4099: PDB '' was not found with 'libeay32.lib(sha512.obj)' or at ''; linking object as if no debug info
 libeay32.lib(pem_lib.obj) : warning LNK4099: PDB '' was not found with 'libeay32.lib(pem_lib.obj)' or at ''; linking object as if no debug info
 libeay32.lib(pem_oth.obj) : warning LNK4099: PDB '' was not found with 'libeay32.lib(pem_oth.obj)' or at ''; linking object as if no debug info
-  TSS.CPP Samples.vcxproj -> C:\Users\Administrator\Documents\GitHub\one_round_mpc_with_tpm\TSS.MSR\TSS.CPP.Client\Src\Release\TSS.CPP Samples.exe
