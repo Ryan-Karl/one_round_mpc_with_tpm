@@ -211,7 +211,7 @@ int main(int argc, char ** argv) {
 		iv = stringToByteVec("Notre Dame duLac", IV_LEN / CHAR_WIDTH);
 
 		//Get secret shares
-		auto allShares = get_secret(party_to_numwires[j], aes_key);
+		auto allShares = get_shares(party_to_numwires[j], aes_key);
 		//Construct labels to be sent
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			partyLabels(party_to_numwires[j]); 
