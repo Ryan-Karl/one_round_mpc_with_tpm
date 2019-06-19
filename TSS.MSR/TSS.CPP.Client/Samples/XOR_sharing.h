@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <cstdlib>
-#include <exception>
+#include <stdexcept>
 
 using std::vector;
 
