@@ -1,75 +1,51 @@
+#!/usr/bin/python
 
-level_9 = [0]
-level_8 = list(range(1, 3))
-level_7 = list(range(3, 7))
-level_6 = list(range(7, 15))
-level_5 = list(range(15, 31))
-level_4 = list(range(31, 63))
-level_3 = list(range(63, 127))
-level_2 = list(range(127, 255))
-level_1 = list(range(255, 511))
-level_0 = list(range(511, 1023))
+import argparse, random
 
-for i in level_0:
-    if i < 767:
-        print("IN " + str(i) + " 0")
-    else:
-        print("IN " + str(i) + " 1")
+# initiate the parser
+parser = argparse.ArgumentParser()
 
-j = 0
-for i in level_1:
-    print("8 " + str(i) + " " + str(level_0[j]) + " " + str(level_0[j+1]))
-    j+=1
-    j+=1
+# add long and short argument
+parser.add_argument("--parties", "-p", help="set party number")
+parser.add_argument("--depth", "-d", help="set depth")
+parser.add_argument("--XOR", "-x", help="set XOR percentage")
 
-j = 0
-for i in level_2:
-    print("8 " + str(i) + " " + str(level_1[j]) + " " + str(level_1[j+1]))
-    j+=1
-    j+=1
+# read arguments from the command line
+args = parser.parse_args()
 
-j = 0
-for i in level_3:
-    print("8 " + str(i) + " " + str(level_2[j]) + " " + str(level_2[j+1]))
-    j+=1
-    j+=1
+parties_input = int(args.parties)
+levels_input = int(args.depth)
+percent_XOR = int(args.XOR)
 
-j = 0
-for i in level_4:
-    print("8 " + str(i) + " " + str(level_3[j]) + " " + str(level_3[j+1]))
-    j+=1
-    j+=1
+val = 0
+num = parties_input
+circuit_range = {}
+party_id = 0
+increment = round((2**(levels_input - 1))/parties_input)
 
-j = 0
-for i in level_5:
-    print("8 " + str(i) + " " + str(level_4[j]) + " " + str(level_4[j+1]))
-    j+=1
-    j+=1
+while val < levels_input:
+    circuit_range[val] = list(range( 2 ** (val) - 1, (2 ** (val + 1) - 1)))
+    val += 1
 
-j = 0
-for i in level_6:
-    print("8 " + str(i) + " " + str(level_5[j]) + " " + str(level_5[j+1]))
-    j+=1
-    j+=1
+while num > 0:
+    for k in circuit_range[levels_input-1]:
+        if (k >= ((2**(levels_input - 1) - 1) + (party_id * increment))) and (k < ((2**(levels_input - 1) - 1) + ((party_id + 1) * increment))):
+            print("IN " + str(k) + " " + str(party_id))
 
-j = 0
-for i in level_7:
-    print("8 " + str(i) + " " + str(level_6[j]) + " " + str(level_6[j+1]))
-    j+=1
-    j+=1
+    party_id += 1
+    num -= 1
 
-j = 0
-for i in level_8:
-    print("8 " + str(i) + " " + str(level_7[j]) + " " + str(level_7[j+1]))
-    j+=1
-    j+=1
+q = levels_input - 1
+while q > 0:
+    s = 0
+    for i in circuit_range[q][::2]:
+        rand_num = random.randrange(100)
+        if(rand_num >= percent_XOR):
+            print("8 " + str(circuit_range[q-1][s]) + " " + str(i) + " " + str(i + 1))
+        else:
+            print("6 " + str(circuit_range[q-1][s]) + " " + str(i) + " " + str(i + 1))
 
-j = 0
-for i in level_9:
-    print("8 " + str(i) + " " + str(level_8[j]) + " " + str(level_8[j+1]))
-    j+=1
-    j+=1
+        s+=1
+    q-=1
 
-j = 0
-for i in level_9:
-    print("OUT " + str(i) + " 0")
+print("OUT 0 0")
