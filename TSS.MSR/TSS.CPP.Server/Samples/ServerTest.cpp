@@ -210,13 +210,8 @@ int main(int argc, char ** argv) {
 		//iv = myTPM.getRandBytes(IV_SIZE/CHAR_WIDTH);
 		iv = stringToByteVec("Notre Dame duLac", IV_LEN / CHAR_WIDTH);
 
-		//DEBUGGING print AES key
-		//std::cout << "Server AES key: " << byteVecToNumberString(aes_key) << std::endl;
-		//std::cout << "Key size: " << aes_key.size() * CHAR_WIDTH << std::endl;
-		mpz_class aes_key_mpz = ByteVecToMPZ(aes_key);
-		//Split AES key into shares - need a n-of-n secret share here
-		ShamirSecret splitKeys(prime, party_to_numwires[j], party_to_numwires[j]);
-		auto allShares = splitKeys.getShares(aes_key_mpz);
+		//Get secret shares
+		auto allShares = get_secret(party_to_numwires[j], aes_key);
 		//Construct labels to be sent
 		std::vector<std::pair<std::vector<BYTE>, std::vector<BYTE> > >
 			partyLabels(party_to_numwires[j]); 
@@ -264,13 +259,9 @@ int main(int argc, char ** argv) {
 			//std::cout << "\tLabel 1: " << byteVecToNumberString(partyLabels[r].second) << std::endl;
 		}
 		for (unsigned int k = 0; k < encPartyLabels.size(); k++) {
-			//Construct secret share of key as bytevec
-			std::vector<BYTE> shareX = mpz_to_vector(allShares[k].first);
-			std::vector<BYTE> shareY = mpz_to_vector(allShares[k].second);
-			std::vector<BYTE> sharePair = concatenate(shareX, shareY);
 			//Construct and send 0 and 1 wire labels, concatenated with secret share
-			std::vector<BYTE> wire0share = concatenate(encPartyLabels[k].first, sharePair);
-			std::vector<BYTE> wire1share = concatenate(encPartyLabels[k].second, sharePair);
+			std::vector<BYTE> wire0share = concatenate(encPartyLabels[k].first, allShares[k]);
+			std::vector<BYTE> wire1share = concatenate(encPartyLabels[k].second, allShares[k]);
 
 			//Chunk encryption modification
 			std::vector<std::vector<BYTE> > wire0ctext = TPMWrapper::chunk_encrypt(keyvec[j], wire0share, 128);
