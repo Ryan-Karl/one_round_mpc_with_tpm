@@ -13,7 +13,7 @@
 //#include "../includes/NetworkUtils.h"
 //#include "../includes/utilities.h"
 //#include "../includes/TPMWrapper.h"
-#include "ShamirSecret.h"
+#include "XOR_sharing.h"
 #include "NetworkUtils.h"
 #include "TPMWrapper.h"
 #include "utilities.h"
