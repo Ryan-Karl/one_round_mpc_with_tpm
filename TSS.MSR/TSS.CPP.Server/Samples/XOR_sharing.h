@@ -23,7 +23,7 @@ void vector_xor(std::vector<unsigned char> & left, const std::vector<unsigned ch
 }
 
 std::vector<std::vector<unsigned char> > get_shares(unsigned int num_shares, const std::vector<unsigned char> & secret){
-	if(num_shares < 2){
+	if(num_shares < 1){
 		throw std::logic_error("Not enough shares!");
 	}
 	std::vector<std::vector<unsigned char> > ret;
