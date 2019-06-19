@@ -19,7 +19,7 @@
 //#include "../includes/NetworkUtils.h"
 //#include "../includes/utilities.h"
 
-#include "ShamirSecret.h"
+#include "XOR_sharing.h"
 #include "NetworkUtils.h"
 #include "utilities.h"
 #include "TPMWrapper.h"
@@ -259,24 +259,9 @@ int main(int argc, char** argv) {
 	for (unsigned int o = 0; o < intermediate_ciphertexts.size(); o++) {
 		splitIntermediate(intermediate_ciphertexts[o], labels[o], keyShares[o]);
 	}
-	//2b. Combine secret shares
-	//Assume secrets are in a concatenated vector
-	//First part is x-coord, second is y-coord
-	ShamirSecret shamir(prime, num_wires, num_wires);
-	std::vector<std::pair<mpz_class, mpz_class> > shares;
-	for (unsigned int p = 0; p < keyShares.size(); p++) {
-		std::vector<BYTE> xVec, yVec;
-		splitIntermediate(keyShares[p], xVec, yVec);
-		shares.push_back(std::pair<mpz_class, mpz_class>(
-			ByteVecToMPZ(xVec), ByteVecToMPZ(yVec)));
-	}
-	mpz_class recombined_secret = shamir.getSecret(shares);
-	//2c. Get AES key from recombined secret
-	ByteVec aesVec = mpz_to_vector(recombined_secret);
-	//DEBUGGING print AES key
-	//std::cout << "Client AES key: " << byteVecToNumberString(aesVec) << std::endl;
+	//2b. Combine secret shares to recover AES key
+	std::vector<BYTE> aesVec = recover_secret(keyShares);
 	//3. Use AES to decrypt labels based on choices
-	//TODO finish once we have a function to convert ByteVec<->label
 	std::vector<std::vector<BYTE> >
 		decryptedLabels(choices.size());
 #define AES_BUFFERSIZE 2048
