@@ -467,7 +467,7 @@ void client_connect(unsigned int me, const std::string& hostname, unsigned int p
 	//First, receive which party the message is from
 	unsigned int* them;
 	unsigned int partyLen;
-	if (c.recvBuffer((void**)& them, partyLen) || partyLen != sizeof(them)) {
+	if (c.recvBuffer((void**)& them, partyLen) || partyLen != sizeof(unsigned int)) {
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
@@ -545,7 +545,7 @@ void server_connect(Server& s, unsigned int num_cons, unsigned int me,
 		//First, receive which party the message is from
 		unsigned int* them;
 		unsigned int partyLen;
-		if (s.recvBuffer(i, (void**)& them, partyLen) || partyLen != sizeof(them)) {
+		if (s.recvBuffer(i, (void**)& them, partyLen) || partyLen != sizeof(*them)) {
 			cerr << "ERROR : receiving" << endl;
 			throw new std::exception("ERROR receiving");
 		}
