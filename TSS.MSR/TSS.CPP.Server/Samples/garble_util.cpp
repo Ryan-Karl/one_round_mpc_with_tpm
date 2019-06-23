@@ -16,6 +16,9 @@
 #include "garble_util.h"
 // http://www.cs.toronto.edu/~vlad/papers/XOR_ICALP08.pdf
 
+#ifndef CHAR_WIDTH
+#define CHAR_WIDTH 8
+#endif
 
 using namespace std;
 
@@ -126,9 +129,8 @@ wire_value * wire2garbling(const Wire * w, const bool which) {
 	wire_value * k = w->k[which];
 	int size = k->len + 1;
 	wire_value * ret = new wire_value(size);
-	for (int i = 0; i < size - 1; i++) {
-		ret->set(i, k->get(i));
-	}
+	int num_bytes = (k->len/CHAR_WIDTH) + (k->len%CHAR_WIDTH? 1:0);
+	std::copy(k->bits, k->bits + num_bytes, ret->bits);
 	ret->set(size - 1, w->p[which]);
 	return ret;
 }
@@ -139,15 +141,12 @@ void garbling2wire(const wire_value *w, wire_value **k, bool *p) {
 		//TODO make sure this is the right size value
 		*k = new wire_value(size);
 	} 
-	for (int i = 0; i < size; i++) {
-		(*k)->set(i, w->get(i));
-	}
+	int num_bytes = (size/CHAR_WIDTH) + (size%CHAR_WIDTH? 1:0);
+	std::copy(w->bits, w->bits+num_bytes, (*k)->bits);
 	*p = w->get(size);
 }
 
-#ifndef CHAR_WIDTH
-#define CHAR_WIDTH 8
-#endif
+
 
 wire_value::wire_value(int size) {
 	assert(size > 0);
@@ -402,6 +401,14 @@ Wire::~Wire() {
 	//TODO figure out if we need to delete children
 	delete label_kp;
 	delete label_k;
+}
+
+Circuit::~Circuit(){
+	std::deque<Wire *> t_ordering;
+	top_sort(t_ordering, this);
+	for(Wire * w : t_ordering){
+		delete w;
+	}
 }
 
 void print_wire(Wire * w, std::ostream & os){
