@@ -467,7 +467,11 @@ void client_connect(unsigned int me, const std::string& hostname, unsigned int p
 	//First, receive which party the message is from
 	unsigned int* them;
 	unsigned int partyLen;
-	if (c.recvBuffer((void**)& them, partyLen) || partyLen != sizeof(them)) {
+<<<<<<< HEAD
+	if (c.recvBuffer((void**)& them, partyLen) || partyLen != sizeof(unsigned int)) {
+=======
+	if (c.recvBuffer((void**)& them, partyLen) || partyLen != sizeof(*them)) {
+>>>>>>> 528f0f354850d30d22220898192fff024f7c0d20
 		cerr << "ERROR : receiving" << hostname << ' ' << port << endl;
 		throw new std::exception("ERROR receiving");
 	}
@@ -545,10 +549,15 @@ void server_connect(Server& s, unsigned int num_cons, unsigned int me,
 		//First, receive which party the message is from
 		unsigned int* them;
 		unsigned int partyLen;
-		if (s.recvBuffer(i, (void**)& them, partyLen) || partyLen != sizeof(them)) {
+<<<<<<< HEAD
+		if (s.recvBuffer(i, (void**)& them, partyLen) || partyLen != sizeof(*them)) {
+=======
+		if (s.recvBuffer(i, (void**)& them, partyLen) || partyLen != sizeof(unsigned int)) {
+>>>>>>> 528f0f354850d30d22220898192fff024f7c0d20
 			cerr << "ERROR : receiving" << endl;
 			throw new std::exception("ERROR receiving");
 		}
+		std::cout << "Server sent party number" << std::endl;
 		//Next, get the actual data
 		//char * recvData;
 		unsigned int dataLen;
