@@ -200,7 +200,7 @@ void test_circuit_eval(std::ostream & os, char * circuitfile,
 	get_garbled_circuit(circ);
 	std::vector<std::vector<std::pair<wire_value *, wire_value *> > > labels(num_parties);
 	unsigned int choice_idx = 0;
-	os << "Choices: (" << choices.size() << "): ";
+	os << "Choices: ";
 	for(bool b : choices){
 		os << b << ' ';
 	}
@@ -222,10 +222,6 @@ void test_circuit_eval(std::ostream & os, char * circuitfile,
 		os << (x->output_value) << ' ';
 	}
 	os << std::endl;
-	delete circ;
-	for(PlayerInfo * pi : playerInfo){
-		delete pi;
-	}
 }
 
 std::vector<bool> parse_choicefile(char * filename) {

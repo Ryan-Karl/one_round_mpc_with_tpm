@@ -82,8 +82,6 @@ struct Circuit {
 	long n_wires;
 	// Security parameter
 	int security;
-	//Let the compiler know we are overriding the destructor
-	~Circuit();
 };
 
 //Garble circuit
