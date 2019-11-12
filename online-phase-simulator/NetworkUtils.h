@@ -122,7 +122,7 @@ public:
 	virtual int stop() = 0;
 };
 
-class Client : NetworkNode {
+class Client : public NetworkNode {
 private:
 	const char * servername;
 
@@ -255,7 +255,7 @@ public:
 
 };
 
-class Server : NetworkNode {
+class Server : public NetworkNode {
 private:
 	unsigned int num_connections;
 	socket_t * connections;
@@ -310,6 +310,13 @@ public:
 #endif			
 			return 1;
 		}
+		//Allow quickly reusing a port
+		int yes = 1;
+		if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1){
+			printf("Error setting socket to quickly reuse a port");
+			return 1;
+		}
+
 		//Bind socket
 		if (bind(sock, result->ai_addr, result->ai_addrlen) == SOCKET_ERROR) {
 #ifdef WIN32			
