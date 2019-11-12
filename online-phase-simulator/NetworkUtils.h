@@ -11,7 +11,7 @@
 
 
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 typedef int socket_t;
 //May not need these defines
 #define INVALID_SOCKET (~0)
@@ -23,6 +23,7 @@ typedef int socket_t;
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+
 #elif defined(WIN32)
 #include <WinSock2.h>
 #include <WS2tcpip.h>
