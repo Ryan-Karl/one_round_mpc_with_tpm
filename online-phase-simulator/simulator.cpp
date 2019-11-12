@@ -129,8 +129,8 @@ int main(int argc, char ** argv){
 			//Clean up memory
 			double duration = duration_cast<chrono::nanoseconds>(end-start).count();
 			cout << message_length << ' ' << duration << endl;
-			delete data;
-			delete response;
+			delete[] data;
+			delete[] response;
 		}
 		box.stop();
 	}
@@ -161,8 +161,8 @@ int main(int argc, char ** argv){
 			//Clean up memory
 			double duration = duration_cast<chrono::nanoseconds>(end-start).count();
 			cout << message_length << ' ' << duration << endl;
-			delete data;
-			delete response;
+			delete[] data;
+			delete[] response;
 		}
 		box.stop();
 	}
