@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <fstream>
 #include <chrono>
 
@@ -20,6 +21,7 @@ enum party_t {SERVER, CLIENT};
 int main(int argc, char ** argv){
 	string ip_addr = "";
 	unsigned int port = 0;
+	string input_file = "";
 	party_t party;
 	for(int argx = 1; argx < argc; argx++){
 		if(!strcmp(argv[argx], "-a")){
@@ -28,6 +30,10 @@ int main(int argc, char ** argv){
 		}
 		if(!strcmp(argv[argx], "-p")){
 			port = atoi(argv[++argx]);
+			continue;
+		}
+		if(!strcmp(argv[argx], "-i")){
+			input_file = argv[++argx];
 			continue;
 		}
 		if(!strcmp(argv[argx],"-w")){
@@ -92,8 +98,10 @@ int main(int argc, char ** argv){
 	//Message sizes are in bytes
 	vector<unsigned int> message_sizes;
 	unsigned int next_msg;
-	while(std::cin >> next_msg){
-		if(!std::cin.good()){
+	ifstream ifs(input_file);
+	std::istream & is = (input_file == "")? std::cin : ifs;
+	while(is >> next_msg){
+		if(!is.good()){
 			cout << "Reading from input failed!" << endl;
 			return 0;
 		}

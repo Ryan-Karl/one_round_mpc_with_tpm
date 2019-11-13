@@ -312,7 +312,11 @@ public:
 			return 1;
 		}
 		//Allow quickly reusing a port
+#if defined(__linux__) || defined(__APPLE__)		
 		int yes = 1;
+#elif defined(WIN32)
+		char yes = 1;
+#endif		
 		if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1){
 			printf("Error setting socket to quickly reuse a port");
 			return 1;
