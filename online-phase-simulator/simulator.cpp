@@ -22,6 +22,7 @@ int main(int argc, char ** argv){
 	string ip_addr = "";
 	unsigned int port = 0;
 	string input_file = "";
+	string output_file = "";
 	party_t party;
 	for(int argx = 1; argx < argc; argx++){
 		if(!strcmp(argv[argx], "-a")){
@@ -34,6 +35,10 @@ int main(int argc, char ** argv){
 		}
 		if(!strcmp(argv[argx], "-i")){
 			input_file = argv[++argx];
+			continue;
+		}
+		if(!strcmp(argv[argx], "-o")){
+			output_file = argv[++argx];
 			continue;
 		}
 		if(!strcmp(argv[argx],"-w")){
@@ -110,6 +115,8 @@ int main(int argc, char ** argv){
 	num_messages = message_sizes.size();
 
 	high_resolution_clock::time_point start, end;
+	ofstream ofs(output_file);
+	std::ostream & os = (output_file == "")? std::cout : ofs;
 
 	//Server
 	if(party == SERVER){
@@ -136,7 +143,7 @@ int main(int argc, char ** argv){
 			//Find and output message length and time (ns)
 			//Clean up memory
 			double duration = duration_cast<chrono::nanoseconds>(end-start).count();
-			cout << message_length << ' ' << duration << endl;
+			os << message_length << ' ' << duration << endl;
 			delete[] data;
 			delete[] response;
 		}
@@ -168,7 +175,7 @@ int main(int argc, char ** argv){
 			//Find and output message length and time (ns)
 			//Clean up memory
 			double duration = duration_cast<chrono::nanoseconds>(end-start).count();
-			cout << message_length << ' ' << duration << endl;
+			os << message_length << ' ' << duration << endl;
 			delete[] data;
 			delete[] response;
 		}
