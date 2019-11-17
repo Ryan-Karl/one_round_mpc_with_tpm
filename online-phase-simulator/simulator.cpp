@@ -32,6 +32,7 @@ int main(int argc, char ** argv){
 		}
 		if(!strcmp(argv[argx], "--append")){
 			append = true;
+			continue;
 		}
 		if(!strcmp(argv[argx], "-p")){
 			port = atoi(argv[++argx]);
