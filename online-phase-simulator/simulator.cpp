@@ -24,10 +24,14 @@ int main(int argc, char ** argv){
 	string input_file = "";
 	string output_file = "";
 	party_t party;
+	bool append = false;
 	for(int argx = 1; argx < argc; argx++){
 		if(!strcmp(argv[argx], "-a")){
 			ip_addr = argv[++argx];
 			continue;
+		}
+		if(!strcmp(argv[argx], "--append")){
+			append = true;
 		}
 		if(!strcmp(argv[argx], "-p")){
 			port = atoi(argv[++argx]);
@@ -65,6 +69,10 @@ int main(int argc, char ** argv){
 	}
 	if(!port){
 		cout << "Port invalid or missing!" << endl;
+		return 0;
+	}
+	if(append && input_file != ""){
+		cout << "--append specified, but no input file given. Use >> to append with command-line file redirection";
 		return 0;
 	}
 
@@ -115,7 +123,13 @@ int main(int argc, char ** argv){
 	num_messages = message_sizes.size();
 
 	high_resolution_clock::time_point start, end;
-	ofstream ofs(output_file);
+	//Default flags
+	ios_base::openmode out_mode = ios_base::in | ios_base::out;
+	if(append){
+		//Add append flag
+		out_mode |= std::ios_base::app;
+	}
+	ofstream ofs(output_file, out_mode);
 	std::ostream & os = (output_file == "")? std::cout : ofs;
 
 	//Server
